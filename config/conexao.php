@@ -1,25 +1,34 @@
 <?php
+require_once 'config.php';
+
 class Conexao {
 
-    private static $host = "localhost";
-    private static $usuario = "root";
-    private static $senha = "";
-    private static $banco = "patp_ads5";
+    private static $host;
+    private static $usuario;
+    private static $senha;
+    private static $banco;
 
     private static $conexao;
 
+    private static function carregarConfig() {
+        self::$host = $_ENV['DB_HOST'];
+        self::$usuario = $_ENV['DB_USER'];
+        self::$senha = $_ENV['DB_PASS'];
+        self::$banco = $_ENV['DB_NAME'];
+    }
+
     public static function getConexao() {
-        if (!isset(self::$conexao)) {
+        if (!self::$conexao) {
+            self::carregarConfig();
+
             self::$conexao = new mysqli(
                 self::$host,
                 self::$usuario,
                 self::$senha,
                 self::$banco
             );
-            if (self::$conexao->connect_error) {
-                die("Erro de conexão: " . self::$conexao->connect_error);
-            }
         }
+
         return self::$conexao;
     }
 }

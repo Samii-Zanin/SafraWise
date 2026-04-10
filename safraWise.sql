@@ -19,6 +19,7 @@
 -- Table structure for table `cotacoes`
 --
 
+DROP TABLE IF EXISTS `cotacoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `cotacoes` (
@@ -47,6 +48,7 @@ UNLOCK TABLES;
 -- Table structure for table `cultura`
 --
 
+DROP TABLE IF EXISTS `cultura`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `cultura` (
@@ -70,6 +72,7 @@ UNLOCK TABLES;
 -- Table structure for table `estoque_insumos`
 --
 
+DROP TABLE IF EXISTS `estoque_insumos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `estoque_insumos` (
@@ -98,6 +101,7 @@ UNLOCK TABLES;
 -- Table structure for table `insumo`
 --
 
+DROP TABLE IF EXISTS `insumo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `insumo` (
@@ -123,6 +127,7 @@ UNLOCK TABLES;
 -- Table structure for table `operacoes_agricolas`
 --
 
+DROP TABLE IF EXISTS `operacoes_agricolas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `operacoes_agricolas` (
@@ -131,17 +136,17 @@ CREATE TABLE `operacoes_agricolas` (
   `data_operacao` datetime DEFAULT current_timestamp(),
   `descricao` varchar(255) DEFAULT NULL,
   `insumo_id` int(11) DEFAULT NULL,
-  `cultura_id` int(11) DEFAULT NULL,
+  `safra_id` int(11) DEFAULT NULL,
   `talhao_id` int(11) DEFAULT NULL,
   `peao_id` int(11) DEFAULT NULL,
   `quantidade_insumo` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `insumo_id` (`insumo_id`),
-  KEY `cultura_id` (`cultura_id`),
+  KEY `cultura_id` (`safra_id`),
   KEY `talhao_id` (`talhao_id`),
   KEY `peao_id` (`peao_id`),
   CONSTRAINT `operacoes_agricolas_ibfk_1` FOREIGN KEY (`insumo_id`) REFERENCES `insumo` (`id`),
-  CONSTRAINT `operacoes_agricolas_ibfk_2` FOREIGN KEY (`cultura_id`) REFERENCES `cultura` (`id`),
+  CONSTRAINT `operacoes_agricolas_ibfk_2` FOREIGN KEY (`safra_id`) REFERENCES `cultura` (`id`),
   CONSTRAINT `operacoes_agricolas_ibfk_3` FOREIGN KEY (`talhao_id`) REFERENCES `talhoes` (`id`),
   CONSTRAINT `operacoes_agricolas_ibfk_4` FOREIGN KEY (`peao_id`) REFERENCES `peao` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -160,6 +165,7 @@ UNLOCK TABLES;
 -- Table structure for table `operacoes_financeiras`
 --
 
+DROP TABLE IF EXISTS `operacoes_financeiras`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `operacoes_financeiras` (
@@ -192,6 +198,7 @@ UNLOCK TABLES;
 -- Table structure for table `peao`
 --
 
+DROP TABLE IF EXISTS `peao`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `peao` (
@@ -221,6 +228,7 @@ UNLOCK TABLES;
 -- Table structure for table `produto`
 --
 
+DROP TABLE IF EXISTS `produto`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `produto` (
@@ -247,6 +255,7 @@ UNLOCK TABLES;
 -- Table structure for table `propriedade`
 --
 
+DROP TABLE IF EXISTS `propriedade`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `propriedade` (
@@ -277,6 +286,7 @@ UNLOCK TABLES;
 -- Table structure for table `proprietario`
 --
 
+DROP TABLE IF EXISTS `proprietario`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `proprietario` (
@@ -303,6 +313,7 @@ UNLOCK TABLES;
 -- Table structure for table `safra`
 --
 
+DROP TABLE IF EXISTS `safra`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `safra` (
@@ -332,6 +343,7 @@ UNLOCK TABLES;
 -- Table structure for table `talhoes`
 --
 
+DROP TABLE IF EXISTS `talhoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `talhoes` (
@@ -368,4 +380,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-03 18:13:10
+-- Dump completed on 2026-04-09 20:57:15

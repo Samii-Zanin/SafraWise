@@ -7,7 +7,7 @@ Class OperacoesAgricolas {
     private DateTime $data_operacao; 
     private string $descricao;
     private int $insumo_id;                
-    private int $cultura_id;               
+    private int $safra_id;               
     private int $talhao_id;                
     private int $peao_id;                  
     private float $quantidade_insumo;
@@ -18,7 +18,7 @@ Class OperacoesAgricolas {
         DateTime $data_operacao,     
         string $descricao,
         int $insumo_id,
-        int $cultura_id,
+        int $safra_id,
         int $talhao_id,
         int $peao_id,
         float $quantidade_insumo
@@ -28,7 +28,7 @@ Class OperacoesAgricolas {
         $this->data_operacao    = $data_operacao;
         $this->descricao        = $descricao;
         $this->insumo_id        = $insumo_id;
-        $this->cultura_id       = $cultura_id;
+        $this->safra_id       = $safra_id;
         $this->talhao_id        = $talhao_id;
         $this->peao_id          = $peao_id;
         $this->quantidade_insumo = $quantidade_insumo;
@@ -54,8 +54,8 @@ Class OperacoesAgricolas {
         return $this->insumo_id;
     }
 
-    public function getCulturaId(): int {
-        return $this->cultura_id;
+    public function getSafraId(): int {
+        return $this->safra_id;
     }
 
     public function getTalhaoId(): int {

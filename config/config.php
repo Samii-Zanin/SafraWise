@@ -10,4 +10,4 @@ function carregarEnv($arquivo) {
     }
 }
 
-carregarEnv(__DIR__ . '/.env');
+carregarEnv(__DIR__ . '/../.env');

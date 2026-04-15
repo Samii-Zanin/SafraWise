@@ -7,19 +7,22 @@ Class Talhao {
     private float $area_hectare;
     private string $coordenadas_json;
     private int $propriedade_id;
+    private string $status;
 
     public function __construct(
         int $id,
         string $nome,
         float $area_hectare,
         string $coordenadas_json,
-        int $propriedade_id
+        int $propriedade_id,
+        string $status
     ){
         $this->id = $id;
         $this->nome = $nome;
-        $this->area_heactare = $area_heactare;
+        $this->area_hectare = $area_hectare;
         $this->coordenadas_json = $coordenadas_json;
         $this->propriedade_id = $propriedade_id;
+        $this->status = $status;
     } 
     
     public function getId(): int {
@@ -42,6 +45,10 @@ Class Talhao {
         return $this->propriedade_id;
     }
 
+    public function getStatus(): string {
+        return $this->status;
+    }
+
     public function setNome(string $nome): void {
         $this->nome = $nome;
     }
@@ -53,6 +60,10 @@ Class Talhao {
     }
     public function setPropriedadeId(int $propriedade_id): void {
         $this->propriedade_id = $propriedade_id;
+    }
+
+    public function setStatus(string $status): void {
+        $this->status = $status;
     }
 
 }

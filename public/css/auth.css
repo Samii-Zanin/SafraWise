@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+:root {
+  --verde-escuro:  #0f2318;
+  --verde-card:    #1e4530;
+  --verde-accent:  #2d6a4f;
+  --verde-vivo:    #40916c;
+  --verde-claro:   #74c69d;
+  --verde-menta:   #b7e4c7;
+  --branco:        #fafaf7;
+  --texto-escuro:  #0d1f17;
+  --font-titulo:   'DM Serif Display', Georgia, serif;
+  --font-corpo:    'DM Sans', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-corpo);
+  background-color: var(--verde-escuro);
+  color: var(--texto-escuro);
+}
+
+/* Tipografia Customizada */
+.font-titulo { font-family: var(--font-titulo); }
+.text-verde-vivo { color: var(--verde-vivo) !important; }
+.text-verde-claro { color: var(--verde-claro) !important; }
+
+/* Fundo da lateral esquerda */
+.bg-brand-gradient {
+  background: linear-gradient(160deg, var(--verde-card) 0%, var(--verde-escuro) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Botão principal customizado */
+.btn-safrawise {
+  background-color: var(--verde-vivo);
+  color: white;
+  border: none;
+  transition: all 0.2s ease;
+}
+.btn-safrawise:hover {
+  background-color: var(--verde-accent);
+  color: white;
+  transform: translateY(-1px);
+}

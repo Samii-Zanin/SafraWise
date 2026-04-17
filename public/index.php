@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../app/controllers/AuthController.php";
+require_once "../app/controllers/ProprietarioController.php";
+require_once "../app/controllers/PeaoController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -38,6 +40,12 @@ switch ($page) {
         loadView('dashboard');
         break;
 
+    case 'equipe':
+        requireAuth(); // Bloqueia deslogados
+        $peaoController = new PeaoController();
+        $peaoController->index(); // Chama a função que busca no banco e abre a tela
+        break;
+    
     case 'talhoes':
         requireAuth();
         loadView('talhoes');
@@ -52,6 +60,28 @@ switch ($page) {
         session_destroy();
         header("Location: index.php?page=login");
         exit;
+
+    case 'cadastro_proprietario':
+        
+        loadView('create_prop');
+        break;
+
+    case 'cadastro_peao':
+        // Apenas usuários logados podem cadastrar peões
+        requireAuth(); 
+        loadView('create_peao');
+        break;
+
+    case 'store_proprietario':
+        $propController = new ProprietarioController();
+        $propController->store();
+        break;
+
+    case 'store_peao':
+        requireAuth(); 
+        $peaoController = new PeaoController();
+        $peaoController->store();
+        break;
 
     default:
         http_response_code(404);

@@ -1,35 +1,40 @@
 <?php
 
-require_once 'proprietario.php';
+require_once 'Proprietario.php';
 
-Class Peao {
+class Peao {
 
-    private  int $id;
+    private ?int $id; 
     private string $nome;
     private string $cpf_cnpj;
-    private string $telefone;
-    private string $email;
+    private ?string $telefone; 
+    private ?string $email;    
     private string $senha;
     private int $proprietario_id;
 
     public function __construct(
         string $nome,
         string $cpf_cnpj,
-        string $telefone,
-        string $email,
+        ?string $telefone,
+        ?string $email,
         string $senha,
         int $proprietario_id
     ){
-        $this->cpf_cnpj = $cpf_cnpj;
         $this->nome = $nome;
+        $this->cpf_cnpj = $cpf_cnpj;
+        $this->telefone = $telefone;
         $this->email = $email;
         $this->senha = $senha;
-        $this->telefone = $telefone;
         $this->proprietario_id = $proprietario_id;
     }
     
-    public function getId(): int {
-        return $this->id;
+    // Setters opcionais para quando buscar do banco de dados
+    public function setId(int $id): void {
+        $this->id = $id;
+    }
+
+    public function getId(): ?int {
+        return $this->id ?? null;
     }
 
     public function getNome(): string {
@@ -40,29 +45,36 @@ Class Peao {
         return $this->cpf_cnpj;
     }
 
-    public function getTelefone(): string {
+    public function getTelefone(): ?string {
         return $this->telefone;
     }
 
-    public function getEmail(): string {
+    public function getEmail(): ?string {
         return $this->email;
     }
 
+    public function getSenha(): string {
+        return $this->senha;
+    }
+
+    public function getProprietarioId(): int {
+        return $this->proprietario_id;
+    }
+
+    // Setters
     public function setNome(string $nome): void {
         $this->nome = $nome;
     }
 
-    public function setTelefone(string $telefone): void {
+    public function setTelefone(?string $telefone): void {
         $this->telefone = $telefone;
     }
 
-    public function setEmail(string $email): void {
+    public function setEmail(?string $email): void {
         $this->email = $email;
     }
 
     public function setSenha(string $senha): void {
         $this->senha = $senha;
     }
-
-
 }

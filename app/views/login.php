@@ -145,14 +145,14 @@ if (isset($_SESSION['toast'])) {
         <input type="hidden" name="tipo" id="tipo" value="proprietario">
 
         <div class="form-group">
-          <label class="form-label" for="email">E-mail</label>
+          <label class="form-label" for="email">E-mail ou CPF</label>
           <span class="form-icon">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M2.5 6.5L10 11l7.5-4.5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
-          <input class="form-input" type="email" id="email" name="email"
-            placeholder="seu@email.com.br" autocomplete="email" required>
+          <input class="form-input" type="text" id="email" name="email" 
+          placeholder="seu@email.com.br ou 000.000.000-00" required>
         </div>
 
         <div class="form-group">
@@ -175,9 +175,15 @@ if (isset($_SESSION['toast'])) {
         </button>
       </form>
 
-      <p class="login-footer">
-        Problemas para acessar? <a href="#">Fale com o suporte</a>
-      </p>
+      <div class="login-footer">
+        Não tem uma conta? <a href="/safrawise/public/?page=cadastro_proprietario">Cadastre-se grátis</a>
+      </div>
+
+      <div class="login-footer" style="margin-top: 12px; font-size: 12px; opacity: 0.8;">
+        Problemas para acessar? <a href="#" style="color: var(--texto-suave); text-decoration: underline;">Fale com o suporte</a>
+      </div>
+
+    </div> </div> ```
     </div>
   </div>
 

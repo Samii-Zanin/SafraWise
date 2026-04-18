@@ -90,4 +90,46 @@ class ProprietarioController {
             'mensagem' => $mensagem
         ];
     }
+
+    // Exibe a tela de perfil/configurações
+    public function configuracoes(): void {
+        $id = $_SESSION['user']['id'];
+        
+        $stmt = $this->db->prepare("SELECT id, nome, email, cpf_cnpj FROM proprietario WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+
+        require_once "../app/views/configuracoes_proprietario.php";
+    }
+
+    // Processa a atualização do perfil
+    public function update(): void {
+        $id = $_SESSION['user']['id'];
+        $nome = trim($_POST['nome']);
+        $email = trim($_POST['email']);
+        $senha = $_POST['senha'] ?? '';
+
+        if (!empty($senha)) {
+            // Atualiza com nova senha criptografada
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+            $sql = "UPDATE proprietario SET nome = ?, email = ?, senha = ? WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("sssi", $nome, $email, $senhaHash, $id);
+        } else {
+            // Atualiza apenas nome e email
+            $sql = "UPDATE proprietario SET nome = ?, email = ? WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("ssi", $nome, $email, $id);
+        }
+
+        if ($stmt->execute()) {
+            // Atualiza a sessão para o nome mudar na barra lateral imediatamente
+            $_SESSION['user']['nome'] = $nome;
+            $_SESSION['user']['email'] = $email;
+            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Perfil Atualizado', 'mensagem' => 'Suas alterações foram salvas.'];
+        }
+        
+        header("Location: index.php?page=configuracoes");
+    }
 }

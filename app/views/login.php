@@ -143,7 +143,7 @@ if (isset($_SESSION['toast'])) {
       </div>
 
       <!-- Formulário -->
-      <form method="POST" action="../../public/?page=auth">
+      <form method="POST" action="../.git./public/?page=auth">
         <input type="hidden" name="tipo" id="tipo" value="proprietario">
 
         <div class="form-group">

@@ -1,7 +1,10 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+;
 if (!isset($_SESSION['user'])) {
-    header("Location: /safrawise/public/");
+    header("Location: /public/");
     exit;
 }
 
@@ -37,8 +40,8 @@ if (isset($_SESSION['toast'])) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-  <link rel="preload" href="/safrawise/public/css/safrawise.css" as="style">
-  <link rel="stylesheet" href="/safrawise/public/css/safrawise.css">
+  <link rel="preload" href="../../public/css/safrawise.css" as="style">
+  <link rel="stylesheet" href="../../public/css/safrawise.css">
 </head>
 <body>
 
@@ -170,7 +173,7 @@ if (isset($_SESSION['toast'])) {
     </nav>
 
     <div class="sidebar-footer">
-      <a href="/safrawise/public/?page=logout" class="btn-sair">
+      <a href="../../public/?page=logout" class="btn-sair">
         <svg viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
         </svg>
@@ -311,7 +314,6 @@ if (isset($_SESSION['toast'])) {
               <?php endforeach; ?>
             </div>
           </div>
-
         </div>
 
         <div style="display:flex; flex-direction:column; gap:20px;">

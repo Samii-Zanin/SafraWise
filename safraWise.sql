@@ -16,8 +16,8 @@
 
 
 -- Copiando estrutura do banco de dados para safrawise
-CREATE DATABASE IF NOT EXISTS `safrawise` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
-USE `safrawise`;
+-- CREATE DATABASE IF NOT EXISTS `safrawise` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+USE `teste`;
 
 -- Copiando estrutura para tabela safrawise.cotacoes
 CREATE TABLE IF NOT EXISTS `cotacoes` (
@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `proprietario` (
   `email` varchar(155) DEFAULT NULL,
   `senha` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Exportação de dados foi desmarcado.
 

@@ -1,7 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+};
 if (isset($_SESSION['user'])) {
-    header("Location: /safrawise/public/?page=dashboard");
+    header("Location: /public/?page=dashboard");
     exit;
 }
 
@@ -20,7 +22,7 @@ if (isset($_SESSION['toast'])) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/safrawise/public/css/safrawise.css">
+  <link rel="stylesheet" href="../../public/css/safrawise.css">
 </head>
 <body>
 
@@ -141,7 +143,7 @@ if (isset($_SESSION['toast'])) {
       </div>
 
       <!-- Formulário -->
-      <form method="POST" action="/safrawise/public/?page=auth">
+      <form method="POST" action="../.git./public/?page=auth">
         <input type="hidden" name="tipo" id="tipo" value="proprietario">
 
         <div class="form-group">
@@ -176,7 +178,7 @@ if (isset($_SESSION['toast'])) {
       </form>
 
       <div class="login-footer">
-        Não tem uma conta? <a href="/safrawise/public/?page=cadastro_proprietario">Cadastre-se grátis</a>
+        Não tem uma conta? <a href="../../public/?page=cadastro_proprietario">Cadastre-se grátis</a>
       </div>
 
       <div class="login-footer" style="margin-top: 12px; font-size: 12px; opacity: 0.8;">

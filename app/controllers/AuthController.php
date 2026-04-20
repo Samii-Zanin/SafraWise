@@ -6,7 +6,7 @@ class AuthController
     public function login(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: /safrawise/public/?page=login");
+            header("Location: /public/?page=login");
             exit;
         }
 
@@ -22,7 +22,7 @@ class AuthController
                 'titulo'   => 'Campos obrigatórios',
                 'mensagem' => 'Preencha o e-mail/CPF e a senha para continuar.',
             ];
-            header("Location: /safrawise/public/?page=login");
+            header("Location: /public/?page=login");
             exit;
         }
 
@@ -34,7 +34,7 @@ class AuthController
                 'titulo'   => 'Acesso negado',
                 'mensagem' => 'E-mail, CPF ou senha incorretos. Verifique suas credenciais.',
             ];
-            header("Location: /safrawise/public/?page=login");
+            header("Location: /public/?page=login");
             exit;
         }
 
@@ -50,7 +50,7 @@ class AuthController
             'mensagem' => 'Você entrou como ' . ($tipo === 'proprietario' ? 'proprietário' : 'peão de campo') . '.',
         ];
 
-        header("Location: /safrawise/public/?page=dashboard");
+        header("Location: /public/?page=dashboard");
         exit;
     }
 

@@ -115,4 +115,58 @@ class PeaoController {
             'mensagem' => $mensagem
         ];
     }
+
+    // Exibe o formulário de edição
+    public function edit(): void {
+        $id = $_GET['id'] ?? null;
+        $proprietario_id = $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare("SELECT * FROM peao WHERE id = ? AND proprietario_id = ?");
+        $stmt->bind_param("ii", $id, $proprietario_id);
+        $stmt->execute();
+        $peao = $stmt->get_result()->fetch_assoc();
+
+        if (!$peao) {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Peão não encontrado.'];
+            header("Location: index.php?page=equipe");
+            exit;
+        }
+
+        require_once "../app/views/edit_peao.php";
+    }
+
+    // Processa a atualização dos dados
+    public function update(): void {
+        $id = $_POST['id'];
+        $proprietario_id = $_SESSION['user']['id'];
+        $nome = trim($_POST['nome']);
+        $cpf = trim($_POST['cpf_cnpj']);
+        $telefone = trim($_POST['telefone']);
+        $email = trim($_POST['email']);
+
+        $sql = "UPDATE peao SET nome = ?, cpf_cnpj = ?, telefone = ?, email = ? WHERE id = ? AND proprietario_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("ssssii", $nome, $cpf, $telefone, $email, $id, $proprietario_id);
+
+        if ($stmt->execute()) {
+            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Sucesso', 'mensagem' => 'Dados atualizados!'];
+        } else {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Falha ao atualizar.'];
+        }
+        header("Location: index.php?page=equipe");
+    }
+
+    // Exclui o peão
+    public function delete(): void {
+        $id = $_GET['id'];
+        $proprietario_id = $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare("DELETE FROM peao WHERE id = ? AND proprietario_id = ?");
+        $stmt->bind_param("ii", $id, $proprietario_id);
+
+        if ($stmt->execute()) {
+            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Removido', 'mensagem' => 'Colaborador excluído da equipe.'];
+        }
+        header("Location: index.php?page=equipe");
+    }
 }

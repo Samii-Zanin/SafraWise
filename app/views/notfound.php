@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/safrawise/public/css/notfound/notfound.css">
+    <link rel="stylesheet" href="../../public/css/notfound/notfound.css">
 </head>
 
 <body>
@@ -19,7 +19,7 @@
     <div class="nf-container">
 
         <!-- Logo -->
-        <a href="/safrawise/public/" class="nf-logo">
+        <a href="/public/" class="nf-logo">
             <div class="nf-logo-icon">
                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <!-- monitor -->
@@ -70,7 +70,7 @@
         </p>
 
         <div class="nf-actions">
-            <a href="/safrawise/public/" class="btn-primary">
+            <a href="/public/" class="btn-primary">
                 <svg viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>

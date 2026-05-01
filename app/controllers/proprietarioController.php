@@ -1,93 +1,76 @@
 <?php
-require_once "../app/models/proprietario.php";
-require_once "../config/conexao.php"; 
+require_once "../app/controllers/BaseController.php";
+require_once "../config/conexao.php";
 
-class ProprietarioController {
-    
+class ProprietarioController extends BaseController
+{
     private mysqli $db;
 
-    public function __construct() {
-        
+    public function __construct()
+    {
         $this->db = Conexao::getConexao();
     }
 
-    public function store(): void {
+    public function save(): void
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: index.php?page=cadastro_proprietario");
-            exit;
+            $this->redirect('cadastro_proprietario');
         }
 
-        // 1. Captura e limpeza de dados
-        $nome = trim($_POST['nome'] ?? '');
-        $cpf_cnpj = trim($_POST['cpf_cnpj'] ?? '');
-        $telefone = trim($_POST['telefone'] ?? '');
-        $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
-        $senha_pura = $_POST['senha'] ?? '';
+        $nome      = trim($_POST['nome']    ?? '');
+        $cpf_cnpj  = trim($_POST['cpf_cnpj'] ?? '');
+        $telefone  = trim($_POST['telefone'] ?? '');
+        $email     = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+        $senha     = $_POST['senha'] ?? '';
 
-        if (empty($nome) || empty($cpf_cnpj) || empty($email) || empty($senha_pura)) {
+        if (empty($nome) || empty($cpf_cnpj) || empty($email) || empty($senha)) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Por favor, preencha todos os campos.');
-            header("Location: index.php?page=cadastro_proprietario");
-            exit;
+            $this->redirect('cadastro_proprietario');
         }
 
         try {
-            // 2. Verificar se e-mail ou CPF/CNPJ já existem
-            $stmtCheck = $this->db->prepare("SELECT id FROM proprietario WHERE email = ? OR cpf_cnpj = ?");
-            // "ss" significa que estamos passando duas Strings
-            $stmtCheck->bind_param("ss", $email, $cpf_cnpj); 
-            $stmtCheck->execute();
-            $stmtCheck->store_result();
-            
-            if ($stmtCheck->num_rows > 0) {
-                $this->setToast('error', 'Cadastro Duplicado', 'Este E-mail ou CPF/CNPJ já está cadastrado.');
-                $stmtCheck->close();
-                header("Location: index.php?page=cadastro_proprietario");
-                exit;
+            if ($this->proprietarioJaExiste($email, $cpf_cnpj)) {
+                $this->setToast('error', 'Cadastro Duplicado', 'Este e-mail ou CPF/CNPJ já está cadastrado.');
+                $this->redirect('cadastro_proprietario');
             }
-            $stmtCheck->close();
 
-            // 3. Criptografia da Senha
-            $senha_hash = password_hash($senha_pura, PASSWORD_DEFAULT);
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
-            // 4. Instancia o Model
-            $proprietario = new Proprietario($nome, $cpf_cnpj, $telefone, $email, $senha_hash);
+            $stmt = $this->db->prepare(
+                "INSERT INTO proprietario (nome, cpf_cnpj, telefone, email, senha)
+                 VALUES (?, ?, ?, ?, ?)"
+            );
+            $stmt->bind_param("sssss", $nome, $cpf_cnpj, $telefone, $email, $senhaHash);
 
-            // 5. Inserção no banco
-            $sql = "INSERT INTO proprietario (nome, cpf_cnpj, telefone, email, senha) VALUES (?, ?, ?, ?, ?)";
-            $stmtInsert = $this->db->prepare($sql);
-            
-            // Pega os dados do objeto
-            $p_nome = $proprietario->getNome();
-            $p_cpf = $proprietario->getCpfCnpj();
-            $p_tel = $proprietario->getTelefone();
-            $p_email = $proprietario->getEmail();
-            
-            // "sssss" = 5 strings
-            $stmtInsert->bind_param("sssss", $p_nome, $p_cpf, $p_tel, $p_email, $senha_hash);
-            
-            if ($stmtInsert->execute()) {
-                $this->setToast('success', 'Conta criada!', 'Seu cadastro foi realizado. Faça login no sistema.');
-                header("Location: index.php?page=login");
-            } else {
-                throw new Exception("Erro ao executar a query de inserção.");
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao inserir proprietário: {$this->db->error}");
             }
-            
-            $stmtInsert->close();
-            exit;
 
-        } catch (Exception $e) {
-            error_log($e->getMessage()); // Registra o erro real nos logs do servidor
+            $stmt->close();
+
+            $this->setToast('success', 'Conta criada!', 'Seu cadastro foi realizado. Faça login no sistema.');
+            $this->redirect('login');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
             $this->setToast('error', 'Erro interno', 'Ocorreu um problema ao salvar. Tente novamente.');
-            header("Location: index.php?page=cadastro_proprietario");
-            exit;
+            $this->redirect('cadastro_proprietario');
         }
     }
 
-    private function setToast(string $tipo, string $titulo, string $mensagem): void {
-        $_SESSION['toast'] = [
-            'tipo' => $tipo,
-            'titulo' => $titulo,
-            'mensagem' => $mensagem
-        ];
+    // ESSA FUNÇÃO VAI PARA O VALIDATOR
+    private function proprietarioJaExiste(string $email, string $cpf_cnpj): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM proprietario WHERE email = ? OR cpf_cnpj = ? LIMIT 1"
+        );
+        $stmt->bind_param("ss", $email, $cpf_cnpj);
+        $stmt->execute();
+        $stmt->store_result();
+
+        $existe = $stmt->num_rows > 0;
+        $stmt->close();
+
+        return $existe;
     }
 }

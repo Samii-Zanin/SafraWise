@@ -1,42 +1,759 @@
-/* ─── SafraWise — public/css/safrawise.css ─── */
+/* ─── SafraWise — Camada customizada sobre Bootstrap 5 ─── */
+/* Bootstrap cuida do reset, tipografia base, grid, form, table, btn, card.  */
+/* Este arquivo só define tokens de marca + componentes que o Bootstrap não cobre. */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap");
+
+/* ══════════════════════════════════════
+   1. TOKENS & INJEÇÃO NAS VARIÁVEIS DO BOOTSTRAP
+══════════════════════════════════════ */
 
 :root {
-  --verde-escuro:  #0f2318;
-  --verde-medio:   #1a3a28;
-  --verde-card:    #1e4530;
-  --verde-accent:  #2d6a4f;
-  --verde-vivo:    #40916c;
-  --verde-claro:   #74c69d;
-  --verde-menta:   #b7e4c7;
-  --dourado:       #d4a017;
+  /* ── Paleta SafraWise ── */
+  --verde-escuro: #0f2318;
+  --verde-medio: #1a3a28;
+  --verde-card: #1e4530;
+  --verde-accent: #2d6a4f;
+  --verde-vivo: #40916c;
+  --verde-claro: #74c69d;
+  --verde-menta: #b7e4c7;
+  --dourado: #d4a017;
   --dourado-claro: #f2c94c;
-  --creme:         #f4f1e8;
-  --branco:        #fafaf7;
-  --texto-escuro:  #0d1f17;
-  --texto-medio:   #3d5a47;
-  --texto-suave:   #6b8f75;
-  --borda:         rgba(64, 145, 108, 0.2);
-  --sombra:        0 4px 24px rgba(15, 35, 24, 0.35);
-  --radius:        14px;
-  --radius-lg:     22px;
-  --font-titulo:   'DM Serif Display', Georgia, serif;
-  --font-corpo:    'DM Sans', system-ui, sans-serif;
+  --branco: #fafaf7;
+  --texto-escuro: #0d1f17;
+  --texto-medio: #3d5a47;
+  --texto-suave: #6b8f75;
+
+  /* ── Override das variáveis Bootstrap 5 com a marca ── */
+  /* Typography */
+  --bs-font-sans-serif: "DM Sans", system-ui, sans-serif;
+  --bs-body-font-family: "DM Sans", system-ui, sans-serif;
+  --bs-body-color: var(--texto-escuro);
+  --bs-body-bg: var(--verde-escuro);
+
+  /* Border-radius */
+  --bs-border-radius: 14px;
+  --bs-border-radius-sm: 10px;
+  --bs-border-radius-lg: 22px;
+  --bs-border-radius-xl: 22px;
+
+  /* Cores primárias/success — Bootstrap aplica em btn-success, badges, etc. */
+  --bs-primary: var(--verde-vivo);
+  --bs-primary-rgb: 64, 145, 108;
+  --bs-success: var(--verde-vivo);
+  --bs-success-rgb: 64, 145, 108;
+  --bs-warning: var(--dourado);
+  --bs-warning-rgb: 212, 160, 23;
+
+  /* Links */
+  --bs-link-color: var(--verde-vivo);
+  --bs-link-hover-color: var(--verde-accent);
+
+  /* Card (componente Bootstrap) */
+  --bs-card-bg: var(--branco);
+  --bs-card-border-color: #e2ece5;
+  --bs-card-border-radius: var(--bs-border-radius-lg);
+  --bs-card-cap-bg: #f5f9f6;
+  --bs-card-cap-padding-y: 1.25rem;
+  --bs-card-cap-padding-x: 1.5rem;
+
+  /* Table */
+  --bs-table-hover-bg: rgba(64, 145, 108, 0.04);
+  --bs-table-border-color: #f0f5f1;
+
+  /* Form */
+  --bs-focus-ring-color: rgba(64, 145, 108, 0.25);
+  --bs-border-color: #dde8e0;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Títulos usam a fonte serif da marca ── */
+.font-titulo,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: "DM Serif Display", Georgia, serif;
+}
 
-body {
+/* ── form-control focus usa verde da marca ── */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--verde-vivo);
+  box-shadow: 0 0 0 0.25rem rgba(64, 145, 108, 0.2);
+}
+
+/* ── form-label mais compacto/capitalizado como no design original ── */
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--texto-medio);
+  margin-bottom: 7px;
+}
+
+/* ── btn-success usa a paleta da marca automaticamente via variáveis Bootstrap ── */
+/* As variáveis --bs-success / --bs-success-rgb acima já fazem a maior parte    */
+/* Este bloco garante o hover/active e o visual idêntico ao .btn-login original */
+.btn-success {
+  --bs-btn-bg: var(--verde-vivo);
+  --bs-btn-border-color: var(--verde-vivo);
+  --bs-btn-hover-bg: var(--verde-accent);
+  --bs-btn-hover-border-color: var(--verde-accent);
+  --bs-btn-active-bg: var(--verde-medio);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
   font-family: var(--font-corpo);
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--texto-escuro);
-  background: var(--verde-escuro);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.35);
 }
 
 /* ══════════════════════════════════════
-   LOGIN PAGE
+   2. LAYOUT DO APP
+══════════════════════════════════════ */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f4f1;
+}
+
+.main-content {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-body {
+  padding: 32px 36px 48px;
+  flex: 1;
+}
+
+/* ══════════════════════════════════════
+   3. SIDEBAR  (Bootstrap não tem sidebar)
+══════════════════════════════════════ */
+
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: var(--verde-escuro);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  border-right: 1px solid rgba(64, 145, 108, 0.15);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 24px 24px;
+  border-bottom: 1px solid rgba(64, 145, 108, 0.12);
+}
+
+.sidebar-logo-icon {
+  width: 38px;
+  height: 38px;
+  background: var(--verde-vivo);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sidebar-logo-name {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 22px;
+  color: var(--branco);
+}
+
+.sidebar-user {
+  margin: 20px 16px 12px;
+  padding: 14px 16px;
+  background: rgba(64, 145, 108, 0.12);
+  border: 1px solid rgba(64, 145, 108, 0.18);
+  border-radius: 12px;
+}
+
+.sidebar-user-role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--verde-claro);
+  margin-bottom: 4px;
+}
+
+.sidebar-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--branco);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(183, 228, 199, 0.4);
+  padding: 14px 12px 6px;
+}
+
+/*
+ * Prefixo "sw-" para não conflitar com o .nav-link do Bootstrap
+ * (Bootstrap define cor, padding e hover próprios em .nav-link)
+ */
+.sw-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(183, 228, 199, 0.65);
+  transition: all 0.18s ease;
+}
+
+.sw-nav-link svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.sw-nav-link:hover {
+  background: rgba(64, 145, 108, 0.15);
+  color: var(--verde-menta);
+}
+.sw-nav-link:hover svg {
+  opacity: 1;
+}
+.sw-nav-link.active {
+  background: var(--verde-vivo);
+  color: #fff;
+}
+.sw-nav-link.active svg {
+  opacity: 1;
+}
+
+/* Badge dentro do menu (prefixado para não conflitar com .badge do Bootstrap) */
+.sw-nav-badge {
+  margin-left: auto;
+  background: var(--dourado);
+  color: var(--texto-escuro);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid rgba(64, 145, 108, 0.12);
+}
+
+.btn-sair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(183, 228, 199, 0.5);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.btn-sair svg {
+  width: 18px;
+  height: 18px;
+}
+.btn-sair:hover {
+  background: rgba(220, 50, 50, 0.12);
+  color: #f97676;
+}
+
+/* ══════════════════════════════════════
+   4. TOPBAR
+══════════════════════════════════════ */
+
+.topbar {
+  background: var(--branco);
+  border-bottom: 1px solid #e0e9e3;
+  padding: 0 36px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Bootstrap redefine margin nos headings — zeramos aqui */
+.topbar-left h1 {
+  font-size: 22px;
+  color: var(--texto-escuro);
+  letter-spacing: -0.3px;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+.topbar-left p {
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  margin-bottom: 0;
+  margin-top: 1px;
+}
+
+.topbar-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid #dde8e0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--texto-medio);
+  transition: all 0.15s;
+}
+
+.topbar-btn:hover {
+  background: #eef4f0;
+  border-color: var(--verde-vivo);
+  color: var(--verde-vivo);
+}
+.topbar-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.topbar-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--verde-vivo);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════
+   5. METRIC CARDS
+   (Bootstrap .card é a base; aqui só a barra colorida no topo)
+══════════════════════════════════════ */
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  box-shadow: 0 4px 20px rgba(15, 35, 24, 0.08);
+}
+
+/* Barra colorida no topo do card */
+.metric-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+}
+
+.metric-card.verde::after {
+  background: var(--verde-vivo);
+}
+.metric-card.dourado::after {
+  background: var(--dourado);
+}
+.metric-card.azul::after {
+  background: #3b82f6;
+}
+.metric-card.roxo::after {
+  background: #8b5cf6;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.metric-icon.verde {
+  background: rgba(64, 145, 108, 0.12);
+  color: var(--verde-vivo);
+}
+.metric-icon.dourado {
+  background: rgba(212, 160, 23, 0.12);
+  color: var(--dourado);
+}
+.metric-icon.azul {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.metric-icon.roxo {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+}
+
+.metric-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--texto-suave);
+}
+
+.metric-value {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 30px;
+  color: var(--texto-escuro);
+  line-height: 1;
+}
+
+.metric-delta {
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-delta.up {
+  color: var(--verde-vivo);
+}
+.metric-delta.down {
+  color: #e05252;
+}
+.metric-delta svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ══════════════════════════════════════
+   6. SECTION CARDS (lista de talhões, atividades)
+══════════════════════════════════════ */
+
+.section-card {
+  background: var(--branco);
+  border-radius: var(--bs-border-radius-lg);
+  border: 1px solid #e2ece5;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #edf2ee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 17px;
+  color: var(--texto-escuro);
+  margin: 0;
+}
+
+.section-action {
+  font-size: 13px;
+  color: var(--verde-vivo);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* ── Linhas de talhão ── */
+.talhao-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #f0f5f1;
+  transition: background 0.15s;
+}
+
+.talhao-row:last-child {
+  border-bottom: none;
+}
+.talhao-row:hover {
+  background: #f7fbf8;
+}
+
+.talhao-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.talhao-info {
+  flex: 1;
+}
+.talhao-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto-escuro);
+}
+.talhao-meta {
+  font-size: 12px;
+  color: var(--texto-suave);
+  margin-top: 1px;
+}
+.talhao-area {
+  font-size: 13px;
+  color: var(--texto-medio);
+  font-weight: 500;
+}
+
+/* Status pills */
+.status-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.status-pill.plantado {
+  background: rgba(64, 145, 108, 0.1);
+  color: var(--verde-vivo);
+}
+.status-pill.colheita {
+  background: rgba(212, 160, 23, 0.12);
+  color: #a07010;
+}
+.status-pill.preparo {
+  background: rgba(107, 143, 117, 0.1);
+  color: var(--texto-suave);
+}
+
+/* ── Items de atividade ── */
+.activity-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f5f1;
+  align-items: flex-start;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.activity-text {
+  font-size: 13.5px;
+  color: var(--texto-escuro);
+  line-height: 1.5;
+}
+.activity-time {
+  font-size: 11.5px;
+  color: var(--texto-suave);
+  margin-top: 3px;
+}
+
+/* ── Progresso por cultura ── */
+.progress-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f5f1;
+}
+
+.progress-item:last-child {
+  border-bottom: none;
+}
+.progress-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--texto-escuro);
+}
+.progress-pct {
+  font-size: 12px;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   7. CLIMA CARD
+══════════════════════════════════════ */
+
+.clima-card {
+  background: linear-gradient(
+    135deg,
+    var(--verde-card) 0%,
+    var(--verde-accent) 100%
+  );
+  border-radius: var(--bs-border-radius-lg);
+  padding: 24px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.clima-card::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.clima-local {
+  font-size: 12px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+.clima-temp {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 52px;
+  line-height: 1;
+}
+.clima-desc {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.clima-stat-label {
+  font-size: 10px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  display: block;
+}
+.clima-stat-val {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   8. TABLE CUSTOMIZADA (Equipe)
+══════════════════════════════════════ */
+
+.card-table-wrapper {
+  background: var(--branco);
+  border-radius: var(--bs-border-radius-lg);
+  border: 1px solid #e2ece5;
+  overflow: hidden;
+}
+
+.table-safrawise thead th {
+  background: #f5f9f6;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--texto-suave);
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2ece5;
+}
+
+.table-safrawise tbody td {
+  padding: 16px 20px;
+  vertical-align: middle;
+}
+.table-safrawise tbody tr {
+  border-bottom: 1px solid #f0f5f1;
+  transition: background 0.15s;
+}
+.table-safrawise tbody tr:last-child {
+  border-bottom: none;
+}
+.table-safrawise tbody tr:hover {
+  background: #f7fbf8;
+}
+
+/* Botão de ação dentro da tabela */
+.btn-table-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #dde8e0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--texto-medio);
+  transition: all 0.15s;
+}
+
+.btn-table-action:hover {
+  background: #eef4f0;
+  border-color: var(--verde-vivo);
+  color: var(--verde-vivo);
+}
+
+/* ══════════════════════════════════════
+   9. LOGIN PAGE (Bootstrap não tem split-panel)
 ══════════════════════════════════════ */
 
 .login-page {
@@ -44,32 +761,42 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: var(--verde-escuro);
-  position: relative;
   overflow: hidden;
 }
 
-/* Painel esquerdo – ilustração / branding */
+/* Painel esquerdo — branding */
 .login-brand {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 48px 52px;
-  background: linear-gradient(160deg, var(--verde-card) 0%, var(--verde-escuro) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--verde-card) 0%,
+    var(--verde-escuro) 100%
+  );
   position: relative;
   overflow: hidden;
 }
 
 .login-brand::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(45,106,79,0.28) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(64,145,108,0.15) 0%, transparent 60%);
+    radial-gradient(
+      ellipse 80% 60% at 20% 80%,
+      rgba(45, 106, 79, 0.28) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 20%,
+      rgba(64, 145, 108, 0.15) 0%,
+      transparent 60%
+    );
   pointer-events: none;
 }
 
-/* Grade botânica decorativa */
 .brand-grid {
   position: absolute;
   inset: 0;
@@ -80,7 +807,10 @@ body {
   background-size: 48px 48px;
 }
 
-.brand-top { position: relative; z-index: 2; }
+.brand-top {
+  position: relative;
+  z-index: 2;
+}
 
 .brand-logo {
   display: flex;
@@ -99,17 +829,20 @@ body {
   justify-content: center;
 }
 
-.brand-logo-icon svg { width: 26px; height: 26px; }
+.brand-logo-icon svg {
+  width: 26px;
+  height: 26px;
+}
 
 .brand-logo-name {
-  font-family: var(--font-titulo);
+  font-family: "DM Serif Display", Georgia, serif;
   font-size: 26px;
   color: var(--branco);
   letter-spacing: -0.3px;
 }
 
 .brand-headline {
-  font-family: var(--font-titulo);
+  font-family: "DM Serif Display", Georgia, serif;
   font-size: 46px;
   line-height: 1.1;
   color: var(--branco);
@@ -130,27 +863,14 @@ body {
   line-height: 1.7;
 }
 
-/* Ilustração central – planta SVG grande */
-.brand-plant {
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0.18;
-  pointer-events: none;
-}
-
-/* Estatísticas pequenas */
 .brand-stats {
   display: flex;
   gap: 32px;
   position: relative;
   z-index: 2;
 }
-
-.stat-item {}
 .stat-num {
-  font-family: var(--font-titulo);
+  font-family: "DM Serif Display", Georgia, serif;
   font-size: 28px;
   color: var(--verde-claro);
 }
@@ -163,7 +883,7 @@ body {
   margin-top: 2px;
 }
 
-/* ─── Painel direito – formulário ─── */
+/* Painel direito — formulário */
 .login-form-panel {
   display: flex;
   align-items: center;
@@ -176,7 +896,6 @@ body {
   width: 100%;
   max-width: 400px;
 }
-
 .login-eyebrow {
   font-size: 12px;
   font-weight: 600;
@@ -185,16 +904,15 @@ body {
   color: var(--verde-vivo);
   margin-bottom: 10px;
 }
-
 .login-title {
-  font-family: var(--font-titulo);
+  font-family: "DM Serif Display", Georgia, serif;
   font-size: 34px;
   color: var(--texto-escuro);
   margin-bottom: 32px;
   letter-spacing: -0.5px;
 }
 
-/* Toggle tipo de acesso */
+/* Toggle proprietário/peão */
 .access-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -210,7 +928,6 @@ body {
   border: none;
   background: transparent;
   border-radius: 8px;
-  font-family: var(--font-corpo);
   font-size: 14px;
   font-weight: 500;
   color: var(--texto-suave);
@@ -222,656 +939,127 @@ body {
   gap: 7px;
 }
 
-.access-btn svg { width: 16px; height: 16px; opacity: 0.6; }
-
+.access-btn svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
 .access-btn.active {
   background: var(--verde-vivo);
   color: #fff;
-  box-shadow: 0 2px 10px rgba(45,106,79,0.35);
+  box-shadow: 0 2px 10px rgba(45, 106, 79, 0.35);
+}
+.access-btn.active svg {
+  opacity: 1;
 }
 
-.access-btn.active svg { opacity: 1; }
-
-/* Campos */
-.form-group {
-  margin-bottom: 18px;
+/* Input com ícone à esquerda */
+.input-icon-wrap {
   position: relative;
 }
 
-.form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--texto-medio);
-  margin-bottom: 7px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 13px 16px 13px 44px;
-  border: 1.5px solid #dde8e0;
-  border-radius: var(--radius);
-  font-family: var(--font-corpo);
-  font-size: 15px;
-  color: var(--texto-escuro);
-  background: #f9fbf9;
-  transition: all 0.2s ease;
-  outline: none;
-}
-
-.form-input:focus {
-  border-color: var(--verde-vivo);
-  background: #fff;
-  box-shadow: 0 0 0 4px rgba(64,145,108,0.12);
+.input-icon-wrap .form-control {
+  padding-left: 44px;
 }
 
 .form-icon {
   position: absolute;
   left: 14px;
-  bottom: 13px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 18px;
   height: 18px;
   color: var(--texto-suave);
   pointer-events: none;
-}
-
-.form-icon svg { width: 18px; height: 18px; }
-
-.btn-login {
-  width: 100%;
-  padding: 15px;
-  background: var(--verde-vivo);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-family: var(--font-corpo);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  letter-spacing: 0.2px;
 }
 
-.btn-login:hover {
-  background: var(--verde-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(45,106,79,0.35);
+.form-icon svg {
+  width: 18px;
+  height: 18px;
 }
-
-.btn-login svg { width: 18px; height: 18px; }
-
-.login-footer {
-  margin-top: 28px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--texto-suave);
-}
-
-.login-footer a { color: var(--verde-vivo); text-decoration: none; font-weight: 500; }
-
-/* Mensagem de erro */
-.alert-error {
-  background: #fef0f0;
-  border: 1.5px solid #f5c6c6;
-  color: #c0392b;
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  font-size: 13.5px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-  .login-page { grid-template-columns: 1fr; }
-  .login-brand { display: none; }
-  .login-form-panel { padding: 40px 28px; }
-}
-
 
 /* ══════════════════════════════════════
-   DASHBOARD
+   10. MODAL  (brand override no Bootstrap .modal)
 ══════════════════════════════════════ */
 
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-  background: #f0f4f1;
+.modal-content {
+  border: 1px solid #e2ece5;
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: 0 16px 48px rgba(15, 35, 24, 0.22);
+  overflow: hidden; /* garante que border-radius recorte o header */
 }
 
-/* ─── Sidebar ─── */
-.sidebar {
-  width: 260px;
-  min-height: 100vh;
+.modal-header {
   background: var(--verde-escuro);
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  position: fixed;
-  top: 0; left: 0;
-  z-index: 100;
-  border-right: 1px solid rgba(64,145,108,0.15);
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 28px 24px 24px;
-  border-bottom: 1px solid rgba(64,145,108,0.12);
-}
-
-.sidebar-logo-icon {
-  width: 38px; height: 38px;
-  background: var(--verde-vivo);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-
-.sidebar-logo-icon svg { width: 22px; height: 22px; }
-
-.sidebar-logo-name {
-  font-family: var(--font-titulo);
-  font-size: 22px;
-  color: var(--branco);
-}
-
-/* Perfil do usuário no topo da sidebar */
-.sidebar-user {
-  margin: 20px 16px 12px;
-  padding: 14px 16px;
-  background: rgba(64,145,108,0.12);
-  border: 1px solid rgba(64,145,108,0.18);
-  border-radius: 12px;
-}
-
-.sidebar-user-role {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--verde-claro);
-  margin-bottom: 4px;
-}
-
-.sidebar-user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--branco);
-}
-
-/* Navegação */
-.sidebar-nav {
-  flex: 1;
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.nav-section-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: rgba(183,228,199,0.4);
-  padding: 14px 12px 6px;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 11px 14px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(183,228,199,0.65);
-  transition: all 0.18s ease;
-  position: relative;
-}
-
-.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.8; }
-
-.nav-link:hover {
-  background: rgba(64,145,108,0.15);
-  color: var(--verde-menta);
-}
-
-.nav-link:hover svg { opacity: 1; }
-
-.nav-link.active {
-  background: var(--verde-vivo);
-  color: #fff;
-}
-
-.nav-link.active svg { opacity: 1; }
-
-.nav-link .badge {
-  margin-left: auto;
-  background: var(--dourado);
-  color: var(--texto-escuro);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 20px;
-}
-
-/* Saída */
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid rgba(64,145,108,0.12);
-}
-
-.btn-sair {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  font-family: var(--font-corpo);
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(183,228,199,0.5);
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.18s ease;
-}
-
-.btn-sair svg { width: 18px; height: 18px; }
-.btn-sair:hover { background: rgba(220,50,50,0.12); color: #f97676; }
-
-/* ─── Conteúdo principal ─── */
-.main-content {
-  margin-left: 260px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Topbar */
-.topbar {
-  background: var(--branco);
-  border-bottom: 1px solid #e0e9e3;
-  padding: 0 36px;
-  height: 68px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.topbar-left h1 {
-  font-family: var(--font-titulo);
-  font-size: 22px;
-  color: var(--texto-escuro);
-  letter-spacing: -0.3px;
-}
-
-.topbar-left p {
-  font-size: 12.5px;
-  color: var(--texto-suave);
-  margin-top: 1px;
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.topbar-btn {
-  width: 38px; height: 38px;
-  border-radius: 10px;
-  border: 1.5px solid #dde8e0;
-  background: transparent;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: var(--texto-medio);
-  transition: all 0.15s;
-}
-
-.topbar-btn:hover { background: #eef4f0; border-color: var(--verde-vivo); color: var(--verde-vivo); }
-.topbar-btn svg { width: 18px; height: 18px; }
-
-.topbar-avatar {
-  width: 38px; height: 38px;
-  border-radius: 10px;
-  background: var(--verde-vivo);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-/* ─── Página interna ─── */
-.page-body {
-  padding: 32px 36px 48px;
-  flex: 1;
-}
-
-/* Cartões de métricas */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  margin-bottom: 30px;
-}
-
-.metric-card {
-  background: var(--branco);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
-  border: 1px solid #e2ece5;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
-
-.metric-card:hover { box-shadow: 0 4px 20px rgba(15,35,24,0.08); }
-
-.metric-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 2px 2px 0 0;
-}
-
-.metric-card.verde::after  { background: var(--verde-vivo); }
-.metric-card.dourado::after { background: var(--dourado); }
-.metric-card.azul::after   { background: #3b82f6; }
-.metric-card.roxo::after   { background: #8b5cf6; }
-
-.metric-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px;
-}
-
-.metric-icon svg { width: 20px; height: 20px; }
-.metric-icon.verde  { background: rgba(64,145,108,0.12); color: var(--verde-vivo); }
-.metric-icon.dourado { background: rgba(212,160,23,0.12); color: var(--dourado); }
-.metric-icon.azul  { background: rgba(59,130,246,0.12); color: #3b82f6; }
-.metric-icon.roxo  { background: rgba(139,92,246,0.12); color: #8b5cf6; }
-
-.metric-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--texto-suave);
-  margin-bottom: 6px;
-}
-
-.metric-value {
-  font-family: var(--font-titulo);
-  font-size: 30px;
-  color: var(--texto-escuro);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.metric-delta {
-  font-size: 12px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.metric-delta.up   { color: var(--verde-vivo); }
-.metric-delta.down { color: #e05252; }
-.metric-delta svg  { width: 13px; height: 13px; }
-
-/* Grade inferior */
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 20px;
-}
-
-/* Cards de seção */
-.section-card {
-  background: var(--branco);
-  border-radius: var(--radius-lg);
-  border: 1px solid #e2ece5;
-  overflow: hidden;
-}
-
-.section-header {
+  border-bottom: 1px solid rgba(64, 145, 108, 0.2);
   padding: 20px 24px;
-  border-bottom: 1px solid #edf2ee;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-title {
-  font-family: var(--font-titulo);
-  font-size: 17px;
-  color: var(--texto-escuro);
-}
-
-.section-action {
-  font-size: 13px;
-  color: var(--verde-vivo);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.section-body { padding: 8px 0; }
-
-/* Tabela de talhões */
-.talhao-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 24px;
-  border-bottom: 1px solid #f0f5f1;
-  transition: background 0.15s;
-}
-
-.talhao-row:last-child { border-bottom: none; }
-.talhao-row:hover { background: #f7fbf8; }
-
-.talhao-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.talhao-info { flex: 1; }
-
-.talhao-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--texto-escuro);
-}
-
-.talhao-meta {
-  font-size: 12px;
-  color: var(--texto-suave);
-  margin-top: 1px;
-}
-
-.talhao-area {
-  font-size: 13px;
-  color: var(--texto-medio);
-  font-weight: 500;
-}
-
-.status-pill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.status-pill.plantado  { background: rgba(64,145,108,0.1);  color: var(--verde-vivo); }
-.status-pill.colheita  { background: rgba(212,160,23,0.12); color: #a07010; }
-.status-pill.preparo   { background: rgba(107,143,117,0.1); color: var(--texto-suave); }
-
-/* Alertas / atividades */
-.activity-item {
-  display: flex;
-  gap: 14px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f0f5f1;
   align-items: flex-start;
 }
 
-.activity-item:last-child { border-bottom: none; }
-
-.activity-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  margin-top: 6px;
-  flex-shrink: 0;
+.modal-header .modal-title {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 20px;
+  color: var(--branco);
+  letter-spacing: -0.2px;
 }
 
-.activity-text {
-  font-size: 13.5px;
-  color: var(--texto-escuro);
-  line-height: 1.5;
-}
-
-.activity-time {
-  font-size: 11.5px;
-  color: var(--texto-suave);
+/* Subtítulo opcional dentro do header */
+.modal-header .modal-subtitle {
+  font-size: 12.5px;
+  color: rgba(183, 228, 199, 0.65);
   margin-top: 3px;
+  font-weight: 400;
 }
 
-/* Clima widget */
-.clima-card {
-  background: linear-gradient(135deg, var(--verde-card) 0%, var(--verde-accent) 100%);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  color: #fff;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
+/* Botão de fechar — Bootstrap usa .btn-close, recolorimos para o fundo escuro */
+.modal-header .btn-close {
+  filter: invert(1) grayscale(1) brightness(1.5);
+  opacity: 0.55;
+  margin-top: 2px;
+  margin-left: auto !important;
 }
 
-.clima-card::before {
-  content: '';
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 140px; height: 140px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.05);
+.modal-header .btn-close:hover {
+  opacity: 1;
 }
 
-.clima-local {
-  font-size: 12px;
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 8px;
-  font-weight: 600;
+.modal-body {
+  padding: 28px 24px 20px;
+  background: var(--branco);
 }
 
-.clima-temp {
-  font-family: var(--font-titulo);
-  font-size: 52px;
-  line-height: 1;
-  margin-bottom: 4px;
+.modal-footer {
+  padding: 16px 24px;
+  background: #f5f9f6;
+  border-top: 1px solid #e2ece5;
+  gap: 10px;
 }
 
-.clima-desc {
+/* Botão secundário (cancelar) nos modais */
+.btn-modal-cancel {
+  padding: 10px 20px;
+  border-radius: var(--bs-border-radius-sm);
+  border: 1.5px solid #dde8e0;
+  background: transparent;
   font-size: 14px;
-  opacity: 0.8;
-  margin-bottom: 18px;
+  font-weight: 500;
+  color: var(--texto-medio);
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.clima-stats {
-  display: flex;
-  gap: 20px;
-}
-
-.clima-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.clima-stat-label {
-  font-size: 10px;
-  opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  font-weight: 600;
-}
-
-.clima-stat-val {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-/* Barra de progresso */
-.progress-item {
-  padding: 14px 20px;
-  border-bottom: 1px solid #f0f5f1;
-}
-
-.progress-item:last-child { border-bottom: none; }
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
-}
-
-.progress-name { font-size: 13.5px; font-weight: 500; color: var(--texto-escuro); }
-.progress-pct  { font-size: 12px; color: var(--texto-suave); font-weight: 600; }
-
-.progress-bar {
-  height: 6px;
-  background: #edf2ee;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 1s ease;
-}
-
-@media (max-width: 1200px) {
-  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-  .content-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 900px) {
-  .sidebar { transform: translateX(-100%); }
-  .main-content { margin-left: 0; }
+.btn-modal-cancel:hover {
+  background: #eef4f0;
+  border-color: var(--verde-vivo);
+  color: var(--verde-vivo);
 }
 
 /* ══════════════════════════════════════
-   TOASTS
+   11. TOASTS  (animação customizada)
+   Bootstrap 5 tem .toast mas o sistema aqui é diferente.
+   Usamos as mesmas classes mas sobrescrevemos o comportamento.
 ══════════════════════════════════════ */
 
 .toast-container {
@@ -885,19 +1073,21 @@ body {
   pointer-events: none;
 }
 
+/* Sobrescreve o .toast do Bootstrap (que usa opacity/display toggle) */
 .toast {
-  display: flex;
+  display: flex !important;
   align-items: flex-start;
   gap: 12px;
   padding: 14px 18px;
-  border-radius: 14px;
+  border-radius: 14px !important;
   min-width: 300px;
   max-width: 400px;
   pointer-events: all;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18) !important;
   animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   position: relative;
   overflow: hidden;
+  opacity: 1 !important;
 }
 
 .toast.hide {
@@ -905,57 +1095,82 @@ body {
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateX(60px) scale(0.95); }
-  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 @keyframes toastOut {
-  from { opacity: 1; transform: translateX(0)    scale(1);    max-height: 100px; margin-bottom: 0; }
-  to   { opacity: 0; transform: translateX(60px) scale(0.95); max-height: 0;     margin-bottom: -10px; }
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    max-height: 100px;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+    max-height: 0;
+    margin-bottom: -10px;
+  }
 }
 
 /* Barra de progresso de auto-close */
 .toast::after {
-  content: '';
+  content: "";
   position: absolute;
-  bottom: 0; left: 0;
+  bottom: 0;
+  left: 0;
   height: 3px;
   border-radius: 0 0 0 14px;
   animation: toastProgress var(--toast-duration, 4s) linear forwards;
 }
 
 @keyframes toastProgress {
-  from { width: 100%; }
-  to   { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
-/* Ícone */
 .toast-icon {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.toast-icon svg { width: 18px; height: 18px; }
+.toast-icon svg {
+  width: 18px;
+  height: 18px;
+}
 
-/* Conteúdo */
-.toast-body { flex: 1; padding-top: 1px; }
-
+.toast-body {
+  flex: 1;
+  padding-top: 1px;
+}
 .toast-title {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 2px;
   line-height: 1.3;
 }
-
 .toast-msg {
   font-size: 13px;
   line-height: 1.5;
   opacity: 0.8;
 }
 
-/* Botão fechar */
 .toast-close {
   background: none;
   border: none;
@@ -969,63 +1184,205 @@ body {
   align-items: center;
 }
 
-.toast-close:hover { opacity: 1; }
-.toast-close svg { width: 14px; height: 14px; }
-
-/* ── Variantes ── */
-
-.toast.success {
-  background: #f0faf4;
-  border: 1.5px solid #a8dbb8;
-  color: #0d4a28;
+.toast-close:hover {
+  opacity: 1;
+}
+.toast-close svg {
+  width: 14px;
+  height: 14px;
 }
 
+/* Variantes */
+.toast.success {
+  background: #f0faf4;
+  border: 1.5px solid #a8dbb8 !important;
+  color: #0d4a28;
+}
 .toast.success .toast-icon {
   background: #d1f5e0;
   color: #1a7a45;
 }
-
-.toast.success::after { background: #40916c; }
-.toast.success .toast-close { color: #0d4a28; }
+.toast.success::after {
+  background: #40916c;
+}
+.toast.success .toast-close {
+  color: #0d4a28;
+}
 
 .toast.error {
   background: #fff4f4;
-  border: 1.5px solid #f5bcbc;
+  border: 1.5px solid #f5bcbc !important;
   color: #6b1515;
 }
-
 .toast.error .toast-icon {
   background: #fde0e0;
   color: #c0392b;
 }
-
-.toast.error::after { background: #e05252; }
-.toast.error .toast-close { color: #6b1515; }
+.toast.error::after {
+  background: #e05252;
+}
+.toast.error .toast-close {
+  color: #6b1515;
+}
 
 .toast.warning {
   background: #fffbf0;
-  border: 1.5px solid #f5dcaa;
+  border: 1.5px solid #f5dcaa !important;
   color: #6b4a08;
 }
-
 .toast.warning .toast-icon {
   background: #fdefc7;
   color: #b07a10;
 }
-
-.toast.warning::after { background: #d4a017; }
-.toast.warning .toast-close { color: #6b4a08; }
+.toast.warning::after {
+  background: #d4a017;
+}
+.toast.warning .toast-close {
+  color: #6b4a08;
+}
 
 .toast.info {
   background: #f0f6ff;
-  border: 1.5px solid #b8d4f5;
+  border: 1.5px solid #b8d4f5 !important;
   color: #0d2f6b;
 }
-
 .toast.info .toast-icon {
   background: #daeafc;
   color: #1a5aab;
 }
+.toast.info::after {
+  background: #3b82f6;
+}
+.toast.info .toast-close {
+  color: #0d2f6b;
+}
 
-.toast.info::after { background: #3b82f6; }
-.toast.info .toast-close { color: #0d2f6b; }
+/* ══════════════════════════════════════
+   11. MODAL (SafraWise brand sobre o Bootstrap Modal)
+══════════════════════════════════════ */
+
+/* Backdrop mais escuro e com leve blur */
+.modal-backdrop {
+  --bs-backdrop-bg: var(--verde-escuro);
+  --bs-backdrop-opacity: 0.65;
+  backdrop-filter: blur(2px);
+}
+
+/* Janela do modal */
+.sw-modal .modal-content {
+  border: none;
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: 0 24px 64px rgba(15, 35, 24, 0.45);
+  overflow: hidden;
+}
+
+/* Header com a paleta escura da marca */
+.sw-modal .modal-header {
+  background: var(--verde-escuro);
+  border-bottom: 1px solid rgba(64, 145, 108, 0.2);
+  padding: 20px 28px;
+  align-items: flex-start;
+}
+
+.sw-modal .modal-title {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 20px;
+  color: var(--branco);
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.sw-modal .modal-subtitle {
+  font-size: 12.5px;
+  color: var(--verde-menta);
+  opacity: 0.7;
+  margin-top: 3px;
+}
+
+/* Botão fechar (X) */
+.sw-modal .btn-close {
+  filter: invert(1) brightness(0.7);
+  opacity: 0.6;
+  margin: 0;
+  align-self: center;
+}
+
+.sw-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Body */
+.sw-modal .modal-body {
+  background: var(--branco);
+  padding: 28px;
+}
+
+/* Footer */
+.sw-modal .modal-footer {
+  background: #f5f9f6;
+  border-top: 1px solid #e2ece5;
+  padding: 16px 28px;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Botão cancelar no modal */
+.btn-modal-cancel {
+  background: transparent;
+  border: 1.5px solid #dde8e0;
+  color: var(--texto-medio);
+  border-radius: 10px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-cancel:hover {
+  background: #eef4f0;
+  border-color: var(--verde-vivo);
+  color: var(--verde-vivo);
+}
+
+/* Animação de entrada suave */
+.sw-modal.fade .modal-dialog {
+  transform: translateY(-12px) scale(0.98);
+}
+.sw-modal.show .modal-dialog {
+  transform: translateY(0) scale(1);
+}
+
+/* ══════════════════════════════════════
+   12. RESPONSIVO
+══════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+  .login-brand {
+    display: none;
+  }
+  .login-form-panel {
+    padding: 40px 28px;
+  }
+}
+
+.form-control::placeholder {
+  color: #757575;
+  font-size: smaller;
+}
+.form-control {
+  color: white !important;
+}
+

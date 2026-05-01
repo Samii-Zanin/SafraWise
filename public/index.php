@@ -41,9 +41,9 @@ switch ($page) {
         break;
 
     case 'equipe':
-        requireAuth(); // Bloqueia deslogados
+        requireAuth(); 
         $peaoController = new PeaoController();
-        $peaoController->index(); // Chama a função que busca no banco e abre a tela
+        $peaoController->index(); 
         break;
     
     case 'talhoes':
@@ -66,21 +66,16 @@ switch ($page) {
         loadView('create_prop');
         break;
 
-    case 'cadastro_peao':
-        // Apenas usuários logados podem cadastrar peões
-        requireAuth(); 
-        loadView('create_peao');
-        break;
 
     case 'store_proprietario':
         $propController = new ProprietarioController();
-        $propController->store();
+        $propController->save();
         break;
 
     case 'store_peao':
         requireAuth(); 
         $peaoController = new PeaoController();
-        $peaoController->store();
+        $peaoController->save();
         break;
 
     default:

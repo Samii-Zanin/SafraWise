@@ -393,6 +393,7 @@ h6,
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.2s;
+  background-color: var(--branco);
 }
 
 .metric-card:hover {

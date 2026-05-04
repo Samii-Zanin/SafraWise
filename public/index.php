@@ -3,6 +3,7 @@ session_start();
 require_once "../app/controllers/AuthController.php";
 require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
+require_once "../app/controllers/InsumoController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -53,7 +54,26 @@ switch ($page) {
 
     case 'insumos':
         requireAuth();
-        loadView('insumos');
+        $insumoController = new InsumoController();
+        $insumoController->index();
+        break;
+
+    case 'store_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->save();
+        break;
+
+    case 'update_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->update();
+        break;
+
+    case 'delete_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->delete();
         break;
 
     case 'logout':

@@ -79,6 +79,7 @@ if (isset($_SESSION['toast'])) {
 <div class="app-layout">
 
   <?php include 'layouts/sidebar.php'; ?>
+  <?php include 'layouts/ticker.php'; ?>
 
   <div class="main-content">
 

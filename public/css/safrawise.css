@@ -1386,3 +1386,136 @@ h6,
   color: white !important;
 }
 
+/* ══════════════════════════════════════
+   13. TICKER — COTAÇÕES DESLIZANTES
+   Os itens são duplicados no PHP para criar o loop infinito.
+   Css só trata a movimentação e estilo.
+══════════════════════════════════════ */
+
+/* Barra fixa no topo — acima da sidebar (z:100) e topbar (z:50) */
+.ticker-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  z-index: 200;
+  background: var(--verde-escuro);
+  border-bottom: 1px solid rgba(64, 145, 108, 0.3);
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+/* Rótulo "COTAÇÕES" — fixo, fora do scroll */
+.ticker-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 100%;
+  background: var(--verde-vivo);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+}
+
+/* Área de recorte — esconde o que transborda */
+.ticker-viewport {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+/*
+ * A lista com todos os itens (2x duplicados pelo PHP).
+ *
+ * width: max-content  → expande para a soma de todos os itens,
+ *                        sem quebrar linha
+ * A animação translateX(-50%) move exatamente uma cópia para a esquerda.
+ */
+.ticker-list {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: max-content;
+  height: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  animation: ticker-slide 90s linear infinite;
+}
+
+/* Pausa ao passar o mouse */
+.ticker-viewport:hover .ticker-list {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Cada cotação */
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.ticker-cultura {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(183, 228, 199, 0.8);
+}
+
+.ticker-preco {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ticker-preco.ticker-up {
+  color: #4ade80;
+} /* alta  — verde */
+.ticker-preco.ticker-down {
+  color: #f87171;
+} /* baixa — vermelho */
+
+/* Separador "|" entre itens */
+.ticker-sep {
+  flex-shrink: 0;
+  list-style: none;
+  color: rgba(64, 145, 108, 0.4);
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+/*
+ * Compensação dos 34px do ticker nos elementos que usam top/sticky.
+ * Sidebar e topbar descem 34px; main-content ganha padding-top.
+ */
+.sidebar {
+  top: 34px;
+  min-height: calc(100vh - 34px);
+}
+.topbar {
+  top: 34px;
+}
+.main-content {
+  padding-top: 34px;
+}

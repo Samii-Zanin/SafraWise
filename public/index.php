@@ -3,6 +3,7 @@ session_start();
 require_once "../app/controllers/AuthController.php";
 require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
+require_once "../app/controllers/InsumoController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -41,9 +42,9 @@ switch ($page) {
         break;
 
     case 'equipe':
-        requireAuth(); // Bloqueia deslogados
+        requireAuth(); 
         $peaoController = new PeaoController();
-        $peaoController->index(); // Chama a função que busca no banco e abre a tela
+        $peaoController->index(); 
         break;
     
     case 'talhoes':
@@ -53,7 +54,26 @@ switch ($page) {
 
     case 'insumos':
         requireAuth();
-        loadView('insumos');
+        $insumoController = new InsumoController();
+        $insumoController->index();
+        break;
+
+    case 'store_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->save();
+        break;
+
+    case 'update_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->update();
+        break;
+
+    case 'delete_insumo':
+        requireAuth();
+        $insumoController = new InsumoController();
+        $insumoController->delete();
         break;
 
     case 'logout':
@@ -66,15 +86,10 @@ switch ($page) {
         loadView('create_prop');
         break;
 
-    case 'cadastro_peao':
-        // Apenas usuários logados podem cadastrar peões
-        requireAuth(); 
-        loadView('create_peao');
-        break;
 
     case 'store_proprietario':
         $propController = new ProprietarioController();
-        $propController->store();
+        $propController->save();
         break;
 
     case 'configuracoes':
@@ -90,7 +105,7 @@ switch ($page) {
     case 'store_peao':
         requireAuth(); 
         $peaoController = new PeaoController();
-        $peaoController->store();
+        $peaoController->save();
         break;
     
     case 'edit_peao':

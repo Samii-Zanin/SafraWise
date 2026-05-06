@@ -4,6 +4,7 @@ require_once "../app/controllers/AuthController.php";
 require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
 require_once "../app/controllers/InsumoController.php";
+require_once "../app/controllers/PropriedadeController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -124,6 +125,26 @@ switch ($page) {
         requireAuth();
         $controller = new PeaoController();
         $controller->delete();
+        break;
+    
+    case 'propriedades':
+        requireAuth();
+        (new PropriedadeController())->index();
+        break;
+
+    case 'store_propriedade':
+        requireAuth();
+        (new PropriedadeController())->store();
+        break;
+
+    case 'update_propriedade':
+        requireAuth();
+        (new PropriedadeController())->update();
+        break;
+
+    case 'delete_propriedade':
+        requireAuth();
+        (new PropriedadeController())->delete();
         break;
 
     default:

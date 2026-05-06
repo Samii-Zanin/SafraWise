@@ -19,8 +19,9 @@
   --verde-menta: #b7e4c7;
   --dourado: #d4a017;
   --dourado-claro: #f2c94c;
-  --branco: #fafaf7;
-  --texto-escuro: #0d1f17;
+  --branco: #fafaf7f6;
+  --branco-escuro: #edf0e6;
+  --texto-escuro: #030303;
   --texto-medio: #3d5a47;
   --texto-suave: #6b8f75;
 
@@ -29,7 +30,7 @@
   --bs-font-sans-serif: "DM Sans", system-ui, sans-serif;
   --bs-body-font-family: "DM Sans", system-ui, sans-serif;
   --bs-body-color: var(--texto-escuro);
-  --bs-body-bg: var(--verde-escuro);
+  --bs-body-bg: var(--branco-escuro);
 
   /* Border-radius */
   --bs-border-radius: 14px;
@@ -58,7 +59,7 @@
   --bs-card-cap-padding-x: 1.5rem;
 
   /* Table */
-  --bs-table-hover-bg: rgba(64, 145, 108, 0.04);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
   --bs-table-border-color: #f0f5f1;
 
   /* Form */
@@ -699,8 +700,8 @@ h6,
    8. TABLE CUSTOMIZADA (Equipe)
 ══════════════════════════════════════ */
 
-.card-table-wrapper {
-  background: var(--branco);
+.card-table-wrapper  {
+  background: var(--branco) !important;
   border-radius: var(--bs-border-radius-lg);
   border: 1px solid #e2ece5;
   overflow: hidden;
@@ -725,8 +726,9 @@ h6,
   border-bottom: 1px solid #f0f5f1;
   transition: background 0.15s;
 }
-.table-safrawise tbody tr:last-child {
-  border-bottom: none;
+
+.table-safrawise tbody tr:last-child td {
+    border-bottom: 0 !important;
 }
 .table-safrawise tbody tr:hover {
   background: #f7fbf8;
@@ -1299,7 +1301,13 @@ h6,
   opacity: 0.7;
   margin-top: 3px;
 }
-
+.sw-modal .form-label {
+    color: #475569 !important; 
+}
+.sw-modal .form-control {
+    color: #0f172a !important; 
+    
+}
 /* Botão fechar (X) */
 .sw-modal .btn-close {
   filter: invert(1) brightness(0.7);

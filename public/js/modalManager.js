@@ -92,6 +92,9 @@ const ModalManager = (() => {
     _getInstance(target)?.toggle();
   }
 
+
+  
+
   function init() {
     document.querySelectorAll("[data-sw-open]").forEach((btn) => {
       if (btn._swBound) return;

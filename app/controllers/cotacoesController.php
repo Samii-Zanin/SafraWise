@@ -32,9 +32,9 @@ class CotacoesController extends BaseController
     $result   = $stmt->get_result();
 
     while ($row = $result->fetch_assoc()) {
-        if ($dataCotacao === null) {
+       
         $dataCotacao = date('d/m/Y', strtotime($row['data']));
-    }
+    
         $cotacoes[] = [
             'cultura'   => $row['produto'],
             'estado'    => $row['uf'],

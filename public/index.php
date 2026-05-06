@@ -92,10 +92,38 @@ switch ($page) {
         $propController->save();
         break;
 
+    case 'configuracoes':
+        requireAuth();
+        (new ProprietarioController())->configuracoes();
+        break;
+
+    case 'update_perfil':
+        requireAuth();
+        (new ProprietarioController())->update();
+        break;
+
     case 'store_peao':
         requireAuth(); 
         $peaoController = new PeaoController();
         $peaoController->save();
+        break;
+    
+    case 'edit_peao':
+    requireAuth();
+    $controller = new PeaoController();
+    $controller->edit();
+    break;
+
+    case 'update_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->update();
+        break;
+
+    case 'delete_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->delete();
         break;
 
     default:

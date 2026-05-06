@@ -93,6 +93,7 @@ if (isset($_SESSION['toast'])) {
 
   <div class="main-content">
 
+    <?php include 'layouts/ticker.php'; ?>
     <?php include 'layouts/topbar.php'; ?>
 
     <div class="page-body">

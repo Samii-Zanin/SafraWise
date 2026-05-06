@@ -10,6 +10,7 @@ Class Cotacoes {
     private float $variacao_mensal;
     private string $moeda;
     private string $unidade;
+    private string $uf;
     
 
     public function __construct(
@@ -20,7 +21,8 @@ Class Cotacoes {
         float $preco,
         float $variacao_mensal,
         string $moeda,
-        string $unidade
+        string $unidade,
+        string $uf
     ){
         $this->id = $id;
         $this->produto = $produto;
@@ -30,6 +32,7 @@ Class Cotacoes {
         $this->variacao_mensal = $variacao_mensal;
         $this->moeda = $moeda;
         $this->unidade = $unidade;
+        $this->uf = $uf;
     } 
     
     public function getId(): int {
@@ -55,4 +58,9 @@ Class Cotacoes {
     }
     public function getUnidade(): string {
         return $this->unidade;
-    }}
+    
+    }
+    public function getUf(): string {
+        return $this->uf;
+    }
+}

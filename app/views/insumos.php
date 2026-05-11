@@ -218,7 +218,7 @@ function tipoBadgeStyle(string $tipo): string {
               <?php else: ?>
                 <?php foreach ($insumos as $insumo): ?>
                   <tr>
-                    <td class="fw-medium text-light">
+                    <td class="fw-medium text-black">
                       <?= htmlspecialchars($insumo['nome']) ?>
                       <?php if (!empty($insumo['descricao'])): ?>
                         <div class="small opacity-50 fw-normal">
@@ -226,7 +226,7 @@ function tipoBadgeStyle(string $tipo): string {
                         </div>
                       <?php endif; ?>
                     </td>
-                    <td class="text-light">
+                    <td class="text-black">
                       <?= !empty($insumo['marca'])
                             ? htmlspecialchars($insumo['marca'])
                             : '<span class="opacity-50">—</span>' ?>
@@ -240,7 +240,7 @@ function tipoBadgeStyle(string $tipo): string {
                         <span class="opacity-50 small">—</span>
                       <?php endif; ?>
                     </td>
-                    <td class="text-light">
+                    <td class="text-black">
                       <?= !empty($insumo['unidade_medida'])
                             ? htmlspecialchars($insumo['unidade_medida'])
                             : '<span class="opacity-50">—</span>' ?>

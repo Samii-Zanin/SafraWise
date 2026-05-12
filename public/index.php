@@ -57,11 +57,9 @@ switch ($page) {
         
     case 'produtos_culturas':
         requireAuth();
-        $culturaController = new CulturaController();
-        $produtoController = new ProdutoController();
-        $produtoController->index();
-        $culturaController->index();
-        loadView('produtos_culturas');
+        $culturas = (new CulturaController())->getAll();
+        $produtos = (new ProdutoController())->getAll();
+        require_once "../app/views/produtos_culturas.php"; // ← no escopo global, vê as variáveis
         break;
 
     case 'insumos':
@@ -80,10 +78,26 @@ switch ($page) {
         $culturaController = new CulturaController();
         $culturaController->save();
         break;
+    case 'update_cultura':
+        requireAuth();
+        (new CulturaController())->update();
+        break;
+    case 'delete_cultura':
+        requireAuth();
+        (new CulturaController())->delete();
+        break;
     case 'store_produto':
         requireAuth();
         $produtoController = new ProdutoController();
         $produtoController->save();
+        break;
+    case 'update_produto':
+        requireAuth();
+        (new ProdutoController())->update();
+        break;
+    case 'delete_produto':
+        requireAuth();
+        (new ProdutoController())->delete();
         break;
 
     case 'update_insumo':

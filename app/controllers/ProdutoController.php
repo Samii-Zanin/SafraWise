@@ -11,6 +11,15 @@ class ProdutoController extends BaseController
         $this->db = Conexao::getConexao();
     }
 
+    public function getAll(): array
+{
+    $stmt = $this->db->prepare("SELECT * FROM produto ORDER BY nome ASC");
+    $stmt->execute();
+    $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $produtos;
+}
+
     public function index(): void
     {
         if (!isset($_SESSION['user'])) {
@@ -98,10 +107,10 @@ class ProdutoController extends BaseController
 
         try {
             $stmt = $this->db->prepare(
-                "UPDATE produto SET nome=?, marca=?, un_medida=?, descricao=?, tipo=? WHERE id=?"
+                "UPDATE produto SET nome=?, marca=?, unidade_medida=?, descricao=?, tipo=? WHERE id=?"
             );
             $stmt->bind_param(
-                "ssssi",
+                "sssssi",
                 $dados['nome'], $dados['marca'], $dados['un_medida'], $dados['descricao'], $dados['tipo'], $produtoId
             );
             if (!$stmt->execute()) {
@@ -114,7 +123,7 @@ class ProdutoController extends BaseController
 
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            $this->setToast('error', 'Erro interno', 'Não foi possível atualizar o produto. Tente novamente.');
+            $this->setToast('error', 'Erro interno', 'Não foi possível atualizar o produto. Tente novamente. erro: ' . $e->getMessage());
             $this->redirect('produtos_culturas');
         }
     }
@@ -128,7 +137,7 @@ class ProdutoController extends BaseController
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
 
         if (!$produtoId) {
-            $this->setToast('error', 'Erro', 'Identificador inválido.');
+            $this->setToast('error', 'Erro', 'Identificador inválido.' . $produtoId);
             $this->redirect('produtos_culturas');
         }
 

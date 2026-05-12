@@ -166,7 +166,10 @@ $totalCulturas = count($culturas ?? []);
             <thead>
               <tr>
                 <th>Nome</th>
+                <th>Marca</th>
+                <th>Unidade</th>
                 <th>Descrição</th>
+                <th>Categoria</th>
                 <th class="text-end">Ações</th>
               </tr>
             </thead>
@@ -190,27 +193,45 @@ $totalCulturas = count($culturas ?? []);
                       <?= htmlspecialchars($produto['nome']) ?>
                     </td>
                     <td class="text-muted small">
+                      <?= !empty($produto['marca'])
+                            ? htmlspecialchars(mb_strimwidth($produto['marca'], 0, 80, '…'))
+                            : '<span class="opacity-50">—</span>' ?>
+                    </td>
+                    <td class="text-muted small">
+                      <?= !empty($produto['unidade_medida'])
+                            ? htmlspecialchars(mb_strimwidth($produto['unidade_medida'], 0, 80, '…'))
+                            : '<span class="opacity-50">—</span>' ?>
+                    </td>
+                    <td class="text-muted small">
                       <?= !empty($produto['descricao'])
                             ? htmlspecialchars(mb_strimwidth($produto['descricao'], 0, 80, '…'))
+                            : '<span class="opacity-50">—</span>' ?>
+                    </td>
+                    <td class="text-muted small">
+                      <?= !empty($produto['tipo'])
+                            ? htmlspecialchars(mb_strimwidth($produto['tipo'], 0, 80, '…'))
                             : '<span class="opacity-50">—</span>' ?>
                     </td>
                     <td class="text-end">
                       <div class="d-flex gap-2 justify-content-end">
                         <button class="btn-table-action" title="Editar" type="button"
-                                data-sw-edit-produto
-                                data-id="<?= $produto['id'] ?>"
-                                data-nome="<?= htmlspecialchars($produto['nome'], ENT_QUOTES) ?>"
-                                data-descricao="<?= htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES) ?>">
+                            data-sw-edit-produto
+                            data-id="<?= $produto['id'] ?>"
+                            data-nome="<?= htmlspecialchars($produto['nome'],          ENT_QUOTES) ?>"
+                            data-marca="<?= htmlspecialchars($produto['marca']         ?? '', ENT_QUOTES) ?>"
+                            data-tipo="<?= htmlspecialchars($produto['tipo']           ?? '', ENT_QUOTES) ?>"
+                            data-unidade="<?= htmlspecialchars($produto['unidade_medida'] ?? '', ENT_QUOTES) ?>"
+                            data-descricao="<?= htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES) ?>">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                           </svg>
                         </button>
                         <button class="btn-table-action" title="Excluir" type="button"
-                                style="color:#e05252;border-color:#f5bcbc;"
-                                data-sw-delete-produto
-                                data-id="<?= $produto['id'] ?>"
-                                data-nome="<?= htmlspecialchars($produto['nome'], ENT_QUOTES) ?>">
+                            style="color:#e05252;border-color:#f5bcbc;"
+                            data-sw-delete-produto
+                            data-id="<?= $produto['id'] ?>"
+                            data-nome="<?= htmlspecialchars($produto['nome'], ENT_QUOTES) ?>">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"/>
                             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -352,7 +373,7 @@ $totalCulturas = count($culturas ?? []);
                    placeholder="Ex: Monsanto, Bayer, Syngenta..." required>
           </div>
           <div class="row g-3 mb-3">
-            <div class="col-md-5">
+            <div class="col-md-6">
               <label class="form-label" for="cadastro-tipo">Categoria</label>
               <select class="form-select" id="cadastro-tipo" name="tipo">
                 <option value="">Selecione...</option>
@@ -363,10 +384,11 @@ $totalCulturas = count($culturas ?? []);
                 <option value="Adubo">Adubo</option>
                 <option value="Nematicida">Nematicida</option>
                 <option value="Regulador de crescimento">Regulador de crescimento</option>
+                <option value="Semente">Semente</option>
                 <option value="Outro">Outro</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label" for="cadastro-unidade">Unidade de medida</label>
               <select class="form-select" id="cadastro-unidade" name="un_medida">
                 <option value="">Selecione...</option>
@@ -379,6 +401,7 @@ $totalCulturas = count($culturas ?? []);
                 <option value="cx">cx — Caixa</option>
                 <option value="un">un — Unidade</option>
               </select>
+            </div>
             </div>
           <div class="mb-0">
             <label class="form-label" for="cp-descricao">
@@ -419,18 +442,59 @@ $totalCulturas = count($culturas ?? []);
         <button type="button" class="btn-close" data-sw-close="modal-editar-produto" aria-label="Fechar"></button>
       </div>
       <div class="modal-body">
-        <form id="form-editar-produto" method="POST" action="index.php?page=update_produto">
-          <input type="hidden" id="ep-id" name="id">
-          <div class="mb-3">
-            <label class="form-label" for="ep-nome">Nome do produto</label>
-            <input type="text" class="form-control" id="ep-nome" name="nome" required>
-          </div>
-          <div class="mb-0">
-            <label class="form-label" for="ep-descricao">Descrição</label>
-            <textarea class="form-control" id="ep-descricao" name="descricao" rows="3"></textarea>
-          </div>
-        </form>
+  <form id="form-editar-produto" method="POST" action="index.php?page=update_produto">
+    <input type="hidden" id="ep-id" name="produto_id"> <!-- controller espera produto_id -->
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-8">
+        <label class="form-label" for="ep-nome">Nome do produto</label>
+        <input type="text" class="form-control" id="ep-nome" name="nome" required>
       </div>
+      <div class="col-md-4">
+        <label class="form-label" for="ep-marca">Marca</label>
+        <input type="text" class="form-control" id="ep-marca" name="marca" required>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-">
+      <div class="col-md-6">
+        <label class="form-label" for="ep-tipo">Categoria</label>
+        <select class="form-select" id="ep-tipo" name="tipo">
+          <option value="">Selecione...</option>
+          <option value="Herbicida">Herbicida</option>
+          <option value="Fungicida">Fungicida</option>
+          <option value="Inseticida">Inseticida</option>
+          <option value="Fertilizante">Fertilizante</option>
+          <option value="Adubo">Adubo</option>
+          <option value="Nematicida">Nematicida</option>
+          <option value="Regulador de crescimento">Regulador de crescimento</option>
+          <option value="Semente">Semente</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="ep-unidade">Unidade de medida</label>
+        <select class="form-select" id="ep-unidade" name="un_medida">
+          <option value="">Selecione...</option>
+          <option value="L">L — Litro</option>
+          <option value="mL">mL — Mililitro</option>
+          <option value="kg">kg — Quilograma</option>
+          <option value="g">g — Grama</option>
+          <option value="t">t — Tonelada</option>
+          <option value="sc">sc — Saca</option>
+          <option value="cx">cx — Caixa</option>
+          <option value="un">un — Unidade</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-0">
+      <label class="form-label" for="ep-descricao">Descrição</label>
+      <textarea class="form-control" id="ep-descricao" name="descricao" rows="2"></textarea>
+    </div>
+
+  </form>
+</div>
       <div class="modal-footer">
         <button type="button" class="btn-modal-cancel" data-sw-close="modal-editar-produto">Cancelar</button>
         <button type="submit" form="form-editar-produto"
@@ -481,7 +545,7 @@ $totalCulturas = count($culturas ?? []);
       </div>
       <div class="modal-footer">
         <form id="form-excluir-produto" method="POST" action="index.php?page=delete_produto">
-          <input type="hidden" id="del-produto-id" name="id">
+          <input type="hidden" id="del-produto-id" name="produto_id">
         </form>
         <button type="button" class="btn-modal-cancel" data-sw-close="modal-excluir-produto">Cancelar</button>
         <button type="submit" form="form-excluir-produto"
@@ -563,7 +627,7 @@ $totalCulturas = count($culturas ?? []);
       </div>
       <div class="modal-body">
         <form id="form-editar-cultura" method="POST" action="index.php?page=update_cultura">
-          <input type="hidden" id="ec-id" name="id">
+          <input type="hidden" id="ec-id" name="cultura_id">
           <div class="mb-3">
             <label class="form-label" for="ec-nome">Nome da cultura</label>
             <input type="text" class="form-control" id="ec-nome" name="nome" required>
@@ -624,7 +688,7 @@ $totalCulturas = count($culturas ?? []);
       </div>
       <div class="modal-footer">
         <form id="form-excluir-cultura" method="POST" action="index.php?page=delete_cultura">
-          <input type="hidden" id="del-cultura-id" name="id">
+          <input type="hidden" id="del-cultura-id" name="cultura_id">
         </form>
         <button type="button" class="btn-modal-cancel" data-sw-close="modal-excluir-cultura">Cancelar</button>
         <button type="submit" form="form-excluir-cultura"
@@ -659,21 +723,30 @@ document.querySelectorAll('.toast').forEach(t => {
   setTimeout(() => closeToast(t.id), d);
 });
 
-// ── Editar Produto ─────────────────────────────────────────────
 document.querySelectorAll('[data-sw-edit-produto]').forEach(btn => {
   btn.addEventListener('click', function () {
-    document.getElementById('ep-id').value        = this.dataset.id;
-    document.getElementById('ep-nome').value      = this.dataset.nome;
-    document.getElementById('ep-descricao').value = this.dataset.descricao;
+    const d = this.dataset;
+
+    document.getElementById('ep-id').value       = d.id;
+    document.getElementById('ep-nome').value     = d.nome;
+    document.getElementById('ep-marca').value    = d.marca;
+    document.getElementById('ep-descricao').value = d.descricao;
+
+    // Selects precisam ter a option correta marcada
+    const selectTipo    = document.getElementById('ep-tipo');
+    const selectUnidade = document.getElementById('ep-unidade');
+
+    for (const opt of selectTipo.options)    opt.selected = opt.value === d.tipo;
+    for (const opt of selectUnidade.options) opt.selected = opt.value === d.unidade;
+
     ModalManager.open('modal-editar-produto');
   });
 });
 
-// ── Excluir Produto ────────────────────────────────────────────
 document.querySelectorAll('[data-sw-delete-produto]').forEach(btn => {
   btn.addEventListener('click', function () {
-    document.getElementById('del-produto-id').value           = this.dataset.id;
-    document.getElementById('del-produto-nome').textContent   = this.dataset.nome;
+    document.getElementById('del-produto-id').value         = this.dataset.id;
+    document.getElementById('del-produto-nome').textContent = this.dataset.nome;
     ModalManager.open('modal-excluir-produto');
   });
 });

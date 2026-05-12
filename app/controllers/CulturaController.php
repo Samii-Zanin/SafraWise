@@ -11,6 +11,16 @@ class CulturaController extends BaseController
         $this->db = Conexao::getConexao();
     }
 
+    public function getAll(): array
+{
+    $stmt = $this->db->prepare("SELECT * FROM cultura ORDER BY nome ASC");
+    $stmt->execute();
+    $culturas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $culturas;
+}
+
+
     public function index(): void
     {
         if (!isset($_SESSION['user'])) {
@@ -95,7 +105,7 @@ class CulturaController extends BaseController
                 "UPDATE cultura SET nome=?, variedade=? WHERE id=?"
             );
             $stmt->bind_param(
-                "sssi",
+                "ssi",
                 $dados['nome'], $dados['variedade'], $culturaId
             );
             if (!$stmt->execute()) {

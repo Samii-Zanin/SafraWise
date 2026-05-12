@@ -160,7 +160,7 @@ if (isset($_SESSION['toast'])) {
                 <path d="M2.5 6.5L10 11l7.5-4.5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <input class="form-control form-control-lg text-light "
+            <input class="form-control form-control-lg text-black "
             
                    type="text"
                    id="email"
@@ -180,7 +180,7 @@ if (isset($_SESSION['toast'])) {
                 <path d="M7 8V6a3 3 0 016 0v2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <input class="form-control form-control-lg text-light"
+            <input class="form-control form-control-lg text-black"
                    type="password"
                    id="senha"
                    name="senha"

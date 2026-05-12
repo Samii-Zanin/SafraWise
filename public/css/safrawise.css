@@ -97,7 +97,7 @@ h6,
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: var(--texto-medio);
+  color: var(--texto-escuro )!important;
   margin-bottom: 7px;
 }
 
@@ -1392,7 +1392,7 @@ h6,
   font-size: smaller;
 }
 .form-control {
-  color: white !important;
+  color: rgb(71, 69, 69) !important;
 }
 
 /* ══════════════════════════════════════

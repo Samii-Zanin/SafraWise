@@ -30,6 +30,37 @@ class PropriedadeController {
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
 
+
+        if ($area_total <= 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva < 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva > $area_total) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Conflito de Áreas', 
+                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
         $stmt = $this->db->prepare("INSERT INTO propriedade (nome, localizacao, municipio, estado, area_total, area_produtiva, proprietario_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssddi", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $proprietario_id);
 
@@ -54,6 +85,37 @@ class PropriedadeController {
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
 
+
+        if ($area_total <= 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva < 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva > $area_total) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Conflito de Áreas', 
+                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+        
         $stmt = $this->db->prepare("UPDATE propriedade SET nome = ?, localizacao = ?, municipio = ?, estado = ?, area_total = ?, area_produtiva = ? WHERE id = ? AND proprietario_id = ?");
         $stmt->bind_param("ssssddii", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $id, $proprietario_id);
 

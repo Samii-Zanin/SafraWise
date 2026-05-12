@@ -5,6 +5,8 @@ require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
 require_once "../app/controllers/InsumoController.php";
 require_once "../app/controllers/PropriedadeController.php";
+require_once "../app/controllers/CulturaController.php";
+require_once "../app/controllers/ProdutoController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -52,6 +54,15 @@ switch ($page) {
         requireAuth();
         loadView('talhoes');
         break;
+        
+    case 'produtos_culturas':
+        requireAuth();
+        $culturaController = new CulturaController();
+        $produtoController = new ProdutoController();
+        $produtoController->index();
+        $culturaController->index();
+        loadView('produtos_culturas');
+        break;
 
     case 'insumos':
         requireAuth();
@@ -63,6 +74,16 @@ switch ($page) {
         requireAuth();
         $insumoController = new InsumoController();
         $insumoController->save();
+        break;
+    case 'store_cultura':
+        requireAuth();
+        $culturaController = new CulturaController();
+        $culturaController->save();
+        break;
+    case 'store_produto':
+        requireAuth();
+        $produtoController = new ProdutoController();
+        $produtoController->save();
         break;
 
     case 'update_insumo':

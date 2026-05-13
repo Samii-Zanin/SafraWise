@@ -7,6 +7,8 @@ require_once "../app/controllers/InsumoController.php";
 require_once "../app/controllers/PropriedadeController.php";
 require_once "../app/controllers/CulturaController.php";
 require_once "../app/controllers/ProdutoController.php";
+require_once "../app/controllers/estoqueInsumosController.php";
+require_once "../app/controllers/siloController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -122,6 +124,13 @@ switch ($page) {
         loadView('create_prop');
         break;
 
+    case 'estoques':
+        requireAuth();
+        $estoquesSilos  = (new SiloController())->getAll();
+        $estoqueInsumos = (new EstoqueInsumosController())->getAll();
+        require_once "../app/views/estoques.php";
+        // loadView('estoques', compact('estoqueInsumos', 'estoquesSilos'));
+        break;
 
     case 'store_proprietario':
         $propController = new ProprietarioController();

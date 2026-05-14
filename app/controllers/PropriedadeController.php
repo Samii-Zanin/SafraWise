@@ -8,6 +8,19 @@ class PropriedadeController {
         $this->db= Conexao::getConexao();
     }
 
+    public function getAll(): array
+{
+    $uid  = (int) $_SESSION['user']['id'];
+    $stmt = $this->db->prepare(
+        "SELECT id, nome, municipio, estado FROM propriedade WHERE proprietario_id = ? ORDER BY nome"
+    );
+    $stmt->bind_param("i", $uid);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $result;
+}
+
     // Listagem de propriedades
     public function index(): void {
         $proprietario_id = $_SESSION['user']['id'];

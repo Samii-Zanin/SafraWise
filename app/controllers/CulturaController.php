@@ -77,6 +77,17 @@ class CulturaController extends BaseController
         }
     }
 
+    public function getDistintas(): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT DISTINCT nome FROM cultura ORDER BY nome ASC"
+        );
+        $stmt->execute();
+        $culturas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $culturas;
+    }
+
     public function update(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {

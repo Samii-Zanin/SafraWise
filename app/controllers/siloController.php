@@ -1,127 +1,273 @@
 <?php
+/*
+ * app/controllers/SiloController.php
+ */
+
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../../config/conexao.php';
-// require_once __DIR__ . '/validator/siloValidator.php';
 
 class SiloController extends BaseController
 {
     private mysqli $db;
-    // private SiloValidator $validator;
 
     public function __construct()
     {
         $this->db = Conexao::getConexao();
-        // $this->validator = new SiloValidator();
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // READ — visão agregada usada em estoques.php
+    // ─────────────────────────────────────────────────────────────
     public function getAll(): array
-{
-    $proprietarioId = $_SESSION['user']['id'];
+    {
+        $proprietarioId = (int) $_SESSION['user']['id'];
 
-    $stmt = $this->db->prepare("
-        WITH culturas_distintas AS (
-            SELECT DISTINCT nome FROM cultura
-        )
-        SELECT
-            cd.nome          AS cultura,
-            p.nome           AS propriedade,
-            p.municipio,
-            p.estado,
-            SUM(silo.quantidade_kg) AS total_kg
-        FROM silo
-        JOIN cultura c           ON silo.cultura_id     = c.id
-        JOIN propriedade p       ON silo.propriedade_id = p.id
-        JOIN culturas_distintas cd ON cd.nome = c.nome
-        WHERE p.proprietario_id = ?
-        GROUP BY cd.nome, p.nome, p.municipio, p.estado
-        ORDER BY cd.nome, p.nome
-    ");
-    $stmt->bind_param("s", $proprietarioId);
-    $stmt->execute();
-    $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+        $stmt = $this->db->prepare("
+            SELECT
+                s.cultura,
+                p.nome           AS propriedade,
+                p.municipio,
+                p.estado,
+                SUM(s.quantidade_kg) AS total_kg
+            FROM silo s
+            JOIN propriedade p ON s.propriedade_id = p.id
+            WHERE p.proprietario_id = ?
+            GROUP BY s.cultura, p.nome, p.municipio, p.estado
+            ORDER BY s.cultura, p.nome
+        ");
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
 
-    return $estoques;
-}
+        return $result;
+    }
 
+    // ─────────────────────────────────────────────────────────────
+    // READ — silos individuais usados em silos.php
+    // ─────────────────────────────────────────────────────────────
+    public function getAllSilos(): array
+    {
+        $proprietarioId = (int) $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare("
+            SELECT
+                s.id,
+                s.nome,
+                s.cultura,
+                s.capacidade_kg,
+                s.quantidade_kg,
+                p.id   AS propriedade_id,
+                p.nome AS propriedade,
+                p.municipio,
+                p.estado,
+                CASE
+                    WHEN s.capacidade_kg > 0
+                    THEN ROUND((s.quantidade_kg / s.capacidade_kg) * 100, 1)
+                    ELSE 0
+                END AS ocupacao_pct
+            FROM silo s
+            JOIN propriedade p ON s.propriedade_id = p.id
+            WHERE p.proprietario_id = ?
+            ORDER BY p.nome, s.nome
+        ");
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $result;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // INDEX — renderiza silos.php
+    // ─────────────────────────────────────────────────────────────
     public function index(): void
     {
         if (!isset($_SESSION['user'])) {
             $this->redirect('login');
         }
 
-        $stmt = $this->db->prepare("
-    WITH culturas_distintas AS (
-    SELECT DISTINCT nome
-    FROM cultura)
-SELECT
-    cd.nome as nome_cultura,
-    p.nome as nome_propriedade,
-    p.municipio,
-    p.estado,
-    SUM(silo.quantidade_kg) AS total_kg
-    FROM silo
-    JOIN cultura c
-        ON silo.cultura_id = c.id
-    JOIN propriedade p
-        ON silo.propriedade_id = p.id
-    JOIN culturas_distintas cd
-        ON cd.nome = c.nome
-    WHERE p.proprietario_id = ?
-    GROUP BY 
-    cd.nome,
-    p.nome,
-    p.municipio,
-    p.estado");
-        $stmt->bind_param("i", $_SESSION['user']['id']);
-        $stmt->execute();
-        $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        require_once __DIR__ . '/CulturaController.php';
+        require_once __DIR__ . '/PropriedadeController.php';
+
+        $silos        = $this->getAllSilos();
+        $culturas     = (new CulturaController())->getDistintas();
+        $propriedades = (new PropriedadeController())->getAll();
+
+        require_once __DIR__ . '/../views/silos.php';
     }
 
-    public function save(): void
+    // ─────────────────────────────────────────────────────────────
+    // STORE — cadastra novo silo
+    // ─────────────────────────────────────────────────────────────
+    public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
         }
 
-        // if ($this->validator->SiloJaExiste((int) $dados['silo_id'])) {
-        //     $this->setToast('error', 'Erro', 'Já existe um silo cadastrado com para esta cultura.');
-        //     $this->redirect('estoques');
-        // }
-
         $dados = [
-            'propriedade_id'           => trim($_POST['propriedade_id']           ?? ''),
-            'silo_id'      => trim($_POST['silo_id']      ?? ''),
-            'quantidade_kg'      => trim($_POST['quantidade_kg']      ?? 0),
+            'propriedade_id' => (int)   ($_POST['propriedade_id'] ?? 0),
+            'nome'           => trim(    $_POST['nome']            ?? ''),
+            'cultura'        => trim(    $_POST['cultura']         ?? ''),
+            'capacidade_kg'  => (float)  ($_POST['capacidade_kg']  ?? 0),
+            'quantidade_kg'  => (float)  ($_POST['quantidade_kg']  ?? 0),
         ];
 
-        if (empty($dados['silo_id'])) {
-            $this->setToast('warning', 'Campos Obrigatórios', 'Silo é obrigatório.');
-            $this->redirect('estoques');
+        if (!$dados['propriedade_id'] || empty($dados['cultura']) || $dados['capacidade_kg'] <= 0) {
+            $this->setToast('warning', 'Campos Obrigatórios', 'Propriedade, cultura e capacidade são obrigatórios.');
+            $this->redirect('silos');
+            return;
         }
+
+        if ($dados['quantidade_kg'] > $dados['capacidade_kg']) {
+            $this->setToast('warning', 'Quantidade inválida', 'A quantidade não pode ser maior que a capacidade do silo.');
+            $this->redirect('silos');
+            return;
+        }
+
+        // Garante que a propriedade pertence ao usuário
+        $stmtCheck = $this->db->prepare(
+            "SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?"
+        );
+        $uid = (int) $_SESSION['user']['id'];
+        $stmtCheck->bind_param("ii", $dados['propriedade_id'], $uid);
+        $stmtCheck->execute();
+        if ($stmtCheck->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Propriedade não encontrada.');
+            $this->redirect('silos');
+            return;
+        }
+        $stmtCheck->close();
 
         try {
             $stmt = $this->db->prepare(
-                "INSERT INTO silo (propriedade_id, silo_id, quantidade_kg) VALUES (?, ?, ?)"
+                "INSERT INTO silo (propriedade_id, nome, cultura, capacidade_kg, quantidade_kg)
+                 VALUES (?, ?, ?, ?, ?)"
             );
             $stmt->bind_param(
-                "iif",
-                $dados['propriedade_id'], $dados['silo_id'], $dados['quantidade_kg']
+                "issdd",
+                $dados['propriedade_id'],
+                $dados['nome'],
+                $dados['cultura'],
+                $dados['capacidade_kg'],
+                $dados['quantidade_kg']
             );
+
             if (!$stmt->execute()) {
                 throw new \RuntimeException("Falha ao inserir silo: {$this->db->error}");
             }
-            $siloId = $this->db->insert_id;
             $stmt->close();
 
-            $this->setToast('success', 'Silo Cadastrado!', "O silo foi adicionado com sucesso.");
-            $this->redirect('estoques');
+            $this->setToast('success', 'Silo Cadastrado!', "O silo \"{$dados['nome']}\" foi adicionado com sucesso.");
+            $this->redirect('silos');
 
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            $this->setToast('error', 'Erro interno', 'Não foi possível salvar o silo. Tente novamente.'. $e->getMessage());
-            $this->redirect('estoques');
+            $this->setToast('error', 'Erro interno', 'Não foi possível salvar o silo. Tente novamente.');
+            $this->redirect('silos');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // UPDATE — edita cultura e capacidade
+    // ─────────────────────────────────────────────────────────────
+    public function update(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+        }
+
+        $id            = (int)   ($_POST['id']            ?? 0);
+        $cultura       = trim(    $_POST['cultura']        ?? '');
+        $capacidade_kg = (float)  ($_POST['capacidade_kg'] ?? 0);
+
+        if (!$id || empty($cultura) || $capacidade_kg <= 0) {
+            $this->setToast('warning', 'Campos Obrigatórios', 'Cultura e capacidade são obrigatórios.');
+            $this->redirect('silos');
+            return;
+        }
+
+        // Segurança: silo deve pertencer ao usuário logado
+        $uid       = (int) $_SESSION['user']['id'];
+        $stmtCheck = $this->db->prepare("
+            SELECT s.id FROM silo s
+            JOIN propriedade p ON s.propriedade_id = p.id
+            WHERE s.id = ? AND p.proprietario_id = ?
+        ");
+        $stmtCheck->bind_param("ii", $id, $uid);
+        $stmtCheck->execute();
+        if ($stmtCheck->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Silo não encontrado.');
+            $this->redirect('silos');
+            return;
+        }
+        $stmtCheck->close();
+
+        try {
+            $stmt = $this->db->prepare(
+                "UPDATE silo SET cultura = ?, capacidade_kg = ? WHERE id = ?"
+            );
+            $stmt->bind_param("sdi", $cultura, $capacidade_kg, $id);
+
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao atualizar silo: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Silo Atualizado!', 'As alterações foram salvas com sucesso.');
+            $this->redirect('silos');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno', 'Não foi possível atualizar o silo.');
+            $this->redirect('silos');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DELETE — remove silo
+    // ─────────────────────────────────────────────────────────────
+    public function delete(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+        }
+
+        $id  = (int) ($_POST['id'] ?? 0);
+        $uid = (int) $_SESSION['user']['id'];
+
+        $stmtCheck = $this->db->prepare("
+            SELECT s.id FROM silo s
+            JOIN propriedade p ON s.propriedade_id = p.id
+            WHERE s.id = ? AND p.proprietario_id = ?
+        ");
+        $stmtCheck->bind_param("ii", $id, $uid);
+        $stmtCheck->execute();
+        if ($stmtCheck->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Silo não encontrado.');
+            $this->redirect('silos');
+            return;
+        }
+        $stmtCheck->close();
+
+        try {
+            $stmt = $this->db->prepare("DELETE FROM silo WHERE id = ?");
+            $stmt->bind_param("i", $id);
+
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao remover silo: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Silo Removido!', 'O silo foi removido com sucesso.');
+            $this->redirect('silos');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno', 'Não foi possível remover o silo.');
+            $this->redirect('silos');
         }
     }
 }

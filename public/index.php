@@ -132,6 +132,28 @@ switch ($page) {
         // loadView('estoques', compact('estoqueInsumos', 'estoquesSilos'));
         break;
 
+    // ── ADICIONAR: página de silos ──
+    case 'silos':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->index();
+        break;
+
+    // ── ADICIONAR: ações CRUD de silo ──
+    case 'store_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->store();
+        break;
+
+    case 'update_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->update();
+        break;
+
+    case 'delete_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->delete();
+        break;
+
     case 'store_proprietario':
         $propController = new ProprietarioController();
         $propController->save();

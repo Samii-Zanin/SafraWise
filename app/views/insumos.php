@@ -95,8 +95,8 @@ function tipoBadgeStyle(string $tipo): string {
 
   <div class="main-content">
 
-    <?php include 'layouts/topbar.php'; ?>
-
+    <?php include 'layouts/ticker.php'; ?>
+    <?php include 'layouts/topbar.php'; ?>    
     <div class="page-body">
 
       <!-- ── Cabeçalho da página ── -->

@@ -4,6 +4,7 @@ require_once "../app/controllers/AuthController.php";
 require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
 require_once "../app/controllers/InsumoController.php";
+require_once "../app/controllers/PropriedadeController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -92,10 +93,58 @@ switch ($page) {
         $propController->save();
         break;
 
+    case 'configuracoes':
+        requireAuth();
+        (new ProprietarioController())->configuracoes();
+        break;
+
+    case 'update_perfil':
+        requireAuth();
+        (new ProprietarioController())->update();
+        break;
+
     case 'store_peao':
         requireAuth(); 
         $peaoController = new PeaoController();
         $peaoController->save();
+        break;
+    
+    case 'edit_peao':
+    requireAuth();
+    $controller = new PeaoController();
+    $controller->edit();
+    break;
+
+    case 'update_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->update();
+        break;
+
+    case 'delete_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->delete();
+        break;
+    
+    case 'propriedades':
+        requireAuth();
+        (new PropriedadeController())->index();
+        break;
+
+    case 'store_propriedade':
+        requireAuth();
+        (new PropriedadeController())->store();
+        break;
+
+    case 'update_propriedade':
+        requireAuth();
+        (new PropriedadeController())->update();
+        break;
+
+    case 'delete_propriedade':
+        requireAuth();
+        (new PropriedadeController())->delete();
         break;
 
     default:

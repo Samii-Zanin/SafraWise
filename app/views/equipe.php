@@ -116,65 +116,75 @@ if (isset($_SESSION['toast'])) {
       </div>
 
       <div class="card-table-wrapper">
-        <div class="table-responsive">
-          <table class="table table-safrawise mb-0">
-            <thead>
-              <tr>
-                <th>Nome do Colaborador</th>
-                <th>CPF</th>
-                <th>Contato</th>
-                <th class="text-end">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (empty($equipe)): ?>
-                <tr>
-                  <td colspan="4" class="text-center py-5 text-muted text-light">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="1.5"
-                         class="mb-3 d-block mx-auto opacity-50">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                      <circle cx="9" cy="7" r="4"/>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                    Nenhum colaborador cadastrado ainda.<br>
-                    Clique em <strong>"Novo Peão"</strong> para adicionar.
-                  </td>
-                </tr>
-              <?php else: ?>
-                <?php foreach ($equipe as $peao): ?>
-                  <tr>
-                    <td class="fw-medium text-light">
-                      <?= htmlspecialchars($peao['nome']) ?>
-                    </td>
-                    <td class="text-light">
-                      <?= htmlspecialchars($peao['cpf_cnpj']) ?>
-                    </td>
-                    <td class="text-light">
-                      <div class="small text-light">
-                        <?= !empty($peao['telefone'])
-                              ? htmlspecialchars($peao['telefone'])
-                              : '<span class="opacity-50">Sem telefone</span>' ?>
-                        <br>
-                        <?= !empty($peao['email']) ? htmlspecialchars($peao['email']) : '' ?>
-                      </div>
-                    </td>
-                    <td class="text-end">
-                      <button class="btn-table-action" title="Editar" type="button">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
+          <div class="table-responsive">
+              <table class="table table-safrawise mb-0">
+                  <thead>
+                      <tr>
+                          <th class="border-0">Nome do Colaborador</th>
+                          <th class="border-0">CPF</th>
+                          <th class="border-0">Contato</th>
+                          <th class="border-0 text-end">Ações</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <?php if (empty($equipe)): ?>
+                          <tr>
+                              <td colspan="4" class="text-center py-5 text-muted">
+                                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-3 opacity-50"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><br>
+                                  Nenhum colaborador cadastrado ainda.<br>
+                                  Clique em <b>"Novo Peão"</b> para adicionar.
+                              </td>
+                          </tr>
+                      <?php else: ?>
+                        <?php foreach ($equipe as $peao): ?>
+                            <tr>
+                                <td class="fw-medium text-muted">
+                                    <?= htmlspecialchars($peao['nome']) ?>
+                                </td>
+                                <td class="text-muted">
+                                    <?= htmlspecialchars($peao['cpf_cnpj']) ?>
+                                </td>
+                                <td class="text-muted">
+                                    <div class="small">
+                                        <?= !empty($peao['telefone']) ? htmlspecialchars($peao['telefone']) : '<span class="opacity-50">Sem telefone</span>' ?><br>
+                                        <?= !empty($peao['email']) ? htmlspecialchars($peao['email']) : '' ?>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <!-- BOTÃO EDITAR (MODIFICADO) -->
+                                    <button type="button" 
+                                            class="btn-table-action" 
+                                            title="Editar"
+                                            onclick="abrirModalEditar(
+                                                '<?= $peao['id'] ?>', 
+                                                '<?= htmlspecialchars($peao['nome'], ENT_QUOTES) ?>', 
+                                                '<?= htmlspecialchars($peao['cpf_cnpj'], ENT_QUOTES) ?>', 
+                                                '<?= htmlspecialchars($peao['telefone'], ENT_QUOTES) ?>', 
+                                                '<?= htmlspecialchars($peao['email'], ENT_QUOTES) ?>'
+                                            )">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+
+                                    <!-- BOTÃO EXCLUIR (MANTIDO) -->
+                                    <a href="index.php?page=delete_peao&id=<?= $peao['id'] ?>" 
+                                      class="btn-table-action text-danger" 
+                                      title="Excluir" 
+                                      onclick="return confirm('Tem certeza que deseja remover este colaborador?')">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"></path>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+              </table>
+          </div>
       </div>
 
     </div><!-- /page-body -->
@@ -333,6 +343,66 @@ if (isset($_SESSION['toast'])) {
   </div><!-- /modal-dialog -->
 </div><!-- /modal -->
 
+<!-- ════════════════════════════════════════════════════════════
+     MODAL — Editar Peão
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade sw-modal" id="modal-editar-peao" tabindex="-1" aria-hidden="true" data-sw-reset-on-close>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Editar Colaborador</h5>
+          <p class="modal-subtitle mb-0">Atualize os dados do peão.</p>
+        </div>
+        <button type="button" class="btn-close" data-sw-close="modal-editar-peao" aria-label="Fechar"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="form-editar-peao" method="POST" action="index.php?page=update_peao">
+          <!-- Campo oculto importantíssimo: O ID do peão para o banco saber quem atualizar -->
+          <input type="hidden" name="id" id="edit-peao-id">
+
+          <!-- Nome -->
+          <div class="mb-3">
+            <label class="form-label" for="edit-peao-nome">Nome completo</label>
+            <input type="text" class="form-control" id="edit-peao-nome" name="nome" required>
+          </div>
+
+          <!-- CPF + Telefone -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="edit-peao-cpf">CPF</label>
+              <input type="text" class="form-control" id="edit-peao-cpf" name="cpf_cnpj" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit-peao-telefone">Telefone</label>
+              <input type="text" class="form-control" id="edit-peao-telefone" name="telefone">
+            </div>
+          </div>
+
+          <!-- E-mail -->
+          <div class="mb-3">
+            <label class="form-label" for="edit-peao-email">E-mail</label>
+            <div class="input-icon-wrap">
+              <span class="form-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6.5L10 11l7.5-4.5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <input type="email" class="form-control" id="edit-peao-email" name="email">
+            </div>
+          </div>
+          <!-- Nota: Não coloquei o campo de Senha aqui, pois a edição padrão do peão pelo proprietário geralmente não altera a senha. -->
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" data-sw-close="modal-editar-peao">Cancelar</button>
+        <button type="submit" form="form-editar-peao" class="btn btn-success">Salvar Alterações</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
@@ -344,6 +414,19 @@ function closeToast(id) {
   if (!el) return;
   el.classList.add('hide');
   setTimeout(() => el.remove(), 320);
+}
+
+function abrirModalEditar(id, nome, cpf, telefone, email) {
+    // 1. Localiza o formulário e preenche os campos
+    // Usamos IDs específicos para o formulário de EDIÇÃO para não confundir com o de cadastro
+    document.getElementById('edit-peao-id').value = id;
+    document.getElementById('edit-peao-nome').value = nome;
+    document.getElementById('edit-peao-cpf').value = cpf;
+    document.getElementById('edit-peao-telefone').value = telefone;
+    document.getElementById('edit-peao-email').value = email;
+
+    // 2. Abre o modal via ModalManager (Uso Imperativo)
+    ModalManager.open('modal-editar-peao');
 }
 
 document.querySelectorAll('.toast').forEach(toast => {

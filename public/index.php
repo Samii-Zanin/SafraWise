@@ -7,6 +7,8 @@ require_once "../app/controllers/InsumoController.php";
 require_once "../app/controllers/PropriedadeController.php";
 require_once "../app/controllers/CulturaController.php";
 require_once "../app/controllers/ProdutoController.php";
+require_once "../app/controllers/estoqueInsumosController.php";
+require_once "../app/controllers/siloController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -122,6 +124,35 @@ switch ($page) {
         loadView('create_prop');
         break;
 
+    case 'estoques':
+        requireAuth();
+        $estoquesSilos  = (new SiloController())->getAll();
+        $estoqueInsumos = (new EstoqueInsumosController())->getAll();
+        require_once "../app/views/estoques.php";
+        // loadView('estoques', compact('estoqueInsumos', 'estoquesSilos'));
+        break;
+
+    // ── ADICIONAR: página de silos ──
+    case 'silos':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->index();
+        break;
+
+    // ── ADICIONAR: ações CRUD de silo ──
+    case 'store_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->store();
+        break;
+
+    case 'update_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->update();
+        break;
+
+    case 'delete_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->delete();
+        break;
 
     case 'store_proprietario':
         $propController = new ProprietarioController();

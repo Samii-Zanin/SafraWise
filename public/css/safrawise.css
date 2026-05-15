@@ -755,6 +755,15 @@ h6,
   color: var(--verde-vivo);
 }
 
+.table-clickable tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.table-clickable tbody tr:hover {
+    background-color: rgba(64, 145, 108, 0.05) !important;
+}
+
 /* ══════════════════════════════════════
    9. LOGIN PAGE (Bootstrap não tem split-panel)
 ══════════════════════════════════════ */

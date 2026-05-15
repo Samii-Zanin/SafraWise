@@ -107,7 +107,7 @@ if (isset($_SESSION['toast'])) {
 
       <div class="card-table-wrapper">
           <div class="table-responsive">
-              <table class="table table-safrawise mb-0">
+              <table class="table table-safrawise mb-0 table-clickable mb-0">
                   <thead>
                       <tr>
                           <th class="border-0">Nome da Fazenda</th>
@@ -128,40 +128,43 @@ if (isset($_SESSION['toast'])) {
                           </tr>
                       <?php else: ?>
                           <?php foreach ($propriedades as $prop): ?>
-                              <tr>
-                                  <td class="fw-medium text-dark"><?= htmlspecialchars($prop['nome']) ?></td>
-                                  <td class="text-muted"><?= htmlspecialchars($prop['localizacao']) ?></td>
-                                  <td class="text-muted"><?= htmlspecialchars($prop['municipio']) ?> - <?= htmlspecialchars($prop['estado']) ?></td>
-                                  <td class="text-muted"><?= number_format($prop['area_total'], 2, ',', '.') ?> ha</td>
-                                  <td class="text-muted"><?= number_format($prop['area_produtiva'], 2, ',', '.') ?> ha</td>
-                                  <td class="text-end">
-                                      <button type="button" class="btn-table-action" title="Editar"
-                                              onclick="abrirModalEditarPropriedade(
-                                                  '<?= $prop['id'] ?>',
-                                                  '<?= htmlspecialchars($prop['nome'], ENT_QUOTES) ?>',
-                                                  '<?= htmlspecialchars($prop['localizacao'], ENT_QUOTES) ?>',
-                                                  '<?= htmlspecialchars($prop['municipio'], ENT_QUOTES) ?>',
-                                                  '<?= htmlspecialchars($prop['estado'], ENT_QUOTES) ?>',
-                                                  '<?= $prop['area_total'] ?>',
-                                                  '<?= $prop['area_produtiva'] ?>'
-                                              )">
-                                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                          </svg>
-                                      </button>
+                            <tr onclick="window.location.href='index.php?page=detalhes_propriedade&id=<?= $prop['id'] ?>'">
+                                <td class="fw-medium text-dark"><?= htmlspecialchars($prop['nome']) ?></td>
+                                <td class="text-muted"><?= htmlspecialchars($prop['localizacao']) ?></td>
+                                <td class="text-muted"><?= htmlspecialchars($prop['municipio']) ?> - <?= htmlspecialchars($prop['estado']) ?></td>
+                                <td class="text-muted"><?= number_format($prop['area_total'], 2, ',', '.') ?> ha</td>
+                                <td class="text-muted"><?= number_format($prop['area_produtiva'], 2, ',', '.') ?> ha</td>
+                                
+                                <td class="text-end" onclick="event.stopPropagation();"> 
+                                    <!-- O event.stopPropagation() acima impede que clicar nos botões abra os detalhes -->
+                                    
+                                    <button type="button" class="btn-table-action" title="Editar"
+                                            onclick="abrirModalEditarPropriedade(
+                                                '<?= $prop['id'] ?>',
+                                                '<?= htmlspecialchars($prop['nome'], ENT_QUOTES) ?>',
+                                                '<?= htmlspecialchars($prop['localizacao'], ENT_QUOTES) ?>',
+                                                '<?= htmlspecialchars($prop['municipio'], ENT_QUOTES) ?>',
+                                                '<?= htmlspecialchars($prop['estado'], ENT_QUOTES) ?>',
+                                                '<?= $prop['area_total'] ?>',
+                                                '<?= $prop['area_produtiva'] ?>'
+                                            )">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
 
-                                      <a href="index.php?page=delete_propriedade&id=<?= $prop['id'] ?>" 
-                                         class="btn-table-action text-danger" title="Excluir" 
-                                         onclick="return confirm('Tem certeza que deseja excluir esta propriedade? Talhões e insumos vinculados podem impedir esta ação.')">
-                                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                              <path d="M3 6h18"></path>
-                                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                          </svg>
-                                      </a>
-                                  </td>
-                              </tr>
-                          <?php endforeach; ?>
+                                    <a href="index.php?page=delete_propriedade&id=<?= $prop['id'] ?>" 
+                                      class="btn-table-action text-danger" 
+                                      onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"></path>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                       <?php endif; ?>
                   </tbody>
               </table>

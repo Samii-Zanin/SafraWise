@@ -163,4 +163,31 @@ class PropriedadeController {
         header("Location: index.php?page=propriedades");
         exit;
     }
+    public function detalhes(): void {
+    $proprietario_id = $_SESSION['user']['id'];
+    $id = intval($_GET['id']);
+
+    // 1. Busca os dados da propriedade
+    $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE id = ? AND proprietario_id = ?");
+    $stmt->bind_param("ii", $id, $proprietario_id);
+    $stmt->execute();
+    $propriedade = $stmt->get_result()->fetch_assoc();
+
+    if (!$propriedade) {
+        header("Location: index.php?page=propriedades");
+        exit;
+    }
+
+    // 2. Busca os talhões desta propriedade específica
+    $stmtTal = $this->db->prepare("SELECT * FROM talhoes WHERE propriedade_id = ?");
+    $stmtTal->bind_param("i", $id);
+    $stmtTal->execute();
+    $talhoes = $stmtTal->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    // 3. Calcula área ocupada para a barra de progresso
+    $area_ocupada = 0;
+    foreach($talhoes as $t) $area_ocupada += $t['area_hectare'];
+
+    require_once "../app/views/detalhes_propriedade.php";
+}
 }

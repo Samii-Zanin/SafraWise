@@ -7,6 +7,7 @@ require_once "../app/controllers/InsumoController.php";
 require_once "../app/controllers/PropriedadeController.php";
 require_once "../app/controllers/CulturaController.php";
 require_once "../app/controllers/ProdutoController.php";
+require_once "../app/controllers/TalhaoController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -52,7 +53,27 @@ switch ($page) {
     
     case 'talhoes':
         requireAuth();
-        loadView('talhoes');
+        (new TalhaoController())->index();
+        break;
+
+    case 'store_talhao':
+        requireAuth();
+        (new TalhaoController())->store();
+        break;
+
+    case 'update_talhao':
+        requireAuth();
+        (new TalhaoController())->update();
+        break;
+
+    case 'delete_talhao':
+        requireAuth();
+        (new TalhaoController())->delete();
+        break;
+
+    case 'detalhes_propriedade': 
+        requireAuth(); 
+        (new PropriedadeController())->detalhes(); 
         break;
         
     case 'produtos_culturas':

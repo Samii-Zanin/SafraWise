@@ -5,6 +5,14 @@ require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
 require_once "../app/controllers/InsumoController.php";
 require_once "../app/controllers/PropriedadeController.php";
+require_once "../app/controllers/CulturaController.php";
+require_once "../app/controllers/ProdutoController.php";
+require_once "../app/controllers/estoqueInsumosController.php";
+require_once "../app/controllers/siloController.php";
+require_once "../app/controllers/TalhaoController.php";
+require_once "../app/controllers/DashboardController.php";
+require_once "../app/controllers/RelatoriosController.php";
+require_once "../app/controllers/ClimaController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -39,7 +47,7 @@ switch ($page) {
 
     case 'dashboard':
         requireAuth();
-        loadView('dashboard');
+        (new DashboardController())->index();
         break;
 
     case 'equipe':
@@ -50,7 +58,34 @@ switch ($page) {
     
     case 'talhoes':
         requireAuth();
-        loadView('talhoes');
+        (new TalhaoController())->index();
+        break;
+
+    case 'store_talhao':
+        requireAuth();
+        (new TalhaoController())->store();
+        break;
+
+    case 'update_talhao':
+        requireAuth();
+        (new TalhaoController())->update();
+        break;
+
+    case 'delete_talhao':
+        requireAuth();
+        (new TalhaoController())->delete();
+        break;
+
+    case 'detalhes_propriedade': 
+        requireAuth(); 
+        (new PropriedadeController())->detalhes(); 
+        break;
+        
+    case 'produtos_culturas':
+        requireAuth();
+        $culturas = (new CulturaController())->getAll();
+        $produtos = (new ProdutoController())->getAll();
+        require_once "../app/views/produtos_culturas.php"; // ← no escopo global, vê as variáveis
         break;
 
     case 'insumos':
@@ -63,6 +98,32 @@ switch ($page) {
         requireAuth();
         $insumoController = new InsumoController();
         $insumoController->save();
+        break;
+    case 'store_cultura':
+        requireAuth();
+        $culturaController = new CulturaController();
+        $culturaController->save();
+        break;
+    case 'update_cultura':
+        requireAuth();
+        (new CulturaController())->update();
+        break;
+    case 'delete_cultura':
+        requireAuth();
+        (new CulturaController())->delete();
+        break;
+    case 'store_produto':
+        requireAuth();
+        $produtoController = new ProdutoController();
+        $produtoController->save();
+        break;
+    case 'update_produto':
+        requireAuth();
+        (new ProdutoController())->update();
+        break;
+    case 'delete_produto':
+        requireAuth();
+        (new ProdutoController())->delete();
         break;
 
     case 'update_insumo':
@@ -87,10 +148,59 @@ switch ($page) {
         loadView('create_prop');
         break;
 
+    case 'estoques':
+        requireAuth();
+        $estoquesSilos  = (new SiloController())->getAll();
+        $estoqueInsumos = (new EstoqueInsumosController())->getAll();
+        require_once "../app/views/estoques.php";
+        // loadView('estoques', compact('estoqueInsumos', 'estoquesSilos'));
+        break;
+
+    // ── ADICIONAR: página de silos ──
+    case 'silos':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->index();
+        break;
+
+    // ── ADICIONAR: ações CRUD de silo ──
+    case 'store_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->store();
+        break;
+
+    case 'update_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->update();
+        break;
+
+    case 'delete_silo':
+        require_once '../app/controllers/siloController.php';
+        (new SiloController())->delete();
+        break;
 
     case 'store_proprietario':
         $propController = new ProprietarioController();
         $propController->save();
+        break;
+
+    case 'relatorios':
+        requireAuth();
+        (new RelatoriosController())->index();
+        break;
+
+    case 'export_relatorio':
+        requireAuth();
+        (new RelatoriosController())->export();
+        break;
+
+    case 'clima':
+        requireAuth();
+        (new ClimaController())->index();
+        break;
+
+    case 'weather_proxy':
+        requireAuth();
+        (new ClimaController())->weather();
         break;
 
     case 'configuracoes':

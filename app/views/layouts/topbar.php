@@ -17,6 +17,7 @@ $titulos_pagina = [
     'clima'        => 'Clima',
     'equipe'       => 'Equipe',
     'configuracoes' => 'Configurações',
+    'produtos_culturas' => 'Produtos e Culturas',
 ];
 
 $titulo_atual = $titulos_pagina[$pagina_atual] ?? ucfirst($pagina_atual);

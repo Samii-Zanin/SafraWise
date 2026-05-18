@@ -8,6 +8,19 @@ class PropriedadeController {
         $this->db= Conexao::getConexao();
     }
 
+    public function getAll(): array
+{
+    $uid  = (int) $_SESSION['user']['id'];
+    $stmt = $this->db->prepare(
+        "SELECT id, nome, municipio, estado FROM propriedade WHERE proprietario_id = ? ORDER BY nome"
+    );
+    $stmt->bind_param("i", $uid);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $result;
+}
+
     // Listagem de propriedades
     public function index(): void {
         $proprietario_id = $_SESSION['user']['id'];
@@ -29,6 +42,37 @@ class PropriedadeController {
         $estado = strtoupper(trim($_POST['estado']));
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
+
+
+        if ($area_total <= 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva < 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva > $area_total) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Conflito de Áreas', 
+                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
 
         $stmt = $this->db->prepare("INSERT INTO propriedade (nome, localizacao, municipio, estado, area_total, area_produtiva, proprietario_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssddi", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $proprietario_id);
@@ -54,6 +98,37 @@ class PropriedadeController {
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
 
+
+        if ($area_total <= 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva < 0) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Área Inválida', 
+                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        if ($area_produtiva > $area_total) {
+            $_SESSION['toast'] = [
+                'tipo' => 'error', 
+                'titulo' => 'Conflito de Áreas', 
+                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
+            ];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+        
         $stmt = $this->db->prepare("UPDATE propriedade SET nome = ?, localizacao = ?, municipio = ?, estado = ?, area_total = ?, area_produtiva = ? WHERE id = ? AND proprietario_id = ?");
         $stmt->bind_param("ssssddii", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $id, $proprietario_id);
 
@@ -88,4 +163,31 @@ class PropriedadeController {
         header("Location: index.php?page=propriedades");
         exit;
     }
+    public function detalhes(): void {
+    $proprietario_id = $_SESSION['user']['id'];
+    $id = intval($_GET['id']);
+
+    // 1. Busca os dados da propriedade
+    $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE id = ? AND proprietario_id = ?");
+    $stmt->bind_param("ii", $id, $proprietario_id);
+    $stmt->execute();
+    $propriedade = $stmt->get_result()->fetch_assoc();
+
+    if (!$propriedade) {
+        header("Location: index.php?page=propriedades");
+        exit;
+    }
+
+    // 2. Busca os talhões desta propriedade específica
+    $stmtTal = $this->db->prepare("SELECT * FROM talhoes WHERE propriedade_id = ?");
+    $stmtTal->bind_param("i", $id);
+    $stmtTal->execute();
+    $talhoes = $stmtTal->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    // 3. Calcula área ocupada para a barra de progresso
+    $area_ocupada = 0;
+    foreach($talhoes as $t) $area_ocupada += $t['area_hectare'];
+
+    require_once "../app/views/detalhes_propriedade.php";
+}
 }

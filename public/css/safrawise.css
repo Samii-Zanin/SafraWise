@@ -97,7 +97,7 @@ h6,
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: var(--texto-medio);
+  color: var(--texto-escuro )!important;
   margin-bottom: 7px;
 }
 
@@ -755,6 +755,15 @@ h6,
   color: var(--verde-vivo);
 }
 
+.table-clickable tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.table-clickable tbody tr:hover {
+    background-color: rgba(64, 145, 108, 0.05) !important;
+}
+
 /* ══════════════════════════════════════
    9. LOGIN PAGE (Bootstrap não tem split-panel)
 ══════════════════════════════════════ */
@@ -1392,7 +1401,7 @@ h6,
   font-size: smaller;
 }
 .form-control {
-  color: white !important;
+  color: rgb(71, 69, 69) !important;
 }
 
 /* ══════════════════════════════════════

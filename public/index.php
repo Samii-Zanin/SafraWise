@@ -147,11 +147,37 @@ switch ($page) {
 
     case 'estoques':
         requireAuth();
-        $estoquesSilos  = (new SiloController())->getAll();
+        require_once '../app/controllers/EstoqueInsumosController.php';
+        require_once '../app/controllers/SiloController.php';
+        require_once '../app/controllers/ProdutoController.php';
+        require_once '../app/controllers/SafraController.php';
+        require_once '../app/controllers/PropriedadeController.php';
+        require_once '../app/controllers/InsumoController.php';
+        require_once '../app/controllers/OperacoesFinanceirasController.php';
+    
         $estoqueInsumos = (new EstoqueInsumosController())->getAll();
-        require_once "../app/views/estoques.php";
-        // loadView('estoques', compact('estoqueInsumos', 'estoquesSilos'));
+        $estoquesSilos  = (new SiloController())->getAll();
+        $produtos       = (new ProdutoController())->getAll();
+        $safras         = (new SafraController())->getAtivas();   // retorna array
+        $propriedades   = (new PropriedadeController())->getAll();
+        $insumos        = (new InsumoController())->getAllComProduto(); // ver abaixo
+        $movimentacoesInsumos = (new OperacoesFinanceirasController())->getMovimentacoesEstoqueInsumos();
+        require '../app/views/estoques.php';
         break;
+    
+    // Novas rotas:
+    case 'store_compra_insumo':
+        require_once '../app/controllers/OperacoesFinanceirasController.php';
+        (new OperacoesFinanceirasController())->storeCompraInsumo();
+        break;
+    
+    case 'store_entrada_insumo':
+        require_once '../app/controllers/EstoqueInsumosController.php';
+        (new EstoqueInsumosController())->storeEntrada();
+        break;
+
+
+
 
     // ── ADICIONAR: página de silos ──
     case 'silos':

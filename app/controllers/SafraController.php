@@ -39,6 +39,7 @@ class SafraController extends BaseController
             left join talhoes t on t.id = s.talhao_id
             left join propriedade p on t.propriedade_id = p.id
              WHERE proprietario_id = ?
+                AND (s.data_fim IS NULL OR s.data_fim >= CURDATE())
              ORDER BY data_inicio DESC"
         );
         $stmt->bind_param("i", $proprietarioId);
@@ -49,6 +50,48 @@ class SafraController extends BaseController
 
         require_once __DIR__ . '/../views/safras.php';
     }
+
+    public function getAtivas(): void
+    {
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
+            $this->redirect('dashboard');
+        }
+
+        $proprietarioId = $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare(
+            "select
+                s.id,
+                c.nome as cultura,
+                c.variedade, 
+                t.nome as nome_talhao,
+                t.area_hectare as area_talhao,
+                t.status as status_talhao,
+                p.nome as nome_propriedade,
+                p.municipio,
+                p.estado, 
+                s.data_inicio,
+                s.data_fim
+            from
+                safra s
+            left join cultura c on c.id = s.cultura_id
+            left join talhoes t on t.id = s.talhao_id
+            left join propriedade p on t.propriedade_id = p.id
+             WHERE proprietario_id = ?
+                AND (s.data_fim IS NULL OR s.data_fim >= CURDATE())
+             ORDER BY data_inicio DESC"
+        );
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+
+        $safras = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        // require_once __DIR__ . '/../views/safras.php';
+    }
+
+
 
     public function save(){
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

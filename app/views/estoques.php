@@ -4,6 +4,7 @@
  *
  * Variáveis esperadas:
  *   $estoqueInsumos — array de EstoqueInsumosController::getAll()
+ *   $movimentacoesInsumos — array de OperacoesFinanceirasController::getMovimentacoesEstoqueInsumos()
  *   $estoquesSilos  — array de SiloController::getAll()
  */
 
@@ -242,6 +243,66 @@ foreach ($estoquesSilos ?? [] as $item) {
       align-items: center;
       justify-content: space-between;
     }
+
+    /* ── Cards de decisão ── */
+    .decisao-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 28px 16px;
+      border: 2px solid #e2ece5;
+      border-radius: 16px;
+      background: var(--branco);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      width: 100%;
+    }
+    .decisao-card:hover {
+      border-color: var(--verde-vivo);
+      background: #f0faf4;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(64,145,108,.15);
+    }
+    .decisao-card.azul:hover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      box-shadow: 0 6px 20px rgba(59,130,246,.15);
+    }
+    .decisao-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .decisao-icon svg { width: 26px; height: 26px; }
+    .decisao-icon.verde { background: rgba(64,145,108,.12); color: var(--verde-vivo); }
+    .decisao-icon.azul  { background: rgba(59,130,246,.10); color: #3b82f6; }
+    .decisao-titulo {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 15px;
+      color: var(--texto-escuro);
+      line-height: 1.2;
+    }
+    .decisao-desc { font-size: 12px; color: var(--texto-suave); line-height: 1.4; }
+    
+    /* ── Caixa do valor/dose calculado ── */
+    .dose-preview {
+      background: #f0faf4;
+      border: 1px solid #c3e0cc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .dose-preview-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+                          letter-spacing: .6px; color: var(--texto-suave); }
+    .dose-preview-value { font-family: 'DM Serif Display', Georgia, serif;
+                          font-size: 18px; color: var(--verde-vivo); }
   </style>
 </head>
 <body>
@@ -375,7 +436,7 @@ foreach ($estoquesSilos ?? [] as $item) {
           <div class="ms-auto d-flex align-items-center gap-2">
             <button type="button"
                     class="btn btn-success btn-sm d-flex align-items-center gap-1"
-                    data-sw-open="modal-entrada-insumo">
+                    data-bs-toggle="modal" data-bs-target="#modal-decisao-entrada">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -405,13 +466,17 @@ foreach ($estoquesSilos ?? [] as $item) {
         <div class="card-table-wrapper">
           <div class="table-responsive">
             <table class="table estoques-table mb-0" id="tabela-insumos">
+              <caption class="caption-top text-center fw-bold">
+                        Estoque de Insumos
+              </caption>
               <thead>
                 <tr>
+                  <th>Propriedade</th>
                   <th>Produto</th>
                   <th>Marca</th>
                   <th>Unidade</th>
                   <th>Categoria</th>
-                  <th>Data Referência</th>
+                  <th>Data da Entrada</th>
                   <th>Quantidade</th>
                   <th>Valor / Dose</th>
                   <th>Valor Total</th>
@@ -434,9 +499,12 @@ foreach ($estoquesSilos ?? [] as $item) {
                 <?php else: ?>
                   <?php foreach ($estoqueInsumos as $item): ?>
                     <tr data-busca="<?= strtolower(htmlspecialchars($item['nome'] . ' ' . $item['marca'])) ?>"
-                        data-tipo="<?= htmlspecialchars($item['tipo'] ?? '') ?>">
-                      <td class="fw-medium" style="color:var(--texto-escuro);">
-                        <?= htmlspecialchars($item['nome']) ?>
+                    data-tipo="<?= htmlspecialchars($item['tipo'] ?? '') ?>">
+                    <td class="fw-medium" style="color:var(--texto-escuro);">
+                      <?= htmlspecialchars($item['propriedade_nome']) ?>
+                    </td>
+                    <td class="fw-medium" style="color:var(--texto-escuro);">
+                      <?= htmlspecialchars($item['nome']) ?>
                       </td>
                       <td class="text-muted"><?= htmlspecialchars($item['marca'] ?? '—') ?></td>
                       <td class="text-muted"><?= htmlspecialchars($item['unidade_medida'] ?? '—') ?></td>
@@ -451,8 +519,8 @@ foreach ($estoquesSilos ?? [] as $item) {
                         <?php endif; ?>
                       </td>
                       <td class="text-muted">
-                        <?= !empty($item['data_referencia'])
-                            ? date('d/m/Y', strtotime($item['data_referencia']))
+                        <?= !empty($item['data_entrada'])
+                            ? date('d/m/Y', strtotime($item['data_entrada']))
                             : '—' ?>
                       </td>
                       <td><?= number_format((float)$item['quantidade'], 2, ',', '.') ?></td>
@@ -468,11 +536,83 @@ foreach ($estoquesSilos ?? [] as $item) {
               </tbody>
             </table>
           </div>
+                          
+          
           <div class="table-footer">
-            <span class="small text-muted" id="label-insumos">
+            <span class="small text-muted" id="label-movimentacoes_insumos">
+              <?= count($movimentacoesInsumos ?? []) ?> registros exibidos
+            </span>
+            <span class="small text-muted">Estoques de Insumos</span>
+          </div>
+        </div>
+
+        <br>
+        
+        <!-- TABELA DE MOVIMNETAÇÕES DE ESTOQUE -->
+        <div class="card-table-wrapper">
+          <div class="table-responsive">
+            <table class="table estoques-table mb-0" id="tabela-insumos">
+              <caption class="caption-top text-center fw-bold">
+                         Movimentações de Estoque de Insumos
+              </caption>
+              <thead>
+                <tr>
+                  <th>Tipo de Operação</th>
+                  <th>Valor da Operação</th>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Data da Execução</th>
+                  <th>Safra Vinculada</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($movimentacoesInsumos)): ?>
+                  <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="1.5"
+                           class="mb-3 d-block mx-auto opacity-50">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                      </svg>
+                      Nenhum item no estoque de insumos.
+                    </td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($movimentacoesInsumos as $item): ?>
+                    <tr data-busca="<?= strtolower(htmlspecialchars($item['tipo_operacao'] . ' ' . $item['nome_produto'])) ?>"
+                    data-tipo="<?= htmlspecialchars($item['tipo_operacao'] ?? '') ?>">
+                    <td class="fw-medium" style="color:var(--texto-escuro);">
+                      <?= htmlspecialchars($item['tipo_operacao']) ?>
+                    </td>
+                    <td class="fw-medium" style="color:var(--texto-escuro);">
+                      R$<?= htmlspecialchars($item['valor_operacao'])?> total <br>
+                      R$<?= htmlspecialchars($item['valor_unitario'])?> a unidade
+                    </td>
+                    <td class="text-muted">
+                    <?= htmlspecialchars($item['nome_produto'] ?? '—') ?> <br>
+                    <?= htmlspecialchars($item['tipo'] ?? '—') ?>
+                  </td>
+                      <td class="text-muted">
+                        <?= htmlspecialchars($item['quantidade'] ?? '—') ?> unidades </td>
+                      <td class="text-muted">
+                        <?= htmlspecialchars($item['data_operacao'] ?? '—') ?></td>
+                      <td class="text-muted">
+                        <?= htmlspecialchars($item['talhao_nome'] ?? '—') ?> <br>
+                        <?= htmlspecialchars($item['cultura_plantada'] ?? '—') ?>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span class="small text-muted" id="label-movimentacoes_insumos">
               <?= count($estoqueInsumos ?? []) ?> registros exibidos
             </span>
-            <span class="small text-muted">Estoque de insumos</span>
+            <span class="small text-muted">Movimentações de Estoque</span>
           </div>
         </div>
 
@@ -531,9 +671,9 @@ foreach ($estoquesSilos ?? [] as $item) {
                     onchange="filtrarPorSelect('tabela-silos', this.value, 1)">
               <option value="">Todas</option>
               <?php
-              $propriedades = array_unique(array_column($estoquesSilos ?? [], 'propriedade'));
-              sort($propriedades);
-              foreach ($propriedades as $p): ?>
+              $silosPropriedades = array_unique(array_column($estoquesSilos ?? [], 'propriedade'));
+              sort($silosPropriedades);
+              foreach ($silosPropriedades as $p): ?>
                 <option value="<?= htmlspecialchars($p) ?>"><?= htmlspecialchars($p) ?></option>
               <?php endforeach; ?>
             </select>
@@ -544,9 +684,9 @@ foreach ($estoquesSilos ?? [] as $item) {
                     onchange="filtrarPorSelect('tabela-silos', this.value, 3)">
               <option value="">Todos</option>
               <?php
-              $estados = array_unique(array_column($estoquesSilos ?? [], 'estado'));
-              sort($estados);
-              foreach ($estados as $e): ?>
+              $silosEstados = array_unique(array_column($estoquesSilos ?? [], 'estado'));
+              sort($silosEstados);
+              foreach ($silosEstados as $e): ?>
                 <option value="<?= htmlspecialchars($e) ?>"><?= htmlspecialchars($e) ?></option>
               <?php endforeach; ?>
             </select>
@@ -753,6 +893,289 @@ foreach ($estoquesSilos ?? [] as $item) {
   </div>
 </div>
 
+
+
+<!-- ── MODAL 1: Decisão ─────────────────────────────── -->
+<div class="modal fade sw-modal" id="modal-decisao-entrada"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+ 
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Entrada de Insumo</h5>
+          <p class="modal-subtitle mb-0">
+            Esse registro refere-se a uma operação de compra?
+          </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+ 
+      <div class="modal-body pb-4">
+        <div class="row g-3">
+ 
+          <div class="col-6">
+            <button class="decisao-card" onclick="abrirModalCompra()">
+              <div class="decisao-icon verde">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2
+                       6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6
+                       4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Sim, registrar compra</div>
+              <div class="decisao-desc">
+                Registra operação financeira<br>e atualiza o estoque
+              </div>
+            </button>
+          </div>
+ 
+          <div class="col-6">
+            <button class="decisao-card azul" onclick="abrirModalEntradaSimples()">
+              <div class="decisao-icon azul">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2
+                       0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Não, só entrada</div>
+              <div class="decisao-desc">
+                Apenas adiciona quantidade<br>ao estoque existente
+              </div>
+            </button>
+          </div>
+ 
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+</div>
+ 
+ 
+<!-- ── MODAL 2: Compra de Insumo ─────────────────────── -->
+<div class="modal fade sw-modal" id="modal-compra-insumo"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+ 
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Compra de Insumo</h5>
+          <p class="modal-subtitle mb-0">
+            A operação será lançada como <strong style="color:var(--verde-claro);">COMPRA DE INSUMOS</strong>
+            e o estoque será atualizado automaticamente.
+          </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+ 
+      <div class="modal-body">
+        <form id="form-compra-insumo" method="POST"
+              action="index.php?page=store_compra_insumo">
+ 
+          <input type="hidden" name="tipo_operacao" value="COMPRA DE INSUMOS">
+ 
+          <!-- Linha 1: Produto + Propriedade -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label" for="compra-produto">Produto</label>
+              <select class="form-select" id="compra-produto" name="produto_id" required>
+                <option value="">Selecione o produto...</option>
+                <?php foreach ($produtos ?? [] as $p): ?>
+                  <option value="<?= (int)$p['id'] ?>">
+                    <?= htmlspecialchars($p['nome']) ?>
+                    <?= !empty($p['marca']) ? '— ' . htmlspecialchars($p['marca']) : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <div class="mt-1">
+                <a href="?page=produtos_culturas" class="small"
+                   style="color:var(--texto-suave); font-size:11px;">
+                  ↗ Não encontrei meu produto — cadastrar agora
+                </a>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label" for="compra-propriedade">Propriedade de destino</label>
+              <select class="form-select" id="compra-propriedade" name="propriedade_id" required>
+                <option value="">Selecione...</option>
+                <?php foreach ($propriedades ?? [] as $prop): ?>
+                  <option value="<?= (int)$prop['id'] ?>">
+                    <?= htmlspecialchars($prop['nome']) ?>
+                    <?= !empty($prop['municipio']) ? '— ' . htmlspecialchars($prop['municipio']) : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+ 
+          <!-- Linha 2: Valor + Quantidade + Valor/dose calculado -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label" for="compra-valor">Valor total da compra (R$)</label>
+              <input type="number" class="form-control" id="compra-valor"
+                     name="valor_operacao" placeholder="0,00"
+                     step="0.01" min="0.01" required
+                     oninput="calcularValorPorDose()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="compra-quantidade">
+                Quantidade
+                <span class="fw-normal text-muted ms-1" style="font-size:10px;" id="compra-unidade-label"></span>
+              </label>
+              <input type="number" class="form-control" id="compra-quantidade"
+                     name="quantidade" placeholder="0"
+                     step="0.001" min="0.001" required
+                     oninput="calcularValorPorDose()">
+            </div>
+            <div class="col-md-4 d-flex flex-column justify-content-end">
+              <label class="form-label">Valor por dose calculado</label>
+              <div class="dose-preview">
+                <span class="dose-preview-label">R$ / unidade</span>
+                <span class="dose-preview-value" id="dose-calculada">—</span>
+              </div>
+            </div>
+          </div>
+ 
+          <!-- Linha 3: Safra (opcional) -->
+          <div class="mb-3">
+            <label class="form-label" for="compra-safra">
+              Safra
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional — para atribuir o custo)</span>
+            </label>
+            <select class="form-select" id="compra-safra" name="safra_id">
+              <option value="">Sem vínculo com safra</option>
+              <?php foreach ($safras ?? [] as $s): ?>
+                <option value="<?= (int)$s['id'] ?>">
+                  <?= htmlspecialchars($s['cultura']) ?>
+                  — <?= htmlspecialchars($s['nome_talhao']) ?>
+                  (<?= date('d/m/Y', strtotime($s['data_inicio'])) ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+ 
+          <!-- Linha 4: Descrição -->
+          <div class="mb-0">
+            <label class="form-label" for="compra-descricao">
+              Descrição
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <textarea class="form-control" id="compra-descricao" name="descricao"
+                      rows="2"
+                      placeholder="Ex: Compra de herbicida para safra verão..."></textarea>
+          </div>
+ 
+        </form>
+      </div>
+ 
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-compra-insumo"
+                class="btn btn-success d-flex align-items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Registrar compra e atualizar estoque
+        </button>
+      </div>
+ 
+    </div>
+  </div>
+</div>
+ 
+ 
+<!-- ── MODAL 3: Entrada Simples ──────────────────────── -->
+<div class="modal fade sw-modal" id="modal-entrada-simples"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+ 
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Entrada de Estoque</h5>
+          <p class="modal-subtitle mb-0">Adiciona quantidade a um insumo existente.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+ 
+      <div class="modal-body">
+        <form id="form-entrada-simples" method="POST"
+              action="index.php?page=store_entrada_insumo">
+ 
+          <div class="mb-3">
+            <label class="form-label" for="entrada-insumo">Insumo</label>
+            <select class="form-select" id="entrada-insumo" name="insumo_id" required>
+              <option value="">Selecione o insumo...</option>
+              <?php foreach ($insumos ?? [] as $ins): ?>
+                <option value="<?= (int)$ins['id'] ?>">
+                  <?= htmlspecialchars($ins['nome']) ?>
+                  <?= !empty($ins['marca']) ? '— ' . htmlspecialchars($ins['marca']) : '' ?>
+                  (<?= htmlspecialchars($ins['unidade_medida'] ?? '') ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <div class="mt-1">
+              <a href="?page=insumos" class="small"
+                 style="color:var(--texto-suave); font-size:11px;">
+                ↗ Meu insumo não está listado — gerenciar insumos
+              </a>
+            </div>
+          </div>
+ 
+          <div class="mb-3">
+            <label class="form-label" for="entrada-propriedade">Propriedade</label>
+            <select class="form-select" id="entrada-propriedade"
+                    name="propriedade_id" required>
+              <option value="">Selecione...</option>
+              <?php foreach ($propriedades ?? [] as $prop): ?>
+                <option value="<?= (int)$prop['id'] ?>">
+                  <?= htmlspecialchars($prop['nome']) ?>
+                  <?= !empty($prop['municipio']) ? '— ' . htmlspecialchars($prop['municipio']) : '' ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+ 
+          <div class="mb-0">
+            <label class="form-label" for="entrada-quantidade">Quantidade a adicionar</label>
+            <input type="number" class="form-control" id="entrada-quantidade"
+                   name="quantidade" placeholder="0" step="0.001" min="0.001" required>
+          </div>
+ 
+        </form>
+      </div>
+ 
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-entrada-simples"
+                class="btn btn-primary d-flex align-items-center gap-2"
+                style="background:#3b82f6; border-color:#3b82f6;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"/>
+            <polyline points="5 12 12 5 19 12"/>
+          </svg>
+          Adicionar ao estoque
+        </button>
+      </div>
+ 
+    </div>
+  </div>
+</div>
+ 
+ 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
 <script src="../../public/js/app.js"></script>
@@ -867,6 +1290,59 @@ function atualizarContagem(tabelaId, n) {
   );
   if (label) label.textContent = `${n} registro${n !== 1 ? 's' : ''} exibido${n !== 1 ? 's' : ''}`;
 }
+
+// ── Fluxo de decisão ──────────────────────────────────────────
+function abrirModalCompra() {
+  bootstrap.Modal.getInstance(
+    document.getElementById('modal-decisao-entrada')
+  )?.hide();
+ 
+  setTimeout(() => {
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById('modal-compra-insumo')
+    ).show();
+  }, 300); // aguarda a animação de fechar
+}
+ 
+function abrirModalEntradaSimples() {
+  bootstrap.Modal.getInstance(
+    document.getElementById('modal-decisao-entrada')
+  )?.hide();
+ 
+  setTimeout(() => {
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById('modal-entrada-simples')
+    ).show();
+  }, 300);
+}
+ 
+// ── Cálculo em tempo real do valor/dose ───────────────────────
+function calcularValorPorDose() {
+  const valor = parseFloat(document.getElementById('compra-valor').value)     || 0;
+  const qtd   = parseFloat(document.getElementById('compra-quantidade').value) || 0;
+  const el    = document.getElementById('dose-calculada');
+ 
+  if (valor > 0 && qtd > 0) {
+    const dose = valor / qtd;
+    el.textContent = dose.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    });
+    el.style.color = 'var(--verde-vivo)';
+  } else {
+    el.textContent = '—';
+    el.style.color = 'var(--texto-suave)';
+  }
+}
+ 
+// ── Limpa os formulários quando os modais fecham ──────────────
+['modal-compra-insumo', 'modal-entrada-simples'].forEach(id => {
+  document.getElementById(id)?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById(id).querySelector('form')?.reset();
+    const dose = document.getElementById('dose-calculada');
+    if (dose) { dose.textContent = '—'; dose.style.color = 'var(--texto-suave)'; }
+  });
+});
 </script>
 
 </body>

@@ -399,7 +399,7 @@ $totalCulturas = count($culturas ?? []);
           <div class="mb-3">
             <label class="form-label" for="cp-marca">Marca do produto</label>
             <input type="text" class="form-control" id="cp-marca" name="marca"
-                   placeholder="Ex: Monsanto, Bayer, Syngenta..." required>
+                   placeholder="Ex: Monsanto, Bayer, Syngenta...">
           </div>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
@@ -412,6 +412,7 @@ $totalCulturas = count($culturas ?? []);
                 <option value="Fertilizante">Fertilizante</option>
                 <option value="Adubo">Adubo</option>
                 <option value="Nematicida">Nematicida</option>
+                <option value="Cereal">Cereal</option>
                 <option value="Regulador de crescimento">Regulador de crescimento</option>
                 <option value="Semente">Semente</option>
                 <option value="Outro">Outro</option>

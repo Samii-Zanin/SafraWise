@@ -51,7 +51,7 @@ class SafraController extends BaseController
         require_once __DIR__ . '/../views/safras.php';
     }
 
-    public function getAtivas(): void
+    public function getAtivas(): array
     {
         if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
             $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
@@ -88,7 +88,7 @@ class SafraController extends BaseController
         $safras = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // require_once __DIR__ . '/../views/safras.php';
+        return $safras;
     }
 
 

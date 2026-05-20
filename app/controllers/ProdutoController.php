@@ -36,6 +36,18 @@ class ProdutoController extends BaseController
         require_once __DIR__ . '/../views/produtos_culturas.php';
     }
 
+    public function getAllByTipo(string $tipo): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, nome, unidade_medida FROM produto WHERE tipo = ? ORDER BY nome ASC"
+        );
+        $stmt->bind_param("s", $tipo);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $result;
+    }
+
     public function save(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -50,8 +62,8 @@ class ProdutoController extends BaseController
             'tipo'      => trim($_POST['tipo']      ?? ''),
         ];
 
-        if (empty($dados['nome']) || empty($dados['marca'])) {
-            $this->setToast('warning', 'Campos Obrigatórios', 'Nome e marca são obrigatórios.');
+        if (empty($dados['nome']) || empty($dados['tipo'])) {
+            $this->setToast('warning', 'Campos Obrigatórios', 'Nome e tipo são obrigatórios.');
             $this->redirect('produtos_culturas');
         }
 

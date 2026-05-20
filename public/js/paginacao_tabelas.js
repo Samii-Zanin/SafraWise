@@ -107,4 +107,10 @@ const paginators = {
     "pages-culturas",
     10,
   ),
+  movimentacoes_silos: new Paginator(
+    "tabela-mov-silos",
+    "info-mov-silos",
+    "pages-mov-silos",
+    10,
+  ),
 };

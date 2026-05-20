@@ -158,14 +158,15 @@ switch ($page) {
         $estoqueInsumos = (new EstoqueInsumosController())->getAll();
         $estoquesSilos  = (new SiloController())->getAll();
         $produtos       = (new ProdutoController())->getAll();
-        $safras         = (new SafraController())->getAtivas();   // retorna array
+        $cereais = (new ProdutoController())->getAllByTipo('CEREAL');
+        $safras         = (new SafraController())->getAtivas(); 
         $propriedades   = (new PropriedadeController())->getAll();
         $insumos        = (new InsumoController())->getAllComProduto(); // ver abaixo
         $movimentacoesInsumos = (new OperacoesFinanceirasController())->getMovimentacoesEstoqueInsumos();
+        $movimentacoesSilos = (new OperacoesFinanceirasController())->getMovimentacoesSilos();
         require '../app/views/estoques.php';
         break;
     
-    // Novas rotas:
     case 'store_compra_insumo':
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->storeCompraInsumo();
@@ -176,16 +177,21 @@ switch ($page) {
         (new EstoqueInsumosController())->storeEntrada();
         break;
 
+    case 'venda_cereal':
+        require_once '../app/controllers/OperacoesFinanceirasController.php';
+        (new OperacoesFinanceirasController())->VendaCereal();
+        break;
+    case 'saida_simples_cereal':
+        require_once '../app/controllers/OperacoesFinanceirasController.php';
+        (new OperacoesFinanceirasController())->registrarSaidaSimplesCereal();
+        break;
 
 
-
-    // ── ADICIONAR: página de silos ──
     case 'silos':
         require_once '../app/controllers/siloController.php';
         (new SiloController())->index();
         break;
 
-    // ── ADICIONAR: ações CRUD de silo ──
     case 'store_silo':
         require_once '../app/controllers/siloController.php';
         (new SiloController())->store();

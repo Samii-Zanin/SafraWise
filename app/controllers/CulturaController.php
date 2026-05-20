@@ -44,28 +44,46 @@ class CulturaController extends BaseController
         }
 
         $dados = [
-            'nome'           => trim($_POST['nome']           ?? ''),
-            'variedade'      => trim($_POST['variedade']      ?? ''),
+            'nome'      => trim($_POST['nome']      ?? ''),
+            'variedade' => trim($_POST['variedade'] ?? ''),
         ];
 
-        if (empty($dados['nome']) || empty($dados['variedade'])) {
-            $this->setToast('warning', 'Campos Obrigatórios', 'Nome e variedade são obrigatórios.');
+        if (empty($dados['nome'])) {
+            $this->setToast('warning', 'Campos Obrigatórios', 'Nome é obrigatório.');
             $this->redirect('produtos_culturas');
         }
 
         try {
+            // ── 1. Insere a cultura ──────────────────────────────
             $stmt = $this->db->prepare(
                 "INSERT INTO cultura (nome, variedade) VALUES (?, ?)"
             );
-            $stmt->bind_param(
-                "ss",
-                $dados['nome'], $dados['variedade']
-            );
+            $stmt->bind_param("ss", $dados['nome'], $dados['variedade']);
             if (!$stmt->execute()) {
                 throw new \RuntimeException("Falha ao inserir cultura: {$this->db->error}");
             }
-            $culturaId = $this->db->insert_id;
             $stmt->close();
+
+            // ── 2. Verifica se produto CEREAL já existe ──────────
+            $stmtCheck = $this->db->prepare(
+                "SELECT id FROM produto WHERE nome = ? AND tipo = 'CEREAL' LIMIT 1"
+            );
+            $stmtCheck->bind_param("s", $dados['nome']);
+            $stmtCheck->execute();
+            $produtoExistente = $stmtCheck->get_result()->fetch_assoc();
+            $stmtCheck->close();
+
+            // ── 3. Só insere produto se não existir ──────────────
+            if (!$produtoExistente) {
+                $stmt = $this->db->prepare(
+                    "INSERT INTO produto (nome, descricao, unidade_medida, tipo) VALUES (?, ?, 'sc', 'CEREAL')"
+                );
+                $stmt->bind_param("ss", $dados['nome'], $dados['variedade']);
+                if (!$stmt->execute()) {
+                    throw new \RuntimeException("Falha ao inserir produto: {$this->db->error}");
+                }
+                $stmt->close();
+            }
 
             $this->setToast('success', 'Cultura Cadastrada!', "{$dados['nome']} foi adicionada ao catálogo.");
             $this->redirect('produtos_culturas');

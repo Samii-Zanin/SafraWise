@@ -10,6 +10,9 @@ require_once "../app/controllers/ProdutoController.php";
 require_once "../app/controllers/estoqueInsumosController.php";
 require_once "../app/controllers/siloController.php";
 require_once "../app/controllers/TalhaoController.php";
+require_once "../app/controllers/DashboardController.php";
+require_once "../app/controllers/RelatoriosController.php";
+require_once "../app/controllers/ClimaController.php";
 
 $page = $_GET['page'] ?? 'login';
 
@@ -44,7 +47,7 @@ switch ($page) {
 
     case 'dashboard':
         requireAuth();
-        loadView('dashboard');
+        (new DashboardController())->index();
         break;
 
     case 'equipe':
@@ -178,6 +181,26 @@ switch ($page) {
     case 'store_proprietario':
         $propController = new ProprietarioController();
         $propController->save();
+        break;
+
+    case 'relatorios':
+        requireAuth();
+        (new RelatoriosController())->index();
+        break;
+
+    case 'export_relatorio':
+        requireAuth();
+        (new RelatoriosController())->export();
+        break;
+
+    case 'clima':
+        requireAuth();
+        (new ClimaController())->index();
+        break;
+
+    case 'weather_proxy':
+        requireAuth();
+        (new ClimaController())->weather();
         break;
 
     case 'configuracoes':

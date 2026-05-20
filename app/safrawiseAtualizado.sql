@@ -58,7 +58,7 @@ CREATE TABLE `cultura` (
   `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `variedade` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,6 +67,7 @@ CREATE TABLE `cultura` (
 
 LOCK TABLES `cultura` WRITE;
 /*!40000 ALTER TABLE `cultura` DISABLE KEYS */;
+INSERT INTO `cultura` VALUES (1,'Milho','DKALB'),(2,'Soja','texan'),(3,'Feijão','Carioquinha');
 /*!40000 ALTER TABLE `cultura` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -244,7 +245,7 @@ CREATE TABLE `produto` (
   `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tipo` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -253,7 +254,7 @@ CREATE TABLE `produto` (
 
 LOCK TABLES `produto` WRITE;
 /*!40000 ALTER TABLE `produto` DISABLE KEYS */;
-INSERT INTO `produto` VALUES (1,'RANDAPE','ROUNDUP','L','TESTANDO PRA VER SE MATA BUVA','Outro');
+INSERT INTO `produto` VALUES (1,'RANDAPE','ROUNDUP','L','TESTANDO PRA VER SE MATA BUVA','Outro'),(2,'dad','dad','kg','TESTE','Inseticida'),(3,'Produto','Marca Produto','t','Des produto','Fertilizante');
 /*!40000 ALTER TABLE `produto` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -357,14 +358,15 @@ DROP TABLE IF EXISTS `silo`;
 CREATE TABLE `silo` (
   `id` int NOT NULL AUTO_INCREMENT,
   `propriedade_id` int NOT NULL,
-  `cultura_id` int NOT NULL,
+  `cultura` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `quantidade_kg` decimal(10,2) DEFAULT '0.00',
+  `capacidade_kg` decimal(10,2) NOT NULL,
+  `nome` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_silo_propriedade` (`propriedade_id`),
-  KEY `fk_silo_cultura` (`cultura_id`),
-  CONSTRAINT `fk_silo_cultura` FOREIGN KEY (`cultura_id`) REFERENCES `cultura` (`id`),
+  KEY `fk_silo_cultura` (`cultura`),
   CONSTRAINT `fk_silo_propriedade` FOREIGN KEY (`propriedade_id`) REFERENCES `propriedade` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -373,6 +375,7 @@ CREATE TABLE `silo` (
 
 LOCK TABLES `silo` WRITE;
 /*!40000 ALTER TABLE `silo` DISABLE KEYS */;
+INSERT INTO `silo` VALUES (1,1,'Milho',0.00,50000.00,'Silo Norte');
 /*!40000 ALTER TABLE `silo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -390,6 +393,8 @@ CREATE TABLE `talhoes` (
   `coordenadas_json` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `propriedade_id` int DEFAULT NULL,
   `status` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tipo_posse` enum('PROPRIO','ARRENDADO') COLLATE utf8mb4_general_ci DEFAULT 'PROPRIO',
+  `custo_arrendamento_sacas` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `propriedade_id` (`propriedade_id`),
   CONSTRAINT `talhoes_ibfk_1` FOREIGN KEY (`propriedade_id`) REFERENCES `propriedade` (`id`)
@@ -418,4 +423,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-06 20:23:21
+-- Dump completed on 2026-05-15 15:49:31

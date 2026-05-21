@@ -32,10 +32,13 @@ class EstoqueInsumosController extends BaseController
         i.produto_id = p.id
     )
     select 
-        *,
+        ei.*,
+        pi.*,
+        pr.nome as propriedade_nome,
         quantidade * valor_por_dose as valor_total_em_produto
     from estoque_insumos ei 
     join produto_insumo pi on pi.insumo_id = ei.insumo_id 
+    join propriedade pr on pr.id = ei.propriedade_id
     ");
     $stmt->execute();
     $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -102,6 +105,62 @@ class EstoqueInsumosController extends BaseController
             error_log($e->getMessage());
             $this->setToast('error', 'Erro interno', 'Não foi possível salvar o estoque. Tente novamente.'. $e->getMessage());
             $this->redirect('produtos_culturas');
+        }
+    }
+
+
+    public function storeEntrada(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+        }
+ 
+        $insumo_id      = (int)   ($_POST['insumo_id']      ?? 0);
+        $quantidade     = (float) ($_POST['quantidade']      ?? 0);
+        $propriedade_id = (int)   ($_POST['propriedade_id']  ?? 0);
+ 
+        if (!$insumo_id || $quantidade <= 0 || !$propriedade_id) {
+            $this->setToast('warning', 'Campos obrigatórios', 'Preencha todos os campos.');
+            $this->redirect('estoques');
+            return;
+        }
+ 
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT id, quantidade FROM estoque_insumos
+                 WHERE insumo_id = ? AND propriedade_id = ? LIMIT 1"
+            );
+            $stmt->bind_param("ii", $insumo_id, $propriedade_id);
+            $stmt->execute();
+            $estoque = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+ 
+            if ($estoque) {
+                $nova_qtd = $estoque['quantidade'] + $quantidade;
+                $stmt = $this->db->prepare(
+                    "UPDATE estoque_insumos SET quantidade = ? WHERE id = ?"
+                );
+                $stmt->bind_param("di", $nova_qtd, $estoque['id']);
+            } else {
+                $stmt = $this->db->prepare(
+                    "INSERT INTO estoque_insumos (insumo_id, quantidade, propriedade_id)
+                     VALUES (?, ?, ?)"
+                );
+                $stmt->bind_param("idi", $insumo_id, $quantidade, $propriedade_id);
+            }
+ 
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao atualizar estoque: {$this->db->error}");
+            }
+            $stmt->close();
+ 
+            $this->setToast('success', 'Entrada Registrada!', 'O estoque foi atualizado com sucesso.');
+            $this->redirect('estoques');
+ 
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno', 'Não foi possível registrar a entrada.');
+            $this->redirect('estoques');
         }
     }
 }

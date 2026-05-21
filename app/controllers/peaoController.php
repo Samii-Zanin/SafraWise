@@ -101,7 +101,6 @@ class PeaoController extends BaseController
         }
     }
 
-    // Exibe o formulário de edição
     public function edit(): void {
         $id = $_GET['id'] ?? null;
         $proprietario_id = $_SESSION['user']['id'];

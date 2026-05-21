@@ -32,6 +32,20 @@ class InsumoController extends BaseController
         require_once __DIR__ . '/../views/insumos.php';
     }
 
+    public function getAllComProduto(): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT i.id, p.nome, p.marca, p.unidade_medida
+            FROM insumo i
+            JOIN produto p ON p.id = i.produto_id
+            ORDER BY p.nome ASC
+        ");
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $result;
+    }
+
     public function save(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {

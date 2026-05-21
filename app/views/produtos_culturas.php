@@ -49,6 +49,7 @@ $totalCulturas = count($culturas ?? []);
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../public/css/safrawise.css">
+  <link rel="stylesheet" href="../../public/css/paginacao_tabelas.css">
 </head>
 <body>
 
@@ -162,7 +163,7 @@ $totalCulturas = count($culturas ?? []);
 
       <div class="card-table-wrapper mb-5">
         <div class="table-responsive">
-          <table class="table table-safrawise mb-0">
+          <table class="table table-safrawise mb-0" id="tabela-produtos">
             <thead>
               <tr>
                 <th>Nome</th>
@@ -246,7 +247,21 @@ $totalCulturas = count($culturas ?? []);
               <?php endif; ?>
             </tbody>
           </table>
+        </div> 
+        <div class="table-footer centralizado">
+        <div class="d-flex align-items-center gap-2">
+          <span class="small text-muted">Linhas por página:</span>
+          <select class="perpage-select" id="perpage-produtos"
+                  onchange="paginators.produtos.setPerPage(+this.value)">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="99999">Todas</option>
+          </select>
+          <span class="small text-muted" id="info-produtos"></span>
         </div>
+        <div class="d-flex align-items-center gap-1" id="pages-produtos"></div>
+      </div>
       </div>
 
       <!-- ══════════════════════════════════════
@@ -270,7 +285,7 @@ $totalCulturas = count($culturas ?? []);
 
       <div class="card-table-wrapper">
         <div class="table-responsive">
-          <table class="table table-safrawise mb-0">
+          <table class="table table-safrawise mb-0" id="tabela-culturas">
             <thead>
               <tr>
                 <th>Nome</th>
@@ -336,6 +351,20 @@ $totalCulturas = count($culturas ?? []);
             </tbody>
           </table>
         </div>
+        <div class="table-footer flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted">Linhas por página:</span>
+            <select class="perpage-select" id="perpage-culturas"
+                    onchange="paginators.culturas.setPerPage(+this.value)">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="99999">Todas</option>
+            </select>
+            <span class="small text-muted" id="info-culturas"></span>
+          </div>
+          <div class="d-flex align-items-center gap-1" id="pages-culturas"></div>
+        </div>
       </div>
 
     </div><!-- /page-body -->
@@ -370,7 +399,7 @@ $totalCulturas = count($culturas ?? []);
           <div class="mb-3">
             <label class="form-label" for="cp-marca">Marca do produto</label>
             <input type="text" class="form-control" id="cp-marca" name="marca"
-                   placeholder="Ex: Monsanto, Bayer, Syngenta..." required>
+                   placeholder="Ex: Monsanto, Bayer, Syngenta...">
           </div>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
@@ -383,6 +412,7 @@ $totalCulturas = count($culturas ?? []);
                 <option value="Fertilizante">Fertilizante</option>
                 <option value="Adubo">Adubo</option>
                 <option value="Nematicida">Nematicida</option>
+                <option value="Cereal">Cereal</option>
                 <option value="Regulador de crescimento">Regulador de crescimento</option>
                 <option value="Semente">Semente</option>
                 <option value="Outro">Outro</option>
@@ -708,7 +738,7 @@ $totalCulturas = count($culturas ?? []);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
-<script src="../../public/js/app.js"></script>
+<script src="../../public/js/paginacao_tabelas.js"></script>
 
 <script>
 // ── Toast ──────────────────────────────────────────────────────

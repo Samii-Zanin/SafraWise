@@ -51,12 +51,6 @@ $pagina_atual = $pagina_atual ?? '';
       Dashboard
     </a>
 
-    <a href="?page=insumos" class="sw-nav-link <?= $pagina_atual === 'insumos' ? 'active' : '' ?>">
-      <svg viewBox="0 0 20 20" fill="currentColor">
-        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
-      </svg>
-      Insumos
-    </a>
     <a href="?page=estoques" class="sw-nav-link <?= $pagina_atual === 'estoques' ? 'active' : '' ?>">
       <svg viewBox="0 0 20 20" fill="currentColor">
         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
@@ -97,17 +91,26 @@ $pagina_atual = $pagina_atual ?? '';
       </svg>
       Equipe
     </a>
+    <a href="?page=insumos" class="sw-nav-link <?= $pagina_atual === 'insumos' ? 'active' : '' ?>">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+  <path d="M6 1C5.4 1 5 1.4 5 2v1c0 .3.1.5.3.7L6 5v11c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V5l.7-1.3c.2-.2.3-.4.3-.7V2c0-.6-.4-1-1-1H6zm1 2h6v.5L12.4 5H7.6L7 3.5V3zm1 4h4v1H8V7zm0 3c1.2-1.5 2.8-1.5 4 0-.3 1.2-1.2 2-2 2s-1.7-.8-2-2zm-1 5h6v1H7v-1z"/>
+</svg>
+      Insumos
+    </a>
     <a href="?page=produtos_culturas" class="sw-nav-link <?= $pagina_atual === 'produtos_culturas' ? 'active' : '' ?>">
       <svg viewBox="0 0 20 20" fill="currentColor">
-        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-      </svg>
+    <path d="M9 8a1 1 0 012 0v10a1 1 0 01-2 0V8z"/>
+    <path d="M10 14C8 14 4 12 4 9c0-3 3-5 6-2v7z"/>
+    <path d="M10 10c2 0 6-2 6-5 0-3-3-5-6-2v7z"/>
+  </svg>
       Produtos e Culturas
     </a>
 
     <a href="?page=silos" class="sw-nav-link <?= $pagina_atual === 'silos' ? 'active' : '' ?>">
       <svg viewBox="0 0 20 20" fill="currentColor">
-        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-      </svg>
+    <path d="M5 8A5 5 0 0115 8H5z"/>
+    <path d="M5 8h10v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8z"/>
+  </svg>
       Silos
     </a>
 

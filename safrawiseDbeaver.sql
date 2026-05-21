@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: safrawise
 -- ------------------------------------------------------
--- Server version	8.0.45
+-- Server version	8.0.41
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -24,14 +24,14 @@ DROP TABLE IF EXISTS `cotacoes`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cotacoes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `produto` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `praca` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `produto` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `praca` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `data` datetime DEFAULT NULL,
   `preco` decimal(10,2) DEFAULT NULL,
   `variacao_mensal` decimal(10,4) DEFAULT NULL,
-  `moeda` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `unidade` varchar(55) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `uf` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `moeda` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `unidade` varchar(55) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uf` varchar(2) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -55,10 +55,10 @@ DROP TABLE IF EXISTS `cultura`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cultura` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `variedade` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `variedade` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `cultura` (
 
 LOCK TABLES `cultura` WRITE;
 /*!40000 ALTER TABLE `cultura` DISABLE KEYS */;
-INSERT INTO `cultura` VALUES (1,'SOJA','PIONNER'),(2,'MILHO','DKALB 230'),(3,'SOJA','MORGAN'),(4,'MILHO','DKALB 240'),(5,'TRIGO','PÃO'),(6,'ARROZ','BRANCO'),(7,'FEIJÃO','PRETO'),(8,'ARROZ','INTEGRAL'),(9,'FEIJÃO','CARIOCA'),(10,'MILHO','PIPOCA'),(11,'RABANETE','SALADA');
+INSERT INTO `cultura` VALUES (1,'Milho','DKALB'),(2,'Soja','texan'),(3,'Feijão','Carioquinha');
 /*!40000 ALTER TABLE `cultura` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -88,7 +88,7 @@ CREATE TABLE `estoque_insumos` (
   KEY `propriedade_id` (`propriedade_id`),
   CONSTRAINT `estoque_insumos_ibfk_1` FOREIGN KEY (`insumo_id`) REFERENCES `insumo` (`id`),
   CONSTRAINT `estoque_insumos_ibfk_2` FOREIGN KEY (`propriedade_id`) REFERENCES `propriedade` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +97,6 @@ CREATE TABLE `estoque_insumos` (
 
 LOCK TABLES `estoque_insumos` WRITE;
 /*!40000 ALTER TABLE `estoque_insumos` DISABLE KEYS */;
-INSERT INTO `estoque_insumos` VALUES (1,2,1,70.00),(2,2,2,7000.00),(3,1,2,24300.00),(4,2,3,1.00),(5,2,4,168.00);
 /*!40000 ALTER TABLE `estoque_insumos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -116,7 +115,7 @@ CREATE TABLE `insumo` (
   PRIMARY KEY (`id`),
   KEY `produto_id` (`produto_id`),
   CONSTRAINT `insumo_ibfk_1` FOREIGN KEY (`produto_id`) REFERENCES `produto` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -125,7 +124,6 @@ CREATE TABLE `insumo` (
 
 LOCK TABLES `insumo` WRITE;
 /*!40000 ALTER TABLE `insumo` DISABLE KEYS */;
-INSERT INTO `insumo` VALUES (1,78.00,1,'2026-05-12'),(2,0.53,2,'2026-05-12'),(3,255.00,3,'2026-05-15'),(4,80.36,4,'2026-05-15');
 /*!40000 ALTER TABLE `insumo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,9 +136,9 @@ DROP TABLE IF EXISTS `operacoes_agricolas`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `operacoes_agricolas` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `tipo_operacao` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tipo_operacao` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `data_operacao` datetime DEFAULT CURRENT_TIMESTAMP,
-  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `insumo_id` int DEFAULT NULL,
   `safra_id` int DEFAULT NULL,
   `talhao_id` int DEFAULT NULL,
@@ -177,19 +175,19 @@ DROP TABLE IF EXISTS `operacoes_financeiras`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `operacoes_financeiras` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `tipo_operacao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tipo_operacao` enum('COMPRA','VENDA') COLLATE utf8mb4_general_ci DEFAULT NULL,
   `valor_operacao` decimal(10,2) DEFAULT NULL,
-  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `produto_id` int DEFAULT NULL,
   `quantidade` decimal(10,2) DEFAULT NULL,
   `safra_id` int DEFAULT NULL,
-  `data_operacao` datetime NOT NULL,
+  `data` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `safra_id` (`safra_id`),
   KEY `produto_id` (`produto_id`),
   CONSTRAINT `operacoes_financeiras_ibfk_1` FOREIGN KEY (`safra_id`) REFERENCES `safra` (`id`),
   CONSTRAINT `operacoes_financeiras_ibfk_2` FOREIGN KEY (`produto_id`) REFERENCES `produto` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -198,7 +196,6 @@ CREATE TABLE `operacoes_financeiras` (
 
 LOCK TABLES `operacoes_financeiras` WRITE;
 /*!40000 ALTER TABLE `operacoes_financeiras` DISABLE KEYS */;
-INSERT INTO `operacoes_financeiras` VALUES (1,'COMPRA DE INSUMOS',255.00,'132312',3,1.00,NULL,'2026-05-15 19:04:28'),(2,'COMPRA DE INSUMOS',1000.00,'Compra de merda',2,1000.00,1,'2026-05-15 20:11:53'),(3,'COMPRA DE INSUMOS',10000.00,'Compra de semente de trigo para manter no estoque, uso na próxima safra',4,123.00,1,'2026-05-15 20:20:12'),(4,'COMPRA DE INSUMOS',3500.00,'Faltou algumas sacas para a proxima safra',4,45.00,NULL,'2026-05-15 20:21:09'),(5,'COMPRA DE INSUMOS',4500.00,'VAI TOMANDO',2,16000.00,NULL,'2026-05-17 23:03:18');
 /*!40000 ALTER TABLE `operacoes_financeiras` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -211,16 +208,16 @@ DROP TABLE IF EXISTS `peao`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `peao` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cpf_cnpj` varchar(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telefone` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `senha` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cpf_cnpj` varchar(14) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telefone` varchar(18) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `senha` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `proprietario_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proprietario_id` (`proprietario_id`),
   CONSTRAINT `peao_ibfk_1` FOREIGN KEY (`proprietario_id`) REFERENCES `proprietario` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -242,13 +239,13 @@ DROP TABLE IF EXISTS `produto`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `produto` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `marca` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `unidade_medida` varchar(55) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `tipo` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `marca` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `unidade_medida` varchar(55) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tipo` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -257,7 +254,7 @@ CREATE TABLE `produto` (
 
 LOCK TABLES `produto` WRITE;
 /*!40000 ALTER TABLE `produto` DISABLE KEYS */;
-INSERT INTO `produto` VALUES (1,'RANDAPE','ROUNDUP','L','TESTANDO PRA VER SE MATA BUVA','Outro'),(2,'BOSTA','BOVINA','KG','ADUBO NATURAL','Fertilizante'),(3,'Semente de Soja','BAYER','sc','Semente de soja tratada','Semente'),(4,'SEMENTE DE TRIGO','MONSANTA','sc','Semente tratada para trigo pão','Semente');
+INSERT INTO `produto` VALUES (1,'RANDAPE','ROUNDUP','L','TESTANDO PRA VER SE MATA BUVA','Outro'),(2,'dad','dad','kg','TESTE','Inseticida'),(3,'Produto','Marca Produto','t','Des produto','Fertilizante');
 /*!40000 ALTER TABLE `produto` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -270,17 +267,17 @@ DROP TABLE IF EXISTS `propriedade`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propriedade` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `localizacao` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `municipio` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `estado` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `localizacao` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `municipio` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `estado` varchar(2) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `area_total` decimal(10,2) DEFAULT NULL,
   `area_produtiva` decimal(10,2) DEFAULT NULL,
   `proprietario_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proprietario_id` (`proprietario_id`),
   CONSTRAINT `propriedade_ibfk_1` FOREIGN KEY (`proprietario_id`) REFERENCES `proprietario` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -289,7 +286,7 @@ CREATE TABLE `propriedade` (
 
 LOCK TABLES `propriedade` WRITE;
 /*!40000 ALTER TABLE `propriedade` DISABLE KEYS */;
-INSERT INTO `propriedade` VALUES (1,'Terras Largas','','Capinzal','RS',54.16,48.78,2),(2,'Terras Planas',NULL,'Barão de cotegipe','RS',31.04,27.14,2);
+INSERT INTO `propriedade` VALUES (1,'Terras Largas','','Capinzal','RS',54.16,48.78,2);
 /*!40000 ALTER TABLE `propriedade` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -302,11 +299,11 @@ DROP TABLE IF EXISTS `proprietario`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `proprietario` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cpf_cnpj` varchar(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telefone` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `senha` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cpf_cnpj` varchar(14) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telefone` varchar(18) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `senha` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -331,7 +328,7 @@ DROP TABLE IF EXISTS `safra`;
 CREATE TABLE `safra` (
   `id` int NOT NULL AUTO_INCREMENT,
   `data_inicio` date DEFAULT (curdate()),
-  `data_fim` date DEFAULT NULL,
+  `data_fim` date DEFAULT (curdate()),
   `talhao_id` int DEFAULT NULL,
   `cultura_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -339,7 +336,7 @@ CREATE TABLE `safra` (
   KEY `cultura_id` (`cultura_id`),
   CONSTRAINT `safra_ibfk_1` FOREIGN KEY (`talhao_id`) REFERENCES `talhoes` (`id`),
   CONSTRAINT `safra_ibfk_2` FOREIGN KEY (`cultura_id`) REFERENCES `cultura` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -348,7 +345,6 @@ CREATE TABLE `safra` (
 
 LOCK TABLES `safra` WRITE;
 /*!40000 ALTER TABLE `safra` DISABLE KEYS */;
-INSERT INTO `safra` VALUES (1,'2026-04-21',NULL,1,4),(2,'2025-07-18','2026-03-25',2,2);
 /*!40000 ALTER TABLE `safra` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -370,7 +366,7 @@ CREATE TABLE `silo` (
   KEY `fk_silo_propriedade` (`propriedade_id`),
   KEY `fk_silo_cultura` (`cultura`),
   CONSTRAINT `fk_silo_propriedade` FOREIGN KEY (`propriedade_id`) REFERENCES `propriedade` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -379,7 +375,7 @@ CREATE TABLE `silo` (
 
 LOCK TABLES `silo` WRITE;
 /*!40000 ALTER TABLE `silo` DISABLE KEYS */;
-INSERT INTO `silo` VALUES (1,1,'SOJA',4500.00,50000.00,'SILO NORTE 1'),(2,1,'MILHO',6500.00,50000.00,'SILO NORTE 2'),(3,1,'FEIJÃO',3400.00,50000.00,'SILO NORTE 3'),(5,2,'TRIGO',4510.00,50000.00,'SILO SUL 1');
+INSERT INTO `silo` VALUES (1,1,'Milho',0.00,50000.00,'Silo Norte');
 /*!40000 ALTER TABLE `silo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -392,17 +388,17 @@ DROP TABLE IF EXISTS `talhoes`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `talhoes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(155) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(155) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `area_hectare` decimal(10,2) DEFAULT NULL,
-  `coordenadas_json` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `coordenadas_json` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `propriedade_id` int DEFAULT NULL,
-  `status` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `tipo_posse` enum('PROPRIO','ARRENDADO') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'PROPRIO',
+  `status` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tipo_posse` enum('PROPRIO','ARRENDADO') COLLATE utf8mb4_general_ci DEFAULT 'PROPRIO',
   `custo_arrendamento_sacas` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `propriedade_id` (`propriedade_id`),
   CONSTRAINT `talhoes_ibfk_1` FOREIGN KEY (`propriedade_id`) REFERENCES `propriedade` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -411,7 +407,6 @@ CREATE TABLE `talhoes` (
 
 LOCK TABLES `talhoes` WRITE;
 /*!40000 ALTER TABLE `talhoes` DISABLE KEYS */;
-INSERT INTO `talhoes` VALUES (1,'TALHAO NORTE DA CASA PRINCIPAL',26.34,NULL,2,'Plantado','PROPRIO',0.00),(2,'TALHAO PERTO DO ESTOQUE DE INSUMOS',12.81,NULL,2,'Vazio','PROPRIO',0.00);
 /*!40000 ALTER TABLE `talhoes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -428,4 +423,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-18  0:26:12
+-- Dump completed on 2026-05-15 15:49:31

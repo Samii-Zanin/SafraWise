@@ -46,6 +46,9 @@ foreach ($estoqueInsumos ?? [] as $item) {
     }
 }
 
+
+
+
 $totalSilos    = count($estoquesSilos ?? []);
 $totalKgSilos  = array_sum(array_column($estoquesSilos ?? [], 'total_kg'));
 
@@ -476,7 +479,6 @@ foreach ($estoquesSilos ?? [] as $item) {
                   <th>Marca</th>
                   <th>Unidade</th>
                   <th>Categoria</th>
-                  <th>Data da Entrada</th>
                   <th>Quantidade</th>
                   <th>Valor / Dose</th>
                   <th>Valor Total</th>
@@ -518,11 +520,6 @@ foreach ($estoquesSilos ?? [] as $item) {
                           <span class="text-muted opacity-50">—</span>
                         <?php endif; ?>
                       </td>
-                      <td class="text-muted">
-                        <?= !empty($item['data_entrada'])
-                            ? date('d/m/Y', strtotime($item['data_entrada']))
-                            : '—' ?>
-                      </td>
                       <td><?= number_format((float)$item['quantidade'], 2, ',', '.') ?></td>
                       <td class="text-muted">
                         R$ <?= number_format((float)$item['valor_por_dose'], 2, ',', '.') ?>
@@ -540,7 +537,7 @@ foreach ($estoquesSilos ?? [] as $item) {
           
           <div class="table-footer">
             <span class="small text-muted" id="label-movimentacoes_insumos">
-              <?= count($movimentacoesInsumos ?? []) ?> registros exibidos
+              <?= count($estoqueInsumos ?? []) ?> registros exibidos
             </span>
             <span class="small text-muted">Estoques de Insumos</span>
           </div>
@@ -610,7 +607,7 @@ foreach ($estoquesSilos ?? [] as $item) {
           </div>
           <div class="table-footer">
             <span class="small text-muted" id="label-movimentacoes_insumos">
-              <?= count($estoqueInsumos ?? []) ?> registros exibidos
+              <?= count($movimentacoesInsumos ?? []) ?> registros exibidos
             </span>
             <span class="small text-muted">Movimentações de Estoque</span>
           </div>
@@ -708,11 +705,12 @@ foreach ($estoquesSilos ?? [] as $item) {
 
             <button type="button"
                     class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                    data-sw-open="modal-saida-insumo">
+                    data-bs-toggle="modal" data-bs-target="#modal-decisao-saida-cereal">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                  stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
               </svg>
               Registrar Saída
             </button>
@@ -779,6 +777,120 @@ foreach ($estoquesSilos ?? [] as $item) {
               <?= count($estoquesSilos ?? []) ?> registros exibidos
             </span>
             <span class="small text-muted">Armazenagem nos silos</span>
+          </div>
+        </div>
+      
+      <br>
+
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+          <h6 class="mb-0"
+              style="font-family:'DM Serif Display',Georgia,serif;color:var(--texto-escuro);">
+            Histórico de Movimentações
+          </h6>
+          <span class="tipo-badge"
+                style="background:rgba(239,68,68,.1);color:#dc2626;">
+            Saídas e Vendas de Cereais
+          </span>
+        </div>
+
+        <div class="card-table-wrapper">
+          <div class="table-responsive">
+            <table class="table estoques-table mb-0" id="tabela-mov-silos">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Valor Total</th>
+                  <th>Valor / kg</th>
+                  <th>Data</th>
+                  <th>Safra</th>
+                  <th>Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($movimentacoesSilos)): ?>
+                  <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="1.5"
+                          class="mb-3 d-block mx-auto opacity-50">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                      </svg>
+                      Nenhuma movimentação registrada.
+                    </td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($movimentacoesSilos as $mov): ?>
+                    <tr>
+                      <td>
+                        <?php
+                        $isVenda = $mov['tipo_operacao'] === 'VENDA DE CEREAIS';
+                        $badgeBg = $isVenda
+                            ? 'rgba(64,145,108,.1)'
+                            : 'rgba(239,68,68,.08)';
+                        $badgeColor = $isVenda
+                            ? 'var(--verde-accent)'
+                            : '#dc2626';
+                        ?>
+                        <span class="tipo-badge"
+                              style="background:<?= $badgeBg ?>;color:<?= $badgeColor ?>;">
+                          <?= $isVenda ? 'Venda' : 'Saída' ?>
+                        </span>
+                      </td>
+                      <td class="fw-medium" style="color:var(--texto-escuro);">
+                        <?= htmlspecialchars($mov['nome_produto'] ?? '—') ?>
+                      </td>
+                      <td>
+                        <?= number_format((float)$mov['quantidade'], 2, ',', '.') ?> kg
+                      </td>
+                      <td class="<?= $isVenda ? 'td-valor' : 'text-muted' ?>">
+                        <?= $isVenda
+                            ? 'R$ ' . number_format((float)$mov['valor_operacao'], 2, ',', '.')
+                            : '—' ?>
+                      </td>
+                      <td class="text-muted">
+                        <?= $mov['valor_unitario'] > 0
+                            ? 'R$ ' . number_format((float)$mov['valor_unitario'], 2, ',', '.')
+                            : '—' ?>
+                      </td>
+                      <td class="text-muted">
+                        <?= !empty($mov['data_operacao'])
+                            ? date('d/m/Y', strtotime($mov['data_operacao']))
+                            : '—' ?>
+                      </td>
+                      <td class="text-muted small">
+                        <?= !empty($mov['cultura_plantada'])
+                            ? htmlspecialchars($mov['cultura_plantada'])
+                              . ' — ' . htmlspecialchars($mov['talhao_nome'] ?? '')
+                            : '—' ?>
+                      </td>
+                      <td class="text-muted small">
+                        <?= !empty($mov['descricao'])
+                            ? htmlspecialchars(mb_strimwidth($mov['descricao'], 0, 60, '…'))
+                            : '—' ?>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-footer" style="justify-content:center;gap:16px;">
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">Linhas por página:</span>
+              <select class="perpage-select" id="perpage-mov-silos"
+                      onchange="paginators.movSilos.setPerPage(+this.value)">
+                <option value="3">3</option>
+                <option value="7">7</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+              </select>
+              <span class="small text-muted" id="info-mov-silos"></span>
+            </div>
+            <div class="d-flex align-items-center gap-1" id="pages-mov-silos"></div>
           </div>
         </div>
 
@@ -1091,6 +1203,319 @@ foreach ($estoquesSilos ?? [] as $item) {
     </div>
   </div>
 </div>
+
+
+<!-- ── MODAL DECISÃO: Saída de Cereal ──────────────────── -->
+<div class="modal fade sw-modal" id="modal-decisao-saida-cereal"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Saída de Cereal</h5>
+          <p class="modal-subtitle mb-0">
+            Esta saída refere-se a uma venda?
+          </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pb-4">
+        <div class="row g-3">
+          <div class="col-6">
+            <button class="decisao-card" onclick="abrirModalVendaCereal()">
+              <div class="decisao-icon verde">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2
+                       6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0
+                       01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                    clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Sim, registrar venda</div>
+              <div class="decisao-desc">
+                Registra valor, descontos<br>e atualiza o silo
+              </div>
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="decisao-card azul" onclick="abrirModalSaidaSimples()">
+              <div class="decisao-icon azul">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1
+                       1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0
+                       111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Não, só saída</div>
+              <div class="decisao-desc">
+                Apenas debita quantidade<br>do silo sem valor financeiro
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODAL: Saída Simples de Cereal ──────────────────── -->
+<div class="modal fade sw-modal" id="modal-saida-simples-cereal"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Saída de Estoque — Cereal</h5>
+          <p class="modal-subtitle mb-0">Debita quantidade do silo sem registro financeiro.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-saida-simples-cereal" method="POST"
+              action="index.php?page=saida_simples_cereal">
+
+          <div class="mb-3">
+            <label class="form-label">Cereal</label>
+            <select class="form-select" name="produto_id" required>
+              <option value="">Selecione o cereal...</option>
+              <?php foreach ($cereais ?? [] as $c): ?>
+                <option value="<?= (int)$c['id'] ?>">
+                  <?= htmlspecialchars($c['nome']) ?>
+                  <?= !empty($c['unidade_medida'])
+                      ? '(' . htmlspecialchars($c['unidade_medida']) . ')'
+                      : '' ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Propriedade de origem</label>
+            <select class="form-select" name="propriedade_id" required>
+              <option value="">Selecione...</option>
+              <?php foreach ($propriedades ?? [] as $prop): ?>
+                <option value="<?= (int)$prop['id'] ?>">
+                  <?= htmlspecialchars($prop['nome']) ?>
+                  <?= !empty($prop['municipio'])
+                      ? '— ' . htmlspecialchars($prop['municipio'])
+                      : '' ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Quantidade a debitar (kg)</label>
+            <input type="number" class="form-control" name="quantidade"
+                   placeholder="0" step="0.001" min="0.001" required>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label">
+              Descrição
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <textarea class="form-control" name="descricao" rows="2"
+                      placeholder="Ex: Consumo interno, perda, transferência..."></textarea>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-saida-simples-cereal"
+                class="btn btn-outline-danger d-flex align-items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <polyline points="19 12 12 19 5 12"/>
+          </svg>
+          Registrar saída
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL 3: Venda de Cereal ─────────────────────── -->
+<div class="modal fade sw-modal" id="modal-venda-cereal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header" style="background:#1a1a2e;">
+        <div>
+          <h5 class="modal-title">Registrar Venda de Cereal</h5>
+          <p class="modal-subtitle mb-0">
+            Operação lançada como <strong style="color:#fca5a5;">VENDA DE CEREAIS</strong>
+            — silo atualizado automaticamente.
+          </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="form-venda-cereal" method="POST" action="index.php?page=venda_cereal">
+
+          <input type="hidden" name="valor_operacao" id="venda-valor-operacao">
+
+          <!-- Cereal + Propriedade -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label">Cereal vendido</label>
+              <select class="form-select" id="venda-produto" name="produto_id" required>
+                <option value="">Selecione o cereal...</option>
+                <?php foreach ($cereais ?? [] as $c): ?>
+                  <option value="<?= (int)$c['id'] ?>"
+                          data-nome="<?= htmlspecialchars($c['nome']) ?>">
+                    <?= htmlspecialchars($c['nome']) ?>
+                    <?= !empty($c['unidade_medida']) ? '(' . htmlspecialchars($c['unidade_medida']) . ')' : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Propriedade de origem</label>
+              <select class="form-select" name="propriedade_id" required>
+                <option value="">Selecione...</option>
+                <?php foreach ($propriedades ?? [] as $prop): ?>
+                  <option value="<?= (int)$prop['id'] ?>">
+                    <?= htmlspecialchars($prop['nome']) ?>
+                    <?= !empty($prop['municipio']) ? '— ' . htmlspecialchars($prop['municipio']) : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quantidade + Valor/saca + Valor bruto -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Quantidade vendida (kg)</label>
+              <input type="number" class="form-control" id="venda-qtd"
+                     name="quantidade" placeholder="0" step="0.001" min="0.001"
+                     required oninput="calcularVenda()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Valor por saca (R$/sc 60 kg)</label>
+              <input type="number" class="form-control" id="venda-vl-saca"
+                     placeholder="0,00" step="0.01" min="0.01"
+                     oninput="calcularVenda()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">
+                Valor bruto (R$)
+                <span class="fw-normal text-muted" style="font-size:10px;">editável</span>
+              </label>
+              <input type="number" class="form-control" id="venda-vl-bruto"
+                     placeholder="0,00" step="0.01" min="0"
+                     oninput="aplicarDesconto()">
+            </div>
+          </div>
+
+          <!-- Desconto -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label">Tipo de desconto</label>
+              <select class="form-select" id="venda-desc-tipo"
+                      onchange="onTipoDescontoChange()">
+                <option value="nenhum">Nenhum</option>
+                <option value="percentual">% do total</option>
+                <option value="sacas">Quantidade de sacas</option>
+              </select>
+            </div>
+            <div class="col-md-4" id="venda-desc-wrap" style="display:none;">
+              <label class="form-label" id="venda-desc-label">Valor</label>
+              <input type="number" class="form-control" id="venda-desc-input"
+                     placeholder="0" step="0.01" min="0"
+                     oninput="aplicarDesconto()">
+            </div>
+          </div>
+
+          <!-- Resumo financeiro -->
+          <div class="mb-3 p-3"
+               style="background:#fff5f5;border:1px solid #fecaca;border-radius:12px;">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Total de sacas</span>
+              <span id="rv-sacas" class="fw-semibold text-dark">—</span>
+            </div>
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Valor bruto</span>
+              <span id="rv-bruto" class="fw-semibold text-dark">R$ 0,00</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1"
+                 id="rv-desc-linha" style="display:none !important;">
+              <span id="rv-desc-label" class="text-muted">Desconto</span>
+              <span id="rv-desc-val" class="fw-semibold text-danger">− R$ 0,00</span>
+            </div>
+            <hr style="border-color:#fecaca;margin:8px 0;">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold" style="color:#dc2626;">Valor final</span>
+              <span id="rv-final"
+                    style="font-family:'DM Serif Display',Georgia,serif;
+                           font-size:22px;color:#dc2626;">
+                R$ 0,00
+              </span>
+            </div>
+          </div>
+
+          <!-- Safra -->
+          <div class="mb-3">
+            <label class="form-label">
+              Safra
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <select class="form-select" name="safra_id">
+              <option value="">Sem vínculo com safra</option>
+              <?php foreach ($safras ?? [] as $s): ?>
+                <option value="<?= (int)$s['id'] ?>">
+                  <?= htmlspecialchars($s['cultura']) ?>
+                  — <?= htmlspecialchars($s['nome_talhao']) ?>
+                  (<?= date('d/m/Y', strtotime($s['data_inicio'])) ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Descrição -->
+          <div class="mb-0">
+            <label class="form-label">
+              Descrição
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">
+                (preenchida automaticamente, editável)
+              </span>
+            </label>
+            <textarea class="form-control" id="venda-descricao"
+                      name="descricao" rows="2"
+                      placeholder="Detalhes da venda..."></textarea>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-venda-cereal"
+                class="btn btn-danger d-flex align-items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <polyline points="19 12 12 19 5 12"/>
+          </svg>
+          Registrar venda e atualizar silo
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
  
  
 <!-- ── MODAL 3: Entrada Simples ──────────────────────── -->
@@ -1176,15 +1601,16 @@ foreach ($estoquesSilos ?? [] as $item) {
  
  
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
-<script src="../../public/js/app.js"></script>
+<script src="../../public/js/paginacao_tabelas.js"></script>
 
 <script>
 // ── Toast ──────────────────────────────────────────────────────
 document.querySelectorAll('.toast').forEach(t => {
   const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;
-  setTimeout(() => closeToast(t.id), d);
+  setTimeout(() => closeToast(t.id), 10);
 });
 
 // ── Toggle de visão ────────────────────────────────────────────
@@ -1315,6 +1741,35 @@ function abrirModalEntradaSimples() {
     ).show();
   }, 300);
 }
+
+
+// ── Decisão saída cereal ──────────────────────────────────────
+function abrirModalVendaCereal() {
+  bootstrap.Modal.getInstance(
+    document.getElementById('modal-decisao-saida-cereal')
+  )?.hide();
+  setTimeout(() => {
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById('modal-venda-cereal')
+    ).show();
+  }, 300);
+}
+
+function abrirModalSaidaSimples() {
+  bootstrap.Modal.getInstance(
+    document.getElementById('modal-decisao-saida-cereal')
+  )?.hide();
+  setTimeout(() => {
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById('modal-saida-simples-cereal')
+    ).show();
+  }, 300);
+}
+// Limpa saída simples ao fechar
+document.getElementById('modal-saida-simples-cereal')
+  ?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('form-saida-simples-cereal')?.reset();
+  });
  
 // ── Cálculo em tempo real do valor/dose ───────────────────────
 function calcularValorPorDose() {
@@ -1334,6 +1789,123 @@ function calcularValorPorDose() {
     el.style.color = 'var(--texto-suave)';
   }
 }
+
+const SACA_KG = 60;
+const fmtBRL  = v => 'R$ ' + Number(v).toLocaleString('pt-BR', {
+  minimumFractionDigits: 2, maximumFractionDigits: 2
+});
+
+function calcularVenda() {
+  const qtd  = parseFloat(document.getElementById('venda-qtd').value)     || 0;
+  const vsc  = parseFloat(document.getElementById('venda-vl-saca').value) || 0;
+  const sacas = qtd / SACA_KG;
+  const bruto = sacas * vsc;
+
+  document.getElementById('venda-vl-bruto').value = bruto > 0 ? bruto.toFixed(2) : '';
+  aplicarDesconto();
+}
+
+function onTipoDescontoChange() {
+  const tipo  = document.getElementById('venda-desc-tipo').value;
+  const wrap  = document.getElementById('venda-desc-wrap');
+  const label = document.getElementById('venda-desc-label');
+  const input = document.getElementById('venda-desc-input');
+
+  if (tipo === 'nenhum') {
+    wrap.style.display = 'none';
+  } else {
+    wrap.style.display = '';
+    label.textContent  = tipo === 'percentual' ? 'Percentual (%)' : 'Sacas a descontar';
+    input.placeholder  = tipo === 'percentual' ? 'Ex: 5' : 'Ex: 3';
+    input.step         = tipo === 'percentual' ? '0.1'   : '1';
+    input.value        = '';
+  }
+  aplicarDesconto();
+}
+
+function aplicarDesconto() {
+  const qtd   = parseFloat(document.getElementById('venda-qtd').value)      || 0;
+  const vsc   = parseFloat(document.getElementById('venda-vl-saca').value)  || 0;
+  const bruto = parseFloat(document.getElementById('venda-vl-bruto').value) || 0;
+  const tipo  = document.getElementById('venda-desc-tipo').value;
+  const dVal  = parseFloat(document.getElementById('venda-desc-input')?.value) || 0;
+  const sacas = qtd / SACA_KG;
+
+  let desconto = 0;
+  let final    = bruto;
+  let nota     = 'Sem descontos aplicados';
+  let lDesc    = '';
+
+  if (tipo === 'percentual' && dVal > 0) {
+    desconto = bruto * (dVal / 100);
+    final    = bruto - desconto;
+    nota     = `Desconto de ${dVal}% aplicado`;
+    lDesc    = `Desconto (${dVal}%)`;
+  } else if (tipo === 'sacas' && dVal > 0) {
+    const kgDesc = dVal * SACA_KG;
+    desconto     = dVal * vsc;
+    final        = bruto - desconto;
+    nota         = `Desconto de ${dVal} sacas (${kgDesc}kg) do total`;
+    lDesc        = `Desconto (${dVal} sacas)`;
+  }
+
+  final = Math.max(0, final);
+
+  // Atualiza resumo
+  document.getElementById('rv-sacas').textContent =
+    sacas > 0 ? sacas.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' sc' : '—';
+  document.getElementById('rv-bruto').textContent = fmtBRL(bruto);
+  document.getElementById('rv-final').textContent = fmtBRL(final);
+
+  const linhaDesc = document.getElementById('rv-desc-linha');
+  if (desconto > 0) {
+    linhaDesc.style.removeProperty('display');
+    document.getElementById('rv-desc-label').textContent = lDesc;
+    document.getElementById('rv-desc-val').textContent   = '− ' + fmtBRL(desconto);
+  } else {
+    linhaDesc.style.display = 'none';
+  }
+
+  // Campo oculto enviado ao controller
+  document.getElementById('venda-valor-operacao').value = final.toFixed(2);
+
+  // Atualiza descrição preservando texto do usuário
+  const ta   = document.getElementById('venda-descricao');
+  const base = (ta.dataset.base || '').trim();
+  ta.value   = base ? `${base}\n${nota}` : nota;
+}
+
+// Preserva o texto que o usuário digitar além da nota automática
+document.getElementById('venda-descricao')?.addEventListener('input', function () {
+  const lines = this.value.split('\n');
+  const last  = lines[lines.length - 1];
+  if (/^(Sem descontos|Desconto de)/i.test(last) && lines.length > 1)
+    this.dataset.base = lines.slice(0, -1).join('\n').trim();
+  else if (!/^(Sem descontos|Desconto de)/i.test(last))
+    this.dataset.base = this.value;
+});
+
+// Limpa ao fechar
+document.getElementById('modal-venda-cereal')?.addEventListener('hidden.bs.modal', () => {
+  document.getElementById('form-venda-cereal')?.reset();
+  document.getElementById('venda-vl-bruto').value    = '';
+  document.getElementById('venda-valor-operacao').value = '';
+  document.getElementById('rv-sacas').textContent    = '—';
+  document.getElementById('rv-bruto').textContent    = 'R$ 0,00';
+  document.getElementById('rv-final').textContent    = 'R$ 0,00';
+  document.getElementById('rv-desc-linha').style.display = 'none';
+  document.getElementById('venda-desc-wrap').style.display = 'none';
+  const ta = document.getElementById('venda-descricao');
+  ta.value = '';
+  ta.dataset.base = '';
+});
+
+// Limpa o form ao fechar
+document.getElementById('modal-venda-cereal')
+  ?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('form-venda-cereal')?.reset();
+    document.getElementById('venda-preco-kg').textContent = '—';
+  });
  
 // ── Limpa os formulários quando os modais fecham ──────────────
 ['modal-compra-insumo', 'modal-entrada-simples'].forEach(id => {
@@ -1343,6 +1915,7 @@ function calcularValorPorDose() {
     if (dose) { dose.textContent = '—'; dose.style.color = 'var(--texto-suave)'; }
   });
 });
+
 </script>
 
 </body>

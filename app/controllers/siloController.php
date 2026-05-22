@@ -15,9 +15,6 @@ class SiloController extends BaseController
         $this->db = Conexao::getConexao();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // READ — visão agregada usada em estoques.php
-    // ─────────────────────────────────────────────────────────────
     public function getAll(): array
     {
         $proprietarioId = (int) $_SESSION['user']['id'];
@@ -43,9 +40,6 @@ class SiloController extends BaseController
         return $result;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // READ — silos individuais usados em silos.php
-    // ─────────────────────────────────────────────────────────────
     public function getAllSilos(): array
     {
         $proprietarioId = (int) $_SESSION['user']['id'];
@@ -79,9 +73,6 @@ class SiloController extends BaseController
         return $result;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // INDEX — renderiza silos.php
-    // ─────────────────────────────────────────────────────────────
     public function index(): void
     {
         if (!isset($_SESSION['user'])) {
@@ -98,9 +89,6 @@ class SiloController extends BaseController
         require_once __DIR__ . '/../views/silos.php';
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // STORE — cadastra novo silo
-    // ─────────────────────────────────────────────────────────────
     public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -127,7 +115,6 @@ class SiloController extends BaseController
             return;
         }
 
-        // Garante que a propriedade pertence ao usuário
         $stmtCheck = $this->db->prepare(
             "SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?"
         );
@@ -170,9 +157,6 @@ class SiloController extends BaseController
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // UPDATE — edita cultura e capacidade
-    // ─────────────────────────────────────────────────────────────
     public function update(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -189,7 +173,6 @@ class SiloController extends BaseController
             return;
         }
 
-        // Segurança: silo deve pertencer ao usuário logado
         $uid       = (int) $_SESSION['user']['id'];
         $stmtCheck = $this->db->prepare("
             SELECT s.id FROM silo s
@@ -226,9 +209,6 @@ class SiloController extends BaseController
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // DELETE — remove silo
-    // ─────────────────────────────────────────────────────────────
     public function delete(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {

@@ -11,7 +11,50 @@ class SafraController extends BaseController
         $this->db = Conexao::getConexao();
     }
 
-    public function index(): void
+    public function getAll(): array
+    {
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
+            $this->redirect('dashboard');
+        }
+
+        $proprietarioId = $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare(
+            "select
+                s.id,
+                c.nome as cultura,
+                c.variedade, 
+                t.nome as nome_talhao,
+                t.area_hectare as area_talhao,
+                t.status as status_talhao,
+                p.nome as nome_propriedade,
+                p.municipio,
+                p.estado, 
+                s.data_inicio,
+                s.data_fim,
+                CASE WHEN s.data_fim IS NULL THEN 'Ativa'
+                     WHEN s.data_fim >= CURDATE() THEN 'Ativa'
+                     ELSE 'Encerrada'
+                END as status_safra
+            from
+                safra s
+            left join cultura c on c.id = s.cultura_id
+            left join talhoes t on t.id = s.talhao_id
+            left join propriedade p on t.propriedade_id = p.id
+             WHERE proprietario_id = ?
+             ORDER BY data_inicio DESC"
+        );
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+
+        $safras = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $safras;
+    }
+
+    public function getAtivas(): array
     {
         if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
             $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
@@ -39,6 +82,7 @@ class SafraController extends BaseController
             left join talhoes t on t.id = s.talhao_id
             left join propriedade p on t.propriedade_id = p.id
              WHERE proprietario_id = ?
+                AND (s.data_fim IS NULL OR s.data_fim >= CURDATE())
              ORDER BY data_inicio DESC"
         );
         $stmt->bind_param("i", $proprietarioId);
@@ -47,56 +91,111 @@ class SafraController extends BaseController
         $safras = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        require_once __DIR__ . '/../views/safras.php';
+        return $safras;
     }
 
-    public function save(){
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('cadastro_safra');
+    public function getById(int $id): ?array
+    {
+        $proprietarioId = (int) $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare("
+            SELECT
+                s.id, s.data_inicio, s.data_fim,
+                c.nome      AS cultura,
+                c.variedade,
+                t.nome      AS nome_talhao,
+                t.area_hectare AS area_talhao,
+                t.status    AS status_talhao,
+                p.nome      AS nome_propriedade,
+                p.municipio, p.estado,
+                p.id        AS propriedade_id
+            FROM safra s
+            LEFT JOIN cultura c     ON c.id = s.cultura_id
+            LEFT JOIN talhoes t     ON t.id = s.talhao_id
+            LEFT JOIN propriedade p ON p.id = t.propriedade_id
+            WHERE s.id = ? AND p.proprietario_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $id, $proprietarioId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $result ?: null;
+    }
+
+
+
+    public function store(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
         }
 
-        $data_inicio = trim($_POST['data_inicio'] ?? '');
-        $data_fim = trim($_POST['data_fim'] ?? '');
-        $cultura_id = trim($_POST['cultura_id'] ?? '');
-        $talhao_id = trim($_POST['talhao_id'] ?? '');
+        $cultura_id  = (int)   ($_POST['cultura_id']  ?? 0);
+        $talhao_id   = (int)   ($_POST['talhao_id']   ?? 0);
+        $data_inicio = trim(    $_POST['data_inicio']  ?? '');
+        $data_fim    = !empty($_POST['data_fim']) ? trim($_POST['data_fim']) : null;
 
-        if (empty($data_inicio) || empty($data_fim) || empty($cultura_id) || empty($talhao_id)) {
-            $this->setToast('warning', 'Campos Obrigatórios', 'Por favor, preencha todos os campos.');
-            $this->redirect('cadastro_safra');
+        if (!$cultura_id || !$talhao_id || empty($data_inicio)) {
+            $this->setToast('warning', 'Campos obrigatórios', 'Cultura, talhão e data de início são obrigatórios.');
+            $this->redirect('safras');
+            return;
         }
 
-        if (empty($nome) || empty($cpf_cnpj) || empty($email) || empty($senha)) {
-            $this->setToast('warning', 'Campos Obrigatórios', 'Por favor, preencha todos os campos.');
-            $this->redirect('cadastro_proprietario');
+        if ($data_fim && $data_fim < $data_inicio) {
+            $this->setToast('warning', 'Data inválida', 'A data de fim não pode ser anterior à data de início.');
+            $this->redirect('safras');
+            return;
         }
+        $uid       = (int) $_SESSION['user']['id'];
+        $stmtCheck = $this->db->prepare("
+            SELECT t.id FROM talhoes t
+            JOIN propriedade p ON p.id = t.propriedade_id
+            WHERE t.id = ? AND p.proprietario_id = ?
+            LIMIT 1
+        ");
+        $stmtCheck->bind_param("ii", $talhao_id, $uid);
+        $stmtCheck->execute();
+        if ($stmtCheck->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Talhão não encontrado.');
+            $this->redirect('safras');
+            return;
+        }
+        $stmtCheck->close();
 
         try {
-            // if ($this->proprietarioJaExiste($email, $cpf_cnpj)) {
-            //     $this->setToast('error', 'Cadastro Duplicado', 'Este e-mail ou CPF/CNPJ já está cadastrado.');
-            //     $this->redirect('cadastro_proprietario');
-            // }
-
-            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-
-            $stmt = $this->db->prepare(
-                "INSERT INTO proprietario (nome, cpf_cnpj, telefone, email, senha)
-                 VALUES (?, ?, ?, ?, ?)"
-            );
-            $stmt->bind_param("sssss", $nome, $cpf_cnpj, $telefone, $email, $senhaHash);
+            $stmt = $this->db->prepare("
+                UPDATE talhoes SET status = 'Em Safra'
+                WHERE id = ?
+            ");
+            $stmt->bind_param("i", $talhao_id);
 
             if (!$stmt->execute()) {
-                throw new \RuntimeException("Falha ao inserir proprietário: {$this->db->error}");
+                throw new \RuntimeException("Falha ao atualizar talhão: {$this->db->error}");
             }
-
             $stmt->close();
 
-            $this->setToast('success', 'Conta criada!', 'Seu cadastro foi realizado. Faça login no sistema.');
-            $this->redirect('login');
+
+            $stmt = $this->db->prepare("
+                INSERT INTO safra (cultura_id, talhao_id, data_inicio, data_fim)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->bind_param("iiss", $cultura_id, $talhao_id, $data_inicio, $data_fim);
+
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao inserir safra: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Safra Cadastrada!', 'A safra foi registrada com sucesso.');
+            $this->redirect('safras');
+
 
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            $this->setToast('error', 'Erro interno', 'Ocorreu um problema ao salvar. Tente novamente.');
-            $this->redirect('cadastro_proprietario');
+            $this->setToast('error', 'Erro interno', 'Não foi possível cadastrar a safra.');
+            $this->redirect('safras');
         }
     }
 }

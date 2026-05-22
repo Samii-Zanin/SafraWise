@@ -11,6 +11,7 @@ require_once "../app/controllers/estoqueInsumosController.php";
 require_once "../app/controllers/siloController.php";
 require_once "../app/controllers/TalhaoController.php";
 require_once "../app/controllers/DashboardController.php";
+require_once "../app/controllers/SafraController.php";
 require_once "../app/controllers/RelatoriosController.php";
 require_once "../app/controllers/ClimaController.php";
 
@@ -48,6 +49,55 @@ switch ($page) {
     case 'dashboard':
         requireAuth();
         (new DashboardController())->index();
+        break;
+
+    case 'safras':
+        requireAuth();
+        require_once '../app/controllers/SafraController.php';
+        require_once '../app/controllers/CulturaController.php';
+        require_once '../app/controllers/TalhaoController.php';
+
+        $safras        = (new SafraController())->getAll();
+        $culturasModal = (new CulturaController())->getDistintas();
+        $talhoesModal  = (new TalhaoController())->getVazios();
+
+        require '../app/views/safras.php';
+        break;
+        
+    case 'safra_detalhe':
+        requireAuth();
+        require_once '../app/controllers/SafraController.php';
+        require_once '../app/controllers/OperacoesFinanceirasController.php';
+
+        $id    = (int) ($_GET['id'] ?? 0);
+        $safra = (new SafraController())->getById($id);
+
+        if (!$safra) {
+            header('Location: index.php?page=safras');
+            exit;
+        }
+
+        $operacoes    = (new OperacoesFinanceirasController())->getBySafra($id);
+        $totalGastos  = array_sum(array_column(
+            array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'COMPRA DE INSUMOS'),
+            'valor_operacao'
+        ));
+        $totalInsumos = array_sum(array_column(
+            array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'COMPRA DE INSUMOS'),
+            'quantidade'
+        ));
+        $totalReceita = array_sum(array_column(
+            array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'VENDA DE CEREAIS'),
+            'valor_operacao'
+        ));
+
+        require '../app/views/safra_detalhe.php';
+        break;
+
+    case 'store_safra':
+        requireAuth();
+        require_once '../app/controllers/SafraController.php';
+        (new SafraController())->store();
         break;
 
     case 'equipe':

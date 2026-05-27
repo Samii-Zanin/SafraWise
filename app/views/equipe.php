@@ -38,6 +38,34 @@ if (isset($_SESSION['toast'])) {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../public/css/safrawise.css">
+  
+  <style>
+    /* 🎨 Correção das regras de layout para os modais e botões de senha */
+    .input-icon-wrap {
+      position: relative;
+    }
+    .pe-5-custom {
+      padding-right: 45px !important;
+    }
+    .toggle-password-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      cursor: pointer;
+    }
+    .toggle-password-btn:hover {
+      color: var(--verde-vivo, #40916c);
+    }
+  </style>
 </head>
 <body>
 
@@ -97,11 +125,6 @@ if (isset($_SESSION['toast'])) {
           </p>
         </div>
 
-        <!--
-          data-sw-open="modal-cadastro-peao"
-          O ModalManager em modal.js captura este atributo
-          e abre o modal correspondente ao clicar.
-        -->
         <button type="button"
                 class="btn btn-success d-flex align-items-center gap-2"
                 data-sw-open="modal-cadastro-peao">
@@ -138,10 +161,10 @@ if (isset($_SESSION['toast'])) {
                       <?php else: ?>
                         <?php foreach ($equipe as $peao): ?>
                             <tr>
-                                <td class="fw-medium text-muted">
+                                <td class="fw-medium text-dark">
                                     <?= htmlspecialchars($peao['nome']) ?>
                                 </td>
-                                <td class="text-muted">
+                                <td class="text-muted text-cpf-row">
                                     <?= htmlspecialchars($peao['cpf_cnpj']) ?>
                                 </td>
                                 <td class="text-muted">
@@ -151,7 +174,6 @@ if (isset($_SESSION['toast'])) {
                                     </div>
                                 </td>
                                 <td class="text-end">
-                                    <!-- BOTÃO EDITAR (MODIFICADO) -->
                                     <button type="button" 
                                             class="btn-table-action" 
                                             title="Editar"
@@ -168,11 +190,10 @@ if (isset($_SESSION['toast'])) {
                                         </svg>
                                     </button>
 
-                                    <!-- BOTÃO EXCLUIR (MANTIDO) -->
                                     <a href="index.php?page=delete_peao&id=<?= $peao['id'] ?>" 
-                                      class="btn-table-action text-danger" 
-                                      title="Excluir" 
-                                      onclick="return confirm('Tem certeza que deseja remover este colaborador?')">
+                                       class="btn-table-action text-danger" 
+                                       title="Excluir" 
+                                       onclick="return confirm('Tem certeza que deseja remover este colaborador?')">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M3 6h18"></path>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -181,25 +202,16 @@ if (isset($_SESSION['toast'])) {
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php endif; ?>
+                      <?php endif; ?>
                   </tbody>
               </table>
           </div>
       </div>
 
-    </div><!-- /page-body -->
-  </div><!-- /main-content -->
-</div><!-- /app-layout -->
+    </div>
+  </div>
+</div>
 
-
-<!-- ════════════════════════════════════════════════════════════
-     MODAL — Cadastro de Peão
-     
-     Classe .sw-modal         → estilos da marca (safrawise.css)
-     data-sw-reset-on-close   → ModalManager reseta o form ao fechar
-     O modal NÃO usa data-bs-* para abrir/fechar: quem cuida disso
-     é exclusivamente o ModalManager (modal.js).
-════════════════════════════════════════════════════════════ -->
 <div class="modal fade sw-modal"
      id="modal-cadastro-peao"
      tabindex="-1"
@@ -210,7 +222,6 @@ if (isset($_SESSION['toast'])) {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
 
-      <!-- Header -->
       <div class="modal-header">
         <div>
           <h5 class="modal-title" id="modal-cadastro-peao-label">
@@ -220,43 +231,37 @@ if (isset($_SESSION['toast'])) {
             Preencha os dados do novo colaborador.
           </p>
         </div>
-        <!--
-          data-sw-close="modal-cadastro-peao"
-          O ModalManager fecha o modal ao clicar neste botão.
-        -->
         <button type="button"
-                class="btn-close "
+                class="btn-close"
                 data-sw-close="modal-cadastro-peao"
                 aria-label="Fechar">
         </button>
       </div>
 
-      <!-- Body — Formulário -->
       <div class="modal-body">
         <form id="form-cadastro-peao"
               method="POST"
               action="index.php?page=store_peao">
 
-          <!-- Nome -->
           <div class="mb-3">
             <label class="form-label" for="peao-nome">Nome completo</label>
             <input type="text"
-                   class="form-control"
+                   class="form-control text-black"
                    id="peao-nome"
                    name="nome"
                    placeholder="Ex: Carlos Ferreira"
                    required>
           </div>
 
-          <!-- CPF + Telefone lado a lado -->
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label" for="peao-cpf">CPF</label>
               <input type="text"
-                     class="form-control"
+                     class="form-control text-black"
                      id="peao-cpf"
                      name="cpf_cnpj"
                      placeholder="000.000.000-00"
+                     maxlength="14"
                      required>
             </div>
             <div class="col-md-6">
@@ -265,14 +270,14 @@ if (isset($_SESSION['toast'])) {
                 <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
               </label>
               <input type="text"
-                     class="form-control"
+                     class="form-control text-black"
                      id="peao-telefone"
                      name="telefone"
+                     maxlength="15"
                      placeholder="(00) 00000-0000">
             </div>
           </div>
 
-          <!-- E-mail -->
           <div class="mb-3">
             <label class="form-label" for="peao-email">
               E-mail
@@ -286,7 +291,7 @@ if (isset($_SESSION['toast'])) {
                 </svg>
               </span>
               <input type="email"
-                     class="form-control"
+                     class="form-control text-black"
                      id="peao-email"
                      name="email"
                      placeholder="colaborador@email.com">
@@ -305,12 +310,18 @@ if (isset($_SESSION['toast'])) {
                 </svg>
               </span>
               <input type="password"
-                     class="form-control"
+                     class="form-control text-black pe-5-custom"
                      id="peao-senha"
                      name="senha"
                      placeholder="••••••••"
                      autocomplete="new-password"
                      required>
+              <button type="button" class="toggle-password-btn" id="btn-toggle-password" onclick="togglePasswordVisibility()" title="Mostrar senha">
+                <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -339,13 +350,10 @@ if (isset($_SESSION['toast'])) {
         </button>
       </div>
 
-    </div><!-- /modal-content -->
-  </div><!-- /modal-dialog -->
-</div><!-- /modal -->
+    </div>
+  </div>
+</div>
 
-<!-- ════════════════════════════════════════════════════════════
-     MODAL — Editar Peão
-════════════════════════════════════════════════════════════ -->
 <div class="modal fade sw-modal" id="modal-editar-peao" tabindex="-1" aria-hidden="true" data-sw-reset-on-close>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -360,38 +368,33 @@ if (isset($_SESSION['toast'])) {
 
       <div class="modal-body">
         <form id="form-editar-peao" method="POST" action="index.php?page=update_peao">
-          <!-- Campo oculto importantíssimo: O ID do peão para o banco saber quem atualizar -->
           <input type="hidden" name="id" id="edit-peao-id">
 
-          <!-- Nome -->
           <div class="mb-3">
             <label class="form-label" for="edit-peao-nome">Nome completo</label>
-            <input type="text" class="form-control" id="edit-peao-nome" name="nome" required>
+            <input type="text" class="form-control text-black" id="edit-peao-nome" name="nome" required>
           </div>
 
-          <!-- CPF + Telefone -->
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label" for="edit-peao-cpf">CPF</label>
-              <input type="text" class="form-control" id="edit-peao-cpf" name="cpf_cnpj" required>
+              <input type="text" class="form-control text-black" id="edit-peao-cpf" name="cpf_cnpj" maxlength="14" required>
             </div>
             <div class="col-md-6">
               <label class="form-label" for="edit-peao-telefone">Telefone</label>
-              <input type="text" class="form-control" id="edit-peao-telefone" name="telefone">
+              <input type="text" class="form-control text-black" id="edit-peao-telefone" name="telefone" maxlength="15">
             </div>
           </div>
 
-          <!-- E-mail -->
           <div class="mb-3">
             <label class="form-label" for="edit-peao-email">E-mail</label>
             <div class="input-icon-wrap">
               <span class="form-icon">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6.5L10 11l7.5-4.5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <input type="email" class="form-control" id="edit-peao-email" name="email">
+              <input type="email" class="form-control text-black" id="edit-peao-email" name="email">
             </div>
           </div>
-          <!-- Nota: Não coloquei o campo de Senha aqui, pois a edição padrão do peão pelo proprietário geralmente não altera a senha. -->
         </form>
       </div>
 
@@ -408,7 +411,6 @@ if (isset($_SESSION['toast'])) {
 <script src="../../public/js/modalManager.js"></script>
 
 <script>
-/* ── Toast auto-close ── */
 function closeToast(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -416,24 +418,100 @@ function closeToast(id) {
   setTimeout(() => el.remove(), 320);
 }
 
+document.querySelectorAll('.toast').forEach(toast => {
+  const duration = parseFloat(getComputedStyle(toast).getPropertyValue('--toast-duration')) * 1000 || 5000;
+  setTimeout(() => closeToast(toast.id), duration);
+});
+
 function abrirModalEditar(id, nome, cpf, telefone, email) {
-    // 1. Localiza o formulário e preenche os campos
-    // Usamos IDs específicos para o formulário de EDIÇÃO para não confundir com o de cadastro
     document.getElementById('edit-peao-id').value = id;
     document.getElementById('edit-peao-nome').value = nome;
     document.getElementById('edit-peao-cpf').value = cpf;
     document.getElementById('edit-peao-telefone').value = telefone;
     document.getElementById('edit-peao-email').value = email;
 
-    // 2. Abre o modal via ModalManager (Uso Imperativo)
+    // Dispara manualmente as máscaras para formatar os dados antigos vindos do banco
+    document.getElementById('edit-peao-cpf').dispatchEvent(new Event('input'));
+    document.getElementById('edit-peao-telefone').dispatchEvent(new Event('input'));
+
     ModalManager.open('modal-editar-peao');
 }
 
-document.querySelectorAll('.toast').forEach(toast => {
-  const duration = parseFloat(getComputedStyle(toast).getPropertyValue('--toast-duration')) * 1000 || 5000;
-  setTimeout(() => closeToast(toast.id), duration);
+/* ── MÁSCARA COMPARTILHADA PARA CPF (CADASTRO E EDIÇÃO) ── */
+document.querySelectorAll('#peao-cpf, #edit-peao-cpf').forEach(input => {
+    input.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value.length > 11) value = value.slice(0, 11);
+        
+        if (value.length > 9) {
+            value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{1,2})$/, "$1.$2.$3-$4");
+        } else if (value.length > 6) {
+            value = value.replace(/^(\d{3})(\d{3})(\d{1,3})$/, "$1.$2.$3");
+        } else if (value.length > 3) {
+            value = value.replace(/^(\d{3})(\d{1,3})$/, "$1.$2");
+        }
+        e.target.value = value;
+    });
 });
-</script>
 
+/* ── MÁSCARA COMPARTILHADA PARA TELEFONE (CADASTRO E EDIÇÃO) ── */
+document.querySelectorAll('#peao-telefone, #edit-peao-telefone').forEach(input => {
+    input.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, "");
+        if (value.length > 11) value = value.slice(0, 11);
+        
+        if (value.length > 10) {
+            value = value.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+        } else if (value.length > 6) {
+            value = value.replace(/^(\d{2})(\d{4})(\d{1,4})$/, "($1) $2-$3");
+        } else if (value.length > 2) {
+            value = value.replace(/^(\d{2})(\d{1,4})$/, "($1) $2");
+        } else if (value.length > 0) {
+            value = value.replace(/^(\d{1,2})$/, "($1");
+        }
+        e.target.value = value;
+    });
+});
+
+/* ── MÁSCARA ADICIONAL PARA FORMATAR A TABELA DE LISTAGEM AO CARREGAR A TELA ── */
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.text-cpf-row').forEach(td => {
+        let value = td.textContent.trim().replace(/\D/g, "");
+        if (value.length === 11) {
+            td.textContent = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+        }
+    });
+});
+
+/* ── CONTROLE DE VISUALIZAÇÃO DA SENHA ── */
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('peao-senha');
+    const eyeIconContainer = document.getElementById('btn-toggle-password');
+    
+    const eyeOpenSVG = `
+      <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    `;
+    
+    const eyeClosedSVG = `
+      <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      </svg>
+    `;
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIconContainer.innerHTML = eyeOpenSVG;
+        eyeIconContainer.setAttribute('title', 'Esconder senha');
+    } else {
+        passwordInput.type = 'password';
+        eyeIconContainer.innerHTML = eyeClosedSVG;
+        eyeIconContainer.setAttribute('title', 'Mostrar senha');
+    }
+}
+</script>
 </body>
 </html>

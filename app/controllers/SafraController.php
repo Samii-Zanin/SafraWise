@@ -13,16 +13,13 @@ class SafraController extends BaseController
 
     public function getAll(): array
     {
-        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
-            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
-            $this->redirect('dashboard');
-        }
-
         $proprietarioId = $_SESSION['user']['id'];
 
         $stmt = $this->db->prepare(
             "select
                 s.id,
+                s.talhao_id,
+                s.cultura_id,
                 c.nome as cultura,
                 c.variedade, 
                 t.nome as nome_talhao,
@@ -56,10 +53,6 @@ class SafraController extends BaseController
 
     public function getAtivas(): array
     {
-        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
-            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem acessar as safras.');
-            $this->redirect('dashboard');
-        }
 
         $proprietarioId = $_SESSION['user']['id'];
 
@@ -68,6 +61,7 @@ class SafraController extends BaseController
                 s.id,
                 c.nome as cultura,
                 c.variedade, 
+                t.id as talhao_id,
                 t.nome as nome_talhao,
                 t.area_hectare as area_talhao,
                 t.status as status_talhao,
@@ -103,6 +97,7 @@ class SafraController extends BaseController
                 s.id, s.data_inicio, s.data_fim,
                 c.nome      AS cultura,
                 c.variedade,
+                t.id        AS talhao_id,
                 t.nome      AS nome_talhao,
                 t.area_hectare AS area_talhao,
                 t.status    AS status_talhao,

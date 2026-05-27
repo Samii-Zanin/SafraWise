@@ -68,6 +68,15 @@ switch ($page) {
         requireAuth();
         require_once '../app/controllers/SafraController.php';
         require_once '../app/controllers/OperacoesFinanceirasController.php';
+        require_once '../app/controllers/ProdutoController.php';
+        require_once '../app/controllers/PropriedadeController.php';
+        require_once '../app/controllers/InsumoController.php';
+        require_once '../app/controllers/TalhaoController.php';
+        require_once '../app/controllers/PeaoController.php'; 
+
+        $insumosAgricolas = (new InsumoController())->getAllNotCereal();
+        $talhoes          = (new TalhaoController())->getAll();
+        $peoes            = (new PeaoController())->getAll();
 
         $id    = (int) ($_GET['id'] ?? 0);
         $safra = (new SafraController())->getById($id);
@@ -91,7 +100,17 @@ switch ($page) {
             'valor_operacao'
         ));
 
+        $produtos     = (new ProdutoController())->getAllnotCereal();              
+        $cereais      = (new ProdutoController())->getAllByTipo('CEREAL');
+        $propriedades = (new PropriedadeController())->getAll();          
+
         require '../app/views/safra_detalhe.php';
+        break;
+
+    case 'store_op_agricola':
+        requireAuth();
+        require_once '../app/controllers/OperacoesAgricolasController.php';
+        (new OperacoesAgricolasController())->save();
         break;
 
     case 'store_safra':
@@ -210,7 +229,7 @@ switch ($page) {
     
         $estoqueInsumos = (new EstoqueInsumosController())->getAll();
         $estoquesSilos  = (new SiloController())->getAll();
-        $produtos       = (new ProdutoController())->getAll();
+        $produtos       = (new ProdutoController())->getAllnotCereal();
         $cereais = (new ProdutoController())->getAllByTipo('CEREAL');
         $safras         = (new SafraController())->getAtivas(); 
         $propriedades   = (new PropriedadeController())->getAll();
@@ -237,6 +256,11 @@ switch ($page) {
     case 'saida_simples_cereal':
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->registrarSaidaSimplesCereal();
+        break;
+
+    case 'entrada_silo_cereal':
+        require_once '../app/controllers/OperacoesAgricolasController.php';
+        (new OperacoesAgricolasController())->save();
         break;
 
 

@@ -512,7 +512,7 @@ function tipoOperacaoVisual(string $tipo): array {
               Operação Financeira
             </button>
             <button type="button"
-                    class="btn-acao outline"
+                    class="btn-acao outline bg-light"
                     data-sw-open="modal-nova-op-agricola">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2.5"
@@ -523,17 +523,17 @@ function tipoOperacaoVisual(string $tipo): array {
               Operação Agrícola
             </button>
             <?php if ($ativa): ?>
-              <button type="button"
-                      class="btn-acao perigo"
-                      data-sw-open="modal-encerrar-safra">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            <button type="button"
+                    class="btn-acao perigo bg-light"
+                    data-sw-open="modal-encerrar-safra">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2.5"
                      stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <rect x="9" y="9" width="6" height="6"/>
                 </svg>
-                Encerrar Safra
-              </button>
+              Encerrar Safra
+            </button>
             <?php endif; ?>
           </div>
         </div>
@@ -787,50 +787,204 @@ function tipoOperacaoVisual(string $tipo): array {
 ════════════════════════════════════ -->
 <div class="modal fade sw-modal" id="modal-nova-op-agricola"
      tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
+
       <div class="modal-header">
         <div>
           <h5 class="modal-title">Nova Operação Agrícola</h5>
-          <p class="modal-subtitle mb-0">Registre uma atividade de campo.</p>
+          <p class="modal-subtitle mb-0">
+            Registre uma atividade de campo vinculada a esta safra.
+          </p>
         </div>
-        <button type="button" class="btn-close" data-sw-close="modal-nova-op-agricola"></button>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-nova-op-agricola"></button>
       </div>
+
       <div class="modal-body">
-        <form id="form-op-agricola" method="POST" action="index.php?page=store_op_agricola">
-          <input type="hidden" name="safra_id" value="<?= (int)($safra['id'] ?? 0) ?>">
+        <form id="form-op-agricola" method="POST"
+              action="index.php?page=store_op_agricola">
 
-          <div class="mb-3">
-            <label class="form-label">Tipo de operação</label>
-            <select class="form-select" name="tipo_operacao" required>
-              <option value="">Selecione...</option>
-              <option value="PLANTIO">Plantio</option>
-              <option value="PULVERIZAÇÃO">Pulverização</option>
-              <option value="ADUBAÇÃO">Adubação</option>
-              <option value="COLHEITA">Colheita</option>
-              <option value="IRRIGAÇÃO">Irrigação</option>
-              <option value="OUTRO">Outro</option>
-            </select>
+          <input type="hidden" name="safra_id"
+                 value="<?= (int)($safra['id'] ?? 0) ?>">
+          <input type="hidden" name="custos_operacao"
+                 id="op-custo-operacao" value="0">
+                    
+          <input type="hidden" name="talhao_id"
+       value="<?= (int)($safra['talhao_id'] ?? 0) ?>">
+
+<!-- Linha 1: Tipo + Data -->
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <label class="form-label">Tipo de operação</label>
+    <select class="form-select" name="tipo_operacao" id="op-tipo" required>
+      <option value="">Selecione...</option>
+      <option value="PLANTIO">Plantio</option>
+      <option value="PULVERIZAÇÃO">Pulverização</option>
+      <option value="ADUBAÇÃO">Adubação</option>
+      <option value="COLHEITA">Colheita</option>
+      <option value="IRRIGAÇÃO">Irrigação</option>
+      <option value="CALAGEM">Calagem</option>
+      <option value="OUTRO">Outro</option>
+    </select>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Data da operação</label>
+    <input type="date" class="form-control" name="data_operacao"
+           id="op-data" value="<?= date('Y-m-d') ?>" required>
+  </div>
+</div>
+
+          <?php if (!empty($safra['nome_talhao'])): ?>
+            <input type="hidden" name="talhao_id"
+              value="<?= (int)($safra['talhao_id'] ?? 0) ?>">  
+            <div class="mb-3 d-flex align-items-center gap-2"
+                style="background:#f5f9f6;border:1px solid #c3e0cc;
+                        border-radius:10px;padding:10px 14px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--verde-vivo)" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span class="small" style="color:var(--verde-accent);">
+                Talhão vinculado:
+                <strong><?= htmlspecialchars($safra['nome_talhao']) ?></strong>
+                <?= !empty($safra['area_talhao'])
+                    ? '(' . number_format((float)$safra['area_talhao'], 2, ',', '.') . ' ha)'
+                    : '' ?>
+              </span>
+            </div>
+          <?php endif; ?>
+
+          <?php if ($tipo === 'peao'): ?>
+            <input type="hidden" name="peao_id" value="<?= (int)$user['id'] ?>">
+            <div class="mb-3 d-flex align-items-center gap-2"
+                style="background:#eff6ff;border:1px solid #bfdbfe;
+                        border-radius:10px;padding:10px 14px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="#2563eb" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span class="small" style="color:#1d4ed8;">
+                Operação atribuída a
+                <strong><?= htmlspecialchars($user['nome']) ?></strong>
+              </span>
+            </div>
+          <?php else: ?>
+            <div class="mb-3">
+              <label class="form-label">
+                Peão responsável
+                <span class="fw-normal text-muted ms-1"
+                      style="font-size:11px;">(opcional)</span>
+              </label>
+              <select class="form-select" name="peao_id" id="op-peao">
+                <option value="">Sem responsável definido</option>
+                <?php foreach ($peoes ?? [] as $p): ?>
+                  <option value="<?= (int)$p['id'] ?>">
+                    <?= htmlspecialchars($p['nome']) ?>
+                    <?= !empty($p['funcao']) ? '— ' . htmlspecialchars($p['funcao']) : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          <?php endif; ?>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label">
+                Insumo utilizado
+                <span class="fw-normal text-muted ms-1"
+                      style="font-size:11px;">(opcional)</span>
+              </label>
+              <select class="form-select" name="insumo_id" id="op-insumo"
+                      onchange="calcularCustoOperacao()">
+                <option value="" data-valor-dose="0">Nenhum insumo</option>
+                <?php foreach ($insumosAgricolas ?? [] as $ins): ?>
+                <option value="<?= (int)($ins['id'] ?? 0) ?>"
+                        data-valor-dose="<?= number_format((float)($ins['valor_por_dose'] ?? 0), 4, '.', '') ?>"
+                        data-unidade="<?= htmlspecialchars($ins['unidade_medida'] ?? '') ?>">
+                  <?= htmlspecialchars($ins['nome'] ?? '') ?>
+                  <?= !empty($ins['marca']) ? '— ' . htmlspecialchars($ins['marca']) : '' ?>
+                  (R$ <?= number_format((float)($ins['valor_por_dose'] ?? 0), 2, ',', '.') ?>
+                  /<?= htmlspecialchars($ins['unidade_medida'] ?? 'un') ?>)
+                </option>
+              <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">
+                Quantidade
+                <span class="fw-normal text-muted ms-1"
+                      style="font-size:10px;" id="op-unidade-label"></span>
+              </label>
+              <input type="number" class="form-control" name="quantidade_insumo"
+                     id="op-quantidade" placeholder="0"
+                     step="0.001" min="0" value="0"
+                     oninput="calcularCustoOperacao()">
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Data da operação</label>
-            <input type="date" class="form-control" name="data_operacao"
-                   value="<?= date('Y-m-d') ?>" required>
+          <!-- Cálculo de custo -->
+          <div class="mb-3 p-3"
+               style="background:#f5f9f6;border:1px solid #c3e0cc;border-radius:12px;">
+            <div class="fw-semibold mb-2" style="font-size:12px;
+                 text-transform:uppercase;letter-spacing:.5px;color:var(--texto-suave);">
+              Custo da operação
+            </div>
+
+            <div class="d-flex justify-content-between small text-muted mb-2">
+              <span>Custo do insumo (qtd × valor/dose)</span>
+              <span id="op-custo-base" class="fw-semibold"
+                    style="color:var(--texto-escuro);">R$ 0,00</span>
+            </div>
+
+            <div class="row g-2 mb-2 align-items-center">
+              <div class="col">
+                <label class="form-label mb-1" style="font-size:11px;">
+                  Custos extras (mão de obra, combustível, etc.)
+                </label>
+                <input type="number" class="form-control form-control-sm"
+                       id="op-custo-extra" placeholder="0,00"
+                       step="0.01" min="0" value="0"
+                       oninput="calcularCustoOperacao()">
+              </div>
+            </div>
+
+            <div style="border-top:1px solid #c3e0cc;margin:10px 0 8px;"></div>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold" style="color:var(--verde-accent);">
+                Total da operação
+              </span>
+              <span id="op-custo-total"
+                    style="font-family:'DM Serif Display',Georgia,serif;
+                           font-size:20px;color:var(--verde-vivo);">
+                R$ 0,00
+              </span>
+            </div>
           </div>
 
+          <!-- Descrição -->
           <div class="mb-0">
             <label class="form-label">
               Descrição
-              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+              <span class="fw-normal text-muted ms-1"
+                    style="font-size:11px;">(opcional)</span>
             </label>
-            <textarea class="form-control" name="descricao" rows="3"
+            <textarea class="form-control" name="descricao" id="op-descricao"
+                      rows="2"
                       placeholder="Detalhes da operação..."></textarea>
           </div>
+
         </form>
       </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" data-sw-close="modal-nova-op-agricola">
+        <button type="button" class="btn-modal-cancel"
+                data-sw-close="modal-nova-op-agricola">
           Cancelar
         </button>
         <button type="submit" form="form-op-agricola"
@@ -845,6 +999,7 @@ function tipoOperacaoVisual(string $tipo): array {
           Registrar operação
         </button>
       </div>
+
     </div>
   </div>
 </div>
@@ -1291,7 +1446,41 @@ document.getElementById('venda-descricao')?.addEventListener('input', function (
     document.getElementById('rv-desc-linha')?.style.setProperty('display','none','important');
   });
 });
+
+
+
+// ── Cálculo custo operação agrícola ──────────────────────────
+function calcularCustoOperacao() {
+  const sel       = document.getElementById('op-insumo');
+  const opt       = sel.options[sel.selectedIndex];
+  const valorDose = parseFloat(opt?.dataset.valorDose) || 0;
+  const unidade   = opt?.dataset.unidade || 'un';
+  const qtd       = parseFloat(document.getElementById('op-quantidade').value) || 0;
+  const extra     = parseFloat(document.getElementById('op-custo-extra').value) || 0;
+
+  // Atualiza label da unidade no campo quantidade
+  const labelUnidade = document.getElementById('op-unidade-label');
+  if (labelUnidade) labelUnidade.textContent = unidade ? `(${unidade})` : '';
+
+  const custoBase = qtd * valorDose;
+  const total     = custoBase + extra;
+
+  document.getElementById('op-custo-base').textContent  = fmtBRL(custoBase);
+  document.getElementById('op-custo-total').textContent = fmtBRL(total);
+  document.getElementById('op-custo-operacao').value    = total.toFixed(2);
+}
+
+// Limpa modal agrícola ao fechar
+document.getElementById('modal-nova-op-agricola')
+  ?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('form-op-agricola')?.reset();
+    document.getElementById('op-custo-base').textContent  = 'R$ 0,00';
+    document.getElementById('op-custo-total').textContent = 'R$ 0,00';
+    document.getElementById('op-custo-operacao').value    = '0';
+    document.getElementById('op-unidade-label').textContent = '';
+  });
 </script>
 
 </body>
 </html>
+

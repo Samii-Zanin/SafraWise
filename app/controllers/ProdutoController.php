@@ -20,6 +20,15 @@ class ProdutoController extends BaseController
     return $produtos;
 }
 
+    public function getAllnotCereal(): array
+{
+    $stmt = $this->db->prepare("SELECT * FROM produto WHERE tipo != 'CEREAL' ORDER BY nome ASC");
+    $stmt->execute();
+    $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $produtos;
+}
+
     public function index(): void
     {
         if (!isset($_SESSION['user'])) {

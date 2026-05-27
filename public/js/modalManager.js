@@ -26,6 +26,16 @@
  *   })
  */
 
+function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
+
+
+
 const ModalManager = (() => {
   /** @type {Map<string, bootstrap.Modal>} */
   const _instances = new Map();

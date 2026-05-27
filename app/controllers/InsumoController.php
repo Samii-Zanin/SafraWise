@@ -32,6 +32,8 @@ class InsumoController extends BaseController
         require_once __DIR__ . '/../views/insumos.php';
     }
 
+
+
     public function getAllComProduto(): array
     {
         $stmt = $this->db->prepare("
@@ -39,6 +41,38 @@ class InsumoController extends BaseController
             FROM insumo i
             JOIN produto p ON p.id = i.produto_id
             ORDER BY p.nome ASC
+        ");
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $result;
+    }
+
+
+    public function getAllNotCereal(): array
+    {
+        $stmt = $this->db->prepare("
+            select
+                i.id,
+                p.nome,
+                p.tipo,
+                p.marca, 
+                i.valor_por_dose, 
+                p.unidade_medida,
+                MAX(data_referencia) as data_ref
+            from
+                insumo i
+            left join produto p on
+                i.produto_id = p.id
+            where p.tipo <> 'CEREAL' 
+                group by
+                i.id,
+                p.nome,
+                p.tipo,
+                p.marca, 
+                i.valor_por_dose,
+                p.unidade_medida
+            order by p.nome asc
         ");
         $stmt->execute();
         $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

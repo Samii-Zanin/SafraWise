@@ -57,6 +57,40 @@ class TalhaoController {
         return $talhoes;
     }
 
+    public function getById(int $id): ?array {
+        $stmt = $this->db->prepare("SELECT * FROM talhoes WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        return $result ?: null;
+    }
+
+    public function getAll(): array {
+        $proprietario_id = $_SESSION['user']['id'];
+
+        $stmtProp = $this->db->prepare("
+        select
+	        t.id, t.nome, p.nome as propriedade_nome, t.area_hectare, t.status
+        from
+            talhoes t
+        left join propriedade p on t.propriedade_id = p.id
+        where
+            t.id not in (
+            select
+                talhao_id
+            from
+                safra
+            where
+                data_fim is null)
+            and p.proprietario_id = ?
+                ");
+        $stmtProp->bind_param("i", $proprietario_id);
+        $stmtProp->execute();
+        $talhoes = $stmtProp->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        return $talhoes;
+    }
+
     public function store(): void {
         $nome = trim($_POST['nome']);
         $area = floatval($_POST['area_hectare']);

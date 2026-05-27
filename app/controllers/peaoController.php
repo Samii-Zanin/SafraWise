@@ -38,6 +38,26 @@ class PeaoController extends BaseController
         require_once __DIR__ . '/../views/equipe.php';
     }
 
+
+    public function getAll(): array
+    {
+        $proprietarioId = $_SESSION['user']['id'];
+
+        $stmt = $this->db->prepare(
+            "SELECT id, nome, cpf_cnpj, telefone, email
+             FROM peao
+             WHERE proprietario_id = ?
+             ORDER BY nome ASC"
+        );
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+
+        $peoes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $peoes;
+    }
+
     public function save(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {

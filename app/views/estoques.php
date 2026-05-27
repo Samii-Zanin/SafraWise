@@ -802,7 +802,7 @@ foreach ($estoquesSilos ?? [] as $item) {
                   <th>Produto</th>
                   <th>Quantidade</th>
                   <th>Valor Total</th>
-                  <th>Valor / kg</th>
+                  <th>Valor / Saca</th>
                   <th>Data</th>
                   <th>Safra</th>
                   <th>Descrição</th>
@@ -899,113 +899,6 @@ foreach ($estoquesSilos ?? [] as $item) {
     </div><!-- /page-body -->
   </div><!-- /main-content -->
 </div><!-- /app-layout -->
-
-
-<div class="modal fade sw-modal"
-     id="modal-cadastrar-insumo"
-     tabindex="-1"
-     aria-labelledby="modal-cadastrar-insumo-label"
-     aria-hidden="true"
-     data-sw-reset-on-close>
-
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <div>
-          <h5 class="modal-title" id="modal-cadastrar-insumo-label">Novo Insumo</h5>
-          <p class="modal-subtitle mb-0">Preencha os dados do produto agrícola.</p>
-        </div>
-        <button type="button" class="btn-close" data-sw-close="modal-cadastrar-insumo" aria-label="Fechar"></button>
-      </div>
-
-      <div class="modal-body">
-        <form id="form-cadastrar-insumo" method="POST" action="index.php?page=store_insumo">
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-8">
-              <label class="form-label" for="cadastro-nome">Nome do produto</label>
-              <input type="text" class="form-control" id="cadastro-nome" name="nome"
-                     placeholder="Ex: Glifosato 480" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label" for="cadastro-marca">Marca</label>
-              <input type="text" class="form-control" id="cadastro-marca" name="marca"
-                     placeholder="Ex: Roundup">
-            </div>
-          </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-5">
-              <label class="form-label" for="cadastro-tipo">Categoria</label>
-              <select class="form-select" id="cadastro-tipo" name="tipo">
-                <option value="">Selecione...</option>
-                <option value="Herbicida">Herbicida</option>
-                <option value="Fungicida">Fungicida</option>
-                <option value="Inseticida">Inseticida</option>
-                <option value="Fertilizante">Fertilizante</option>
-                <option value="Adubo">Adubo</option>
-                <option value="Nematicida">Nematicida</option>
-                <option value="Regulador de crescimento">Regulador de crescimento</option>
-                <option value="Regulador de crescimento">Semente</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label" for="cadastro-unidade">Unidade de medida</label>
-              <select class="form-select" id="cadastro-unidade" name="unidade_medida">
-                <option value="">Selecione...</option>
-                <option value="L">L — Litro</option>
-                <option value="mL">mL — Mililitro</option>
-                <option value="kg">kg — Quilograma</option>
-                <option value="g">g — Grama</option>
-                <option value="t">t — Tonelada</option>
-                <option value="sc">sc — Saca</option>
-                <option value="cx">cx — Caixa</option>
-                <option value="un">un — Unidade</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label" for="cadastro-valor">Valor por dose (R$)</label>
-              <input type="number" class="form-control" id="cadastro-valor" name="valor_por_dose"
-                     placeholder="0,00" step="0.01" min="0" required>
-            </div>
-          </div>
-
-          <div class="mb-0">
-            <label class="form-label" for="cadastro-descricao">
-              Descrição
-              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
-            </label>
-            <textarea class="form-control" id="cadastro-descricao" name="descricao"
-                      rows="2" placeholder="Informações adicionais sobre o produto..."></textarea>
-          </div>
-
-        </form>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" data-sw-close="modal-cadastrar-insumo">
-          Cancelar
-        </button>
-        <button type="submit" form="form-cadastrar-insumo"
-                class="btn btn-success d-flex align-items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14z"/>
-            <polyline points="17 21 17 13 7 13 7 21"/>
-            <polyline points="7 3 7 8 15 8"/>
-          </svg>
-          Salvar insumo
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-
 
 <!-- ── MODAL 1: Decisão ─────────────────────────────── -->
 <div class="modal fade sw-modal" id="modal-decisao-entrada"

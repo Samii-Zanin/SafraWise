@@ -410,7 +410,7 @@ select
     opf.descricao,
     opf.valor_operacao,
     opf.quantidade,
-    ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) as valor_unitario,
+    ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) * 60 as valor_unitario,
     opf.data_operacao,
     UPPER(p.nome)      AS nome_produto,  
     p.tipo      AS tipo,
@@ -428,5 +428,33 @@ where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
         $movimentacoes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
         return $movimentacoes;
+    }
+
+    public function getBySafra(int $safraId): array
+    {
+        if (!isset($_SESSION['user'])) return [];
+
+        $stmt = $this->db->prepare("
+            SELECT
+                opf.id          AS operacao_id,
+                opf.tipo_operacao,
+                opf.descricao,
+                opf.valor_operacao,
+                opf.quantidade,
+                opf.data_operacao,
+                ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) AS valor_unitario,
+                p.nome          AS nome_produto,
+                p.tipo          AS tipo_produto
+            FROM operacoes_financeiras opf
+            LEFT JOIN produto p ON p.id = opf.produto_id
+            WHERE opf.safra_id = ?
+            ORDER BY opf.data_operacao ASC
+        ");
+        $stmt->bind_param("i", $safraId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $result;
     }
 }

@@ -676,6 +676,14 @@ $ocupacaoMedia    = $capacidadeTotal > 0
 <script src="../../public/js/app.js"></script>
 
 <script>
+function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
+
 // ── Toast ──────────────────────────────────────────────────
 document.querySelectorAll('.toast').forEach(t => {
   const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;

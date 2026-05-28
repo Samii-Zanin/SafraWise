@@ -10,17 +10,18 @@ class AuthController
             exit;
         }
 
-        // Mudei o nome da variável de $email para $identificacao (pode ser email ou cpf)
-        $identificacao = trim($_POST['email'] ?? ''); 
+        $identificacao = trim($_POST['cpf'] ?? ''); 
+        // Mantém a limpeza para remover a máscara do front antes de buscar no banco
+        $identificacao = preg_replace('/\D/', '', $identificacao); 
+        
         $senha = $_POST['senha'] ?? '';
         $tipo  = $_POST['tipo']  ?? 'proprietario';
 
-        // ── Validação básica ────────────────────────────────────
         if (empty($identificacao) || empty($senha)) {
             $_SESSION['toast'] = [
                 'tipo'     => 'error',
                 'titulo'   => 'Campos obrigatórios',
-                'mensagem' => 'Preencha o e-mail/CPF e a senha para continuar.',
+                'mensagem' => 'Preencha o CPF e a senha para continuar.',
             ];
             header("Location: /public/?page=login");
             exit;
@@ -32,14 +33,13 @@ class AuthController
             $_SESSION['toast'] = [
                 'tipo'     => 'error',
                 'titulo'   => 'Acesso negado',
-                'mensagem' => 'E-mail, CPF ou senha incorretos. Verifique suas credenciais.',
+                'mensagem' => 'CPF ou senha incorretos. Verifique suas credenciais.',
             ];
             header("Location: /public/?page=login");
             exit;
         }
 
-        // ── Login bem-sucedido ───────────────────────────────────
-        session_regenerate_id(true); // Previne Session Fixation
+        session_regenerate_id(true);
 
         $_SESSION['user'] = $user;
         $_SESSION['tipo'] = $tipo;
@@ -47,7 +47,7 @@ class AuthController
         $_SESSION['toast'] = [
             'tipo'     => 'success',
             'titulo'   => 'Bem-vindo(a), ' . explode(' ', $user['nome'])[0] . '!',
-            'mensagem' => 'Você entrou como ' . ($tipo === 'proprietario' ? 'proprietário' : 'peão de campo') . '.',
+            'mensagem' => 'Você entrou como ' . ($tipo === 'proprietario' ? 'proprietário' : 'peão') . '.',
         ];
 
         header("Location: /public/?page=dashboard");
@@ -60,31 +60,25 @@ class AuthController
         $conn = Conexao::getConexao();
         $tabela = ($tipo === 'peao') ? 'peao' : 'proprietario';
 
-        // Agora busca tanto pelo E-mail quanto pelo CPF_CNPJ
-        $sql = "SELECT id, nome, email, cpf_cnpj, senha FROM $tabela WHERE email = ? OR cpf_cnpj = ? LIMIT 1";
+        $sql = "SELECT id, nome, email, cpf_cnpj, senha FROM $tabela WHERE cpf_cnpj = ? LIMIT 1";
 
         $stmt = $conn->prepare($sql);
-
         if (!$stmt) {
             die("Erro SQL: " . $conn->error);
         }
 
-        // Passa a mesma variável duas vezes: uma para o email, outra para o CPF
-        $stmt->bind_param("ss", $identificacao, $identificacao);
+        $stmt->bind_param("s", $identificacao);
         $stmt->execute();
 
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
         $stmt->close();
 
-        // Usa password_verify para checar a senha criptografada!
         if (!$user || !password_verify($senha, $user['senha'])) {
             return null;
         }
 
-        // Remove a senha do array por segurança antes de retornar para a sessão
         unset($user['senha']);
-
         return $user;
     }
 }

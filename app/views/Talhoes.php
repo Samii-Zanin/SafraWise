@@ -122,6 +122,13 @@ unset($_SESSION['toast']);
 
 <script src="../../public/js/modalManager.js"></script>
 <script>
+function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
 function abrirEditarTalhao(id, nome, area, propId) {
     // Preencha os campos edit-...
     ModalManager.open('modal-editar-talhao');

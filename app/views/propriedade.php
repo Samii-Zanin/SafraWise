@@ -282,6 +282,14 @@ if (isset($_SESSION['toast'])) {
 
 <script>
 function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
+
+function closeToast(id) {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('hide');

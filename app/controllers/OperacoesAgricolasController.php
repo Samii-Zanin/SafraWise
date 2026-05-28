@@ -174,4 +174,107 @@ class OperacoesAgricolasController extends BaseController
         $this->redirect('safra_detalhe&id=' . $safra_id);
     }
 }
+
+    public function storeColheita(): void
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+        $this->redirect('login');
+    }
+
+    $safra_id         = (int)   ($_POST['safra_id']         ?? 0);
+    $silo_id          = (int)   ($_POST['silo_id']          ?? 0);
+    $quantidade       = (float) ($_POST['quantidade_colhida'] ?? 0);
+    $talhao_id        = (int)   ($_POST['talhao_id']        ?? 0);
+    $data_operacao    = trim(    $_POST['data_operacao']     ?? date('Y-m-d'));
+    $descricao        = trim(    $_POST['descricao']         ?? '');
+    $custo            = (float) ($_POST['custo_operacao']    ?? 0);
+    $peao_id          = !empty($_POST['peao_id']) ? (int)$_POST['peao_id'] : null;
+
+    if (strlen($data_operacao) === 10) {
+        $data_operacao .= ' ' . date('H:i:s');
+    }
+
+    if (!$safra_id || !$silo_id || $quantidade <= 0) {
+        $this->setToast('warning', 'Campos obrigatórios',
+            'Safra, silo e quantidade são obrigatórios.');
+        $this->redirect('estoques');
+        return;
+    }
+
+    if (!$this->validator->StatusSafraVinculada($safra_id)) {
+        $this->setToast('error', 'Safra Inativa', 'A safra selecionada está inativa.');
+        $this->redirect('estoques');
+        return;
+    }
+
+    try {
+        // ── Valida capacidade do silo ────────────────────────
+        $stmtSilo = $this->db->prepare(
+            "SELECT quantidade_kg, capacidade_kg FROM silo WHERE id = ? LIMIT 1"
+        );
+        $stmtSilo->bind_param("i", $silo_id);
+        $stmtSilo->execute();
+        $silo = $stmtSilo->get_result()->fetch_assoc();
+        $stmtSilo->close();
+
+        if (!$silo) {
+            $this->setToast('error', 'Silo não encontrado', 'O silo selecionado não existe.');
+            $this->redirect('estoques');
+            return;
+        }
+
+        $disponivel = (float)$silo['capacidade_kg'] - (float)$silo['quantidade_kg'];
+        if ($quantidade > $disponivel) {
+            $this->setToast('error', 'Capacidade excedida',
+                'A quantidade colhida excede a capacidade disponível do silo (' .
+                number_format($disponivel, 2, ',', '.') . ' kg disponíveis).');
+            $this->redirect('estoques');
+            return;
+        }
+
+        // ── INSERT operação agrícola ─────────────────────────
+        $tipo = 'COLHEITA';
+        $stmt = $this->db->prepare("
+            INSERT INTO operacoes_agricolas
+                (tipo_operacao, data_operacao, descricao, quantidade_insumo,
+                 insumo_id, talhao_id, peao_id, safra_id, custos_operacao)
+            VALUES (?, ?, ?, 0, NULL, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param(
+            "sssiiid",
+            $tipo,
+            $data_operacao,
+            $descricao,
+            $talhao_id,
+            $peao_id,
+            $safra_id,
+            $custo
+        );
+        if (!$stmt->execute()) {
+            throw new \RuntimeException("Falha ao inserir colheita: {$this->db->error}");
+        }
+        $stmt->close();
+
+        // ── Atualiza silo ────────────────────────────────────
+        $nova_qtd = (float)$silo['quantidade_kg'] + $quantidade;
+        $stmt = $this->db->prepare(
+            "UPDATE silo SET quantidade_kg = ? WHERE id = ?"
+        );
+        $stmt->bind_param("di", $nova_qtd, $silo_id);
+        if (!$stmt->execute()) {
+            throw new \RuntimeException("Falha ao atualizar silo: {$this->db->error}");
+        }
+        $stmt->close();
+
+        $this->setToast('success', 'Colheita Registrada!',
+            'A operação de colheita foi salva e o silo atualizado.');
+        $this->redirect('estoques');
+
+    } catch (\Exception $e) {
+        error_log($e->getMessage());
+        $this->setToast('error', 'Erro interno', $e->getMessage());
+        $this->redirect('estoques');
+    }
+}
+
 }

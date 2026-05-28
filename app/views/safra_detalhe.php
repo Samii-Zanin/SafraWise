@@ -623,52 +623,76 @@ function tipoOperacaoVisual(string $tipo): array {
       <?php else: ?>
         <div class="timeline-wrap">
           <?php foreach ($operacoes as $op):
-            $visual = tipoOperacaoVisual($op['tipo_operacao'] ?? '');
-            $dataOp = !empty($op['data_operacao'])
-                ? date('d/m/Y \à\s H:i', strtotime($op['data_operacao']))
+            $visual  = tipoOperacaoVisual($op['tipo_operacao'] ?? '');
+            $dataOp  = !empty($op['data_operacao'])
+                ? date('d/m/Y', strtotime($op['data_operacao']))
                 : '—';
+            $ehAgro  = ($op['operacao'] ?? '') === 'Operação Agrícola';
+            $valor   = (float)($op['valor_operacao'] ?? 0);
+            $qtd     = (float)($op['quantidade']     ?? 0);
           ?>
             <div class="timeline-item">
               <div class="timeline-dot"
-                   style="border-color:<?= $visual['cor'] ?>;
+                  style="border-color:<?= $visual['cor'] ?>;
                           background:<?= $visual['bg'] ?>;"></div>
 
               <div class="timeline-card">
-                <div class="timeline-data"><?= $dataOp ?></div>
 
+                <!-- Cabeçalho: data + categoria -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="timeline-data mb-0"><?= $dataOp ?></span>
+                  <span style="font-size:10px;font-weight:600;padding:2px 8px;
+                              border-radius:20px;
+                              background:<?= $ehAgro ? 'rgba(217,119,6,.1)' : 'rgba(37,99,235,.08)' ?>;
+                              color:<?= $ehAgro ? '#b45309' : '#1d4ed8' ?>;">
+                    <?= $ehAgro ? '🌱 Agrícola' : '💰 Financeira' ?>
+                  </span>
+                </div>
+
+                <!-- Tipo da operação -->
                 <span class="timeline-tipo"
                       style="background:<?= $visual['bg'] ?>;color:<?= $visual['cor'] ?>;">
                   <?= htmlspecialchars($visual['label']) ?>
                 </span>
 
+                <!-- Produto / insumo -->
+                <?php if (!empty($op['produto_nome'])): ?>
+                  <div class="timeline-desc" style="font-size:13px;">
+                    <?= htmlspecialchars($op['produto_nome']) ?>
+                  </div>
+                <?php endif; ?>
+
+                <!-- Descrição (se diferente do produto) -->
                 <?php if (!empty($op['descricao'])): ?>
-                  <div class="timeline-desc">
+                  <div class="small text-muted mb-2"
+                      style="font-size:12px;line-height:1.4;">
                     <?= htmlspecialchars($op['descricao']) ?>
                   </div>
                 <?php endif; ?>
 
+                <!-- Valores em linha -->
                 <div class="timeline-valores">
-                  <?php if (!empty($op['nome_produto']) || !empty($op['produto'])): ?>
+                  <?php if ($qtd > 0): ?>
                     <div class="timeline-valor-item">
-                      Produto: <strong><?= htmlspecialchars($op['nome_produto'] ?? $op['produto'] ?? '—') ?></strong>
+                      Qtd: <strong>
+                        <?= number_format($qtd, 2, ',', '.') ?>
+                        <?= !empty($op['tipo_produto']) ? htmlspecialchars($op['tipo_produto']) : '' ?>
+                      </strong>
                     </div>
                   <?php endif; ?>
-                  <?php if (!empty($op['quantidade'])): ?>
+
+                  <?php if ($valor > 0): ?>
                     <div class="timeline-valor-item">
-                      Quantidade: <strong><?= number_format((float)$op['quantidade'], 2, ',', '.') ?></strong>
-                    </div>
-                  <?php endif; ?>
-                  <?php if (!empty($op['valor_operacao']) && (float)$op['valor_operacao'] > 0): ?>
-                    <div class="timeline-valor-item">
-                      Valor: <strong>R$ <?= number_format((float)$op['valor_operacao'], 2, ',', '.') ?></strong>
-                    </div>
-                  <?php endif; ?>
-                  <?php if (!empty($op['valor_unitario']) && (float)$op['valor_unitario'] > 0): ?>
-                    <div class="timeline-valor-item">
-                      Valor unitário: <strong>R$ <?= number_format((float)$op['valor_unitario'], 2, ',', '.') ?></strong>
+                      <?= $ehAgro ? 'Custo' : 'Valor' ?>:
+                      <strong style="color:<?= str_contains($op['tipo_operacao'] ?? '', 'VENDA')
+                          ? 'var(--verde-vivo)' : '#dc2626' ?>;">
+                        <?= str_contains($op['tipo_operacao'] ?? '', 'VENDA') ? '+' : '−' ?>
+                        R$ <?= number_format($valor, 2, ',', '.') ?>
+                      </strong>
                     </div>
                   <?php endif; ?>
                 </div>
+
               </div>
             </div>
           <?php endforeach; ?>
@@ -1314,6 +1338,15 @@ function tipoOperacaoVisual(string $tipo): array {
 <script src="../../public/js/app.js"></script>
 
 <script>
+function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
+
+
 document.querySelectorAll('.toast').forEach(t => {
   const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;
   setTimeout(() => closeToast(t.id), d);

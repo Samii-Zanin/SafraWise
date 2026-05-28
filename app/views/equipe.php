@@ -190,15 +190,16 @@ if (isset($_SESSION['toast'])) {
                                         </svg>
                                     </button>
 
-                                    <a href="index.php?page=delete_peao&id=<?= $peao['id'] ?>" 
-                                       class="btn-table-action text-danger" 
-                                       title="Excluir" 
-                                       onclick="return confirm('Tem certeza que deseja remover este colaborador?')">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M3 6h18"></path>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        </svg>
-                                    </a>
+                                     <button type="button" 
+                                        class="btn-table-action text-danger" 
+                                        title="Excluir" 
+                                        onclick="solicitarExclusao('<?= $peao['id'] ?>', '<?= htmlspecialchars($peao['nome'], ENT_QUOTES) ?>')">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -407,6 +408,44 @@ if (isset($_SESSION['toast'])) {
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════
+     MODAL — Confirmar Exclusão de Peão (Alerta Customizado)
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade sw-modal" id="modal-confirmar-exclusao" tabindex="-1" aria-hidden="true" data-sw-reset-on-close>
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger d-flex align-items-center gap-2 text-nowrap" style="font-family:'DM Sans',sans-serif; font-weight:450;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          Remover da Equipe?
+        </h5>
+        <button type="button" class="btn-close" data-sw-close="modal-confirmar-exclusao" aria-label="Fechar"></button>
+      </div>
+
+      <div class="modal-body py-3">
+        <p class="mb-0 text-black small">
+          Tem certeza que deseja remover o colaborador <strong id="delete-peao-nome" class="text-dark"></strong>? Ele perderá imediatamente o acesso aos talhões da propriedade.
+        </p>
+      </div>
+
+      <div class="modal-footer border-0 pt-0 d-flex gap-2">
+        <button type="button" class="btn-modal-cancel flex-grow-1 py-2 text-center" data-sw-close="modal-confirmar-exclusao">
+          Cancelar
+        </button>
+        <a id="btn-confirmar-deletar" href="#" class="btn btn-danger flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-1 small" style="font-weight: 500;">
+          Sim, Remover
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
 
@@ -511,6 +550,17 @@ function togglePasswordVisibility() {
         eyeIconContainer.innerHTML = eyeClosedSVG;
         eyeIconContainer.setAttribute('title', 'Mostrar senha');
     }
+}
+
+function solicitarExclusao(id, nome) {
+    // 1. Injeta o nome do peão no texto de aviso do modal
+    document.getElementById('delete-peao-nome').textContent = nome;
+    
+    // 2. Altera o destino do botão de confirmação para a rota correta do PHP passando o ID
+    document.getElementById('btn-confirmar-deletar').href = `index.php?page=delete_peao&id=${id}`;
+    
+    // 3. Abre o mini-modal via uso imperativo do seu ModalManager
+    ModalManager.open('modal-confirmar-exclusao');
 }
 </script>
 </body>

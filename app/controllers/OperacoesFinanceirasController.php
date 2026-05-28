@@ -435,22 +435,43 @@ where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
         if (!isset($_SESSION['user'])) return [];
 
         $stmt = $this->db->prepare("
-            SELECT
-                opf.id          AS operacao_id,
-                opf.tipo_operacao,
-                opf.descricao,
-                opf.valor_operacao,
-                opf.quantidade,
-                opf.data_operacao,
-                ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) AS valor_unitario,
-                p.nome          AS nome_produto,
-                p.tipo          AS tipo_produto
-            FROM operacoes_financeiras opf
-            LEFT JOIN produto p ON p.id = opf.produto_id
-            WHERE opf.safra_id = ?
-            ORDER BY opf.data_operacao ASC
+            WITH op_agricolas AS (
+                SELECT
+                    oa.id,
+                    oa.tipo_operacao,
+                    oa.data_operacao,
+                    oa.descricao,
+                    oa.custos_operacao  AS valor_operacao,
+                    oa.quantidade_insumo AS quantidade,
+                    p.nome              AS produto_nome,
+                    p.tipo              AS tipo_produto,
+                    'Operação Agrícola' AS operacao
+                FROM operacoes_agricolas oa
+                LEFT JOIN insumo  i ON i.id  = oa.insumo_id
+                LEFT JOIN produto p ON p.id  = i.produto_id
+                WHERE oa.safra_id = ?
+            ),
+            op_financeiras AS (
+                SELECT
+                    opf.id,
+                    opf.tipo_operacao,
+                    opf.data_operacao,
+                    opf.descricao,
+                    opf.valor_operacao,
+                    opf.quantidade,
+                    p.nome              AS produto_nome,
+                    p.tipo              AS tipo_produto,
+                    'Operação Financeira' AS operacao
+                FROM operacoes_financeiras opf
+                LEFT JOIN produto p ON p.id = opf.produto_id
+                WHERE opf.safra_id = ?
+            )
+            SELECT * FROM op_financeiras
+            UNION ALL
+            SELECT * FROM op_agricolas
+            ORDER BY data_operacao ASC
         ");
-        $stmt->bind_param("i", $safraId);
+        $stmt->bind_param("ii", $safraId, $safraId);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();

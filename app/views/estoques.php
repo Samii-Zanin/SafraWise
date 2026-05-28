@@ -449,8 +449,8 @@ foreach ($estoquesSilos ?? [] as $item) {
             </button>
 
             <button type="button"
-                    class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                    data-sw-open="modal-saida-insumo">
+              class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+              data-sw-open="modal-saida-insumo-agricola">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -693,8 +693,8 @@ foreach ($estoquesSilos ?? [] as $item) {
           </button>
           <div class="ms-auto d-flex align-items-center gap-2">
             <button type="button"
-                    class="btn btn-success btn-sm d-flex align-items-center gap-1"
-                    data-sw-open="modal-entrada-insumo">
+              class="btn btn-success btn-sm d-flex align-items-center gap-1"
+              data-sw-open="modal-decisao-entrada-silo">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -1476,8 +1476,8 @@ foreach ($estoquesSilos ?? [] as $item) {
         <button type="button" class="btn-modal-cancel"
                 data-bs-dismiss="modal">Cancelar</button>
         <button type="submit" form="form-entrada-simples"
-                class="btn btn-primary d-flex align-items-center gap-2"
-                style="background:#3b82f6; border-color:#3b82f6;">
+                class="btn btn-success d-flex align-items-center gap-2"
+                >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -1493,13 +1493,401 @@ foreach ($estoquesSilos ?? [] as $item) {
 </div>
  
  
+<!-- ══ MODAL: Saída de Insumos (Operação Agrícola) ══ -->
+<div class="modal fade sw-modal" id="modal-saida-insumo-agricola"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Saída de Insumo</h5>
+          <p class="modal-subtitle mb-0">Operação agrícola com consumo de estoque.</p>
+        </div>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-saida-insumo-agricola"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-saida-insumo-agricola" method="POST"
+              action="index.php?page=store_op_agricola">
 
+          <input type="hidden" name="talhao_id" id="saida-talhao-id">
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Tipo de operação</label>
+              <select class="form-select" name="tipo_operacao" required>
+                <option value="">Selecione...</option>
+                <option value="PLANTIO">Plantio</option>
+                <option value="PULVERIZAÇÃO">Pulverização</option>
+                <option value="ADUBAÇÃO">Adubação</option>
+                <option value="IRRIGAÇÃO">Irrigação</option>
+                <option value="CALAGEM">Calagem</option>
+                <option value="OUTRO">Outro</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Data da operação</label>
+              <input type="date" class="form-control" name="data_operacao"
+                     value="<?= date('Y-m-d') ?>" required>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Safra</label>
+              <select class="form-select" name="safra_id" id="saida-safra"
+                      required onchange="preencherTalhaoSaida(this)">
+                <option value="">Selecione a safra...</option>
+                <?php foreach ($safras ?? [] as $s): ?>
+                  <option value="<?= (int)$s['id'] ?>"
+                          data-talhao-id="<?= (int)($s['talhao_id'] ?? 0) ?>">
+                    <?= htmlspecialchars($s['cultura']) ?>
+                    — <?= htmlspecialchars($s['nome_talhao']) ?>
+                    (<?= date('d/m/Y', strtotime($s['data_inicio'])) ?>)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">
+                Peão responsável
+                <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+              </label>
+              <select class="form-select" name="peao_id">
+                <option value="">Sem responsável</option>
+                <?php foreach ($peoes ?? [] as $p): ?>
+                  <option value="<?= (int)$p['id'] ?>">
+                    <?= htmlspecialchars($p['nome']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label">Insumo utilizado</label>
+              <select class="form-select" name="insumo_id" id="saida-insumo"
+                      onchange="calcularCustoSaida()">
+                <option value="" data-valor-dose="0">Nenhum insumo</option>
+                <?php foreach ($insumosAgricolas ?? [] as $ins): ?>
+                  <option value="<?= (int)($ins['id'] ?? 0) ?>"
+                          data-valor-dose="<?= number_format((float)($ins['valor_por_dose'] ?? 0), 4, '.', '') ?>"
+                          data-unidade="<?= htmlspecialchars($ins['unidade_medida'] ?? '') ?>">
+                    <?= htmlspecialchars($ins['nome'] ?? '') ?>
+                    <?= !empty($ins['marca']) ? '— ' . htmlspecialchars($ins['marca']) : '' ?>
+                    (R$ <?= number_format((float)($ins['valor_por_dose'] ?? 0), 2, ',', '.') ?>
+                    /<?= htmlspecialchars($ins['unidade_medida'] ?? 'un') ?>)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Quantidade
+                <span class="fw-normal text-muted" style="font-size:10px;"
+                      id="saida-unidade-label"></span>
+              </label>
+              <input type="number" class="form-control" name="quantidade_insumo"
+                     id="saida-quantidade" placeholder="0"
+                     step="0.001" min="0" value="0"
+                     oninput="calcularCustoSaida()">
+            </div>
+          </div>
+
+          <!-- Custo -->
+          <div class="mb-3 p-3"
+               style="background:#f5f9f6;border:1px solid #c3e0cc;border-radius:12px;">
+            <div class="d-flex justify-content-between small text-muted mb-2">
+              <span>Custo do insumo (qtd × valor/dose)</span>
+              <span id="saida-custo-base" class="fw-semibold">R$ 0,00</span>
+            </div>
+            <div class="mb-2">
+              <label class="form-label mb-1" style="font-size:11px;">
+                Custos extras
+              </label>
+              <input type="number" class="form-control form-control-sm"
+                     id="saida-custo-extra" placeholder="0,00"
+                     step="0.01" min="0" value="0"
+                     oninput="calcularCustoSaida()">
+            </div>
+            <div style="border-top:1px solid #c3e0cc;margin:8px 0;"></div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold" style="color:var(--verde-accent);">Total</span>
+              <span id="saida-custo-total"
+                    style="font-family:'DM Serif Display',Georgia,serif;
+                           font-size:20px;color:var(--verde-vivo);">
+                R$ 0,00
+              </span>
+            </div>
+            <input type="hidden" name="custo_operacao" id="saida-custo-operacao" value="0">
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label">
+              Descrição
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <textarea class="form-control" name="descricao" rows="2"
+                      placeholder="Detalhes da operação..."></textarea>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-sw-close="modal-saida-insumo-agricola">Cancelar</button>
+        <button type="submit" form="form-saida-insumo-agricola"
+                class="btn btn-danger d-flex align-items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <polyline points="19 12 12 19 5 12"/>
+          </svg>
+          Registrar saída
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: Decisão Entrada Silo ══ -->
+<div class="modal fade sw-modal" id="modal-decisao-entrada-silo"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Entrada no Silo</h5>
+          <p class="modal-subtitle mb-0">Qual tipo de entrada deseja registrar?</p>
+        </div>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-decisao-entrada-silo"></button>
+      </div>
+      <div class="modal-body pb-4">
+        <div class="row g-3">
+          <div class="col-6">
+            <button class="decisao-card azul"
+                    onclick="abrirEntradaSimplesSilo()">
+              <div class="decisao-icon azul">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0
+                       11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Entrada Simples</div>
+              <div class="decisao-desc">Adiciona quantidade<br>ao silo existente</div>
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="decisao-card"
+                    onclick="abrirModalColheita()">
+              <div class="decisao-icon verde">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                  <path fill-rule="evenodd"
+                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012
+                       2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1
+                       1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0
+                       100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                    clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Entrada de Colheita</div>
+              <div class="decisao-desc">Registra operação<br>e atualiza silo</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: Colheita ══ -->
+<div class="modal fade sw-modal" id="modal-colheita"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Colheita</h5>
+          <p class="modal-subtitle mb-0">
+            Operação lançada como <strong style="color:var(--verde-claro);">COLHEITA</strong>
+            — silo atualizado automaticamente.
+          </p>
+        </div>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-colheita"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-colheita" method="POST"
+              action="index.php?page=store_colheita">
+
+          <input type="hidden" name="tipo_operacao" value="COLHEITA">
+          <input type="hidden" name="insumo_id"     value="">
+          <input type="hidden" name="quantidade_insumo" value="0">
+          <input type="hidden" name="talhao_id"     id="colheita-talhao-id">
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Safra colhida</label>
+              <select class="form-select" name="safra_id" id="colheita-safra"
+                      required onchange="filtrarSilosPorCultura()">
+                <option value="">Selecione a safra...</option>
+                <?php foreach ($safras ?? [] as $s): ?>
+                  <option value="<?= (int)$s['id'] ?>"
+                          data-cultura="<?= htmlspecialchars(mb_strtolower($s['cultura'] ?? '')) ?>"
+                          data-talhao-id="<?= (int)($s['talhao_id'] ?? 0) ?>">
+                    <?= htmlspecialchars($s['cultura']) ?>
+                    — <?= htmlspecialchars($s['nome_talhao']) ?>
+                    (<?= date('d/m/Y', strtotime($s['data_inicio'])) ?>)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Data da colheita</label>
+              <input type="date" class="form-control" name="data_operacao"
+                     value="<?= date('Y-m-d') ?>" required>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label">Silo de destino</label>
+              <select class="form-select" name="silo_id" id="colheita-silo"
+                      required onchange="atualizarCapacidadeSilo()">
+                <option value="">Selecione a safra primeiro...</option>
+                <?php foreach ($todosSilos ?? [] as $silo): ?>
+                  <option value="<?= (int)$silo['id'] ?>"
+                          data-cultura="<?= htmlspecialchars(mb_strtolower($silo['cultura'] ?? '')) ?>"
+                          data-capacidade="<?= (float)($silo['capacidade_kg'] ?? 0) ?>"
+                          data-atual="<?= (float)($silo['quantidade_kg'] ?? 0) ?>"
+                          style="display:none;">
+                    <?= htmlspecialchars($silo['nome'] ?: 'Silo ' . $silo['id']) ?>
+                    — <?= htmlspecialchars($silo['propriedade'] ?? '') ?>
+                    (<?= number_format((float)($silo['quantidade_kg'] ?? 0), 0, ',', '.') ?>
+                    / <?= number_format((float)($silo['capacidade_kg'] ?? 0), 0, ',', '.') ?> kg)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Quantidade colhida (kg)</label>
+              <input type="number" class="form-control" name="quantidade_colhida"
+                     id="colheita-quantidade" placeholder="0"
+                     step="0.001" min="0.001" required
+                     oninput="validarCapacidadeSilo()">
+            </div>
+          </div>
+
+          <!-- Capacidade do silo -->
+          <div class="mb-3" id="colheita-capacidade-wrap" style="display:none;">
+            <div class="p-3"
+                 style="background:#f5f9f6;border:1px solid #c3e0cc;border-radius:12px;">
+              <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Capacidade total</span>
+                <span id="col-cap-total" class="fw-semibold">— kg</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mb-2">
+                <span>Já armazenado</span>
+                <span id="col-cap-atual" class="fw-semibold">— kg</span>
+              </div>
+              <div class="ocupacao-bar-bg">
+                <div class="ocupacao-bar-fill baixo" id="col-cap-barra"
+                     style="width:0%"></div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="small fw-semibold" style="color:var(--verde-accent);">
+                  Disponível
+                </span>
+                <span id="col-cap-disponivel"
+                      style="font-family:'DM Serif Display',Georgia,serif;
+                             font-size:18px;color:var(--verde-vivo);">— kg</span>
+              </div>
+              <div id="col-cap-aviso" class="mt-2 small text-danger fw-semibold"
+                   style="display:none;">
+                ⚠ Quantidade excede a capacidade disponível do silo.
+              </div>
+            </div>
+          </div>
+
+          <!-- Peão -->
+          <div class="mb-3">
+            <label class="form-label">
+              Peão responsável
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <select class="form-select" name="peao_id">
+              <option value="">Sem responsável</option>
+              <?php foreach ($peoes ?? [] as $p): ?>
+                <option value="<?= (int)$p['id'] ?>">
+                  <?= htmlspecialchars($p['nome']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Custos -->
+          <div class="mb-3">
+            <label class="form-label">
+              Custos da operação (R$)
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <input type="number" class="form-control" name="custo_operacao"
+                   placeholder="0,00" step="0.01" min="0" value="0">
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label">
+              Descrição
+              <span class="fw-normal text-muted ms-1" style="font-size:11px;">(opcional)</span>
+            </label>
+            <textarea class="form-control" name="descricao" rows="2"
+                      placeholder="Detalhes da colheita..."></textarea>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-sw-close="modal-colheita">Cancelar</button>
+        <button type="submit" form="form-colheita"
+                id="btn-confirmar-colheita"
+                class="btn btn-success d-flex align-items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Registrar colheita e atualizar silo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
 <script src="../../public/js/paginacao_tabelas.js"></script>
 
 <script>
+
+function closeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 320);
+}
+
+
+
 // ── Toast ──────────────────────────────────────────────────────
 document.querySelectorAll('.toast').forEach(t => {
   const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;
@@ -1806,6 +2194,128 @@ document.getElementById('modal-venda-cereal')
     document.getElementById(id).querySelector('form')?.reset();
     const dose = document.getElementById('dose-calculada');
     if (dose) { dose.textContent = '—'; dose.style.color = 'var(--texto-suave)'; }
+  });
+});
+
+
+// ── Saída de insumos: preenche talhao_id ao selecionar safra ─
+function preencherTalhaoSaida(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('saida-talhao-id').value =
+    opt?.dataset.talhaoId || '';
+}
+
+// ── Cálculo custo saída de insumos ────────────────────────────
+function calcularCustoSaida() {
+  const sel       = document.getElementById('saida-insumo');
+  const opt       = sel.options[sel.selectedIndex];
+  const valorDose = parseFloat(opt?.dataset.valorDose) || 0;
+  const unidade   = opt?.dataset.unidade || 'un';
+  const qtd       = parseFloat(document.getElementById('saida-quantidade').value) || 0;
+  const extra     = parseFloat(document.getElementById('saida-custo-extra').value) || 0;
+
+  const el = document.getElementById('saida-unidade-label');
+  if (el) el.textContent = unidade ? `(${unidade})` : '';
+
+  const base  = qtd * valorDose;
+  const total = base + extra;
+
+  document.getElementById('saida-custo-base').textContent  = fmtBRL(base);
+  document.getElementById('saida-custo-total').textContent = fmtBRL(total);
+  document.getElementById('saida-custo-operacao').value    = total.toFixed(2);
+}
+
+// ── Decisão entrada silo ──────────────────────────────────────
+function abrirEntradaSimplesSilo() {
+  ModalManager.close('modal-decisao-entrada-silo');
+  setTimeout(() => ModalManager.open('modal-entrada-simples'), 300);
+}
+
+function abrirModalColheita() {
+  ModalManager.close('modal-decisao-entrada-silo');
+  setTimeout(() => ModalManager.open('modal-colheita'), 300);
+}
+
+// ── Colheita: filtra silos pela cultura da safra ──────────────
+function filtrarSilosPorCultura() {
+  const sel     = document.getElementById('colheita-safra');
+  const opt     = sel.options[sel.selectedIndex];
+  const cultura = opt?.dataset.cultura || '';
+  const talhaoId = opt?.dataset.talhaoId || '';
+
+  document.getElementById('colheita-talhao-id').value = talhaoId;
+
+  const siloSel = document.getElementById('colheita-silo');
+  let encontrou = false;
+
+  Array.from(siloSel.options).forEach(o => {
+    if (!o.value) return; // placeholder
+    const mostrar = !cultura || o.dataset.cultura === cultura;
+    o.style.display = mostrar ? '' : 'none';
+    if (mostrar && !encontrou) {
+      o.selected = true;
+      encontrou  = true;
+    }
+  });
+
+  if (!encontrou) siloSel.selectedIndex = 0;
+
+  atualizarCapacidadeSilo();
+}
+
+// ── Colheita: mostra barra de capacidade do silo selecionado ──
+function atualizarCapacidadeSilo() {
+  const sel = document.getElementById('colheita-silo');
+  const opt = sel.options[sel.selectedIndex];
+
+  if (!opt?.value) {
+    document.getElementById('colheita-capacidade-wrap').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('colheita-capacidade-wrap').style.display = '';
+  validarCapacidadeSilo();
+}
+
+function validarCapacidadeSilo() {
+  const sel        = document.getElementById('colheita-silo');
+  const opt        = sel.options[sel.selectedIndex];
+  const capacidade = parseFloat(opt?.dataset.capacidade) || 0;
+  const atual      = parseFloat(opt?.dataset.atual)      || 0;
+  const nova       = parseFloat(document.getElementById('colheita-quantidade').value) || 0;
+
+  const disponivel = capacidade - atual;
+  const pct        = capacidade > 0 ? Math.min(((atual + nova) / capacidade) * 100, 100) : 0;
+  const excede     = (atual + nova) > capacidade;
+
+  const fmt0 = v => Number(v).toLocaleString('pt-BR',
+    {minimumFractionDigits:0, maximumFractionDigits:0}) + ' kg';
+
+  document.getElementById('col-cap-total').textContent     = fmt0(capacidade);
+  document.getElementById('col-cap-atual').textContent     = fmt0(atual);
+  document.getElementById('col-cap-disponivel').textContent = fmt0(Math.max(0, disponivel));
+
+  const barra = document.getElementById('col-cap-barra');
+  barra.style.width = pct + '%';
+  barra.className   = 'ocupacao-bar-fill ' +
+    (pct >= 85 ? 'alto' : pct >= 50 ? 'medio' : 'baixo');
+
+  const aviso = document.getElementById('col-cap-aviso');
+  aviso.style.display = excede ? '' : 'none';
+
+  document.getElementById('btn-confirmar-colheita').disabled = excede;
+}
+
+// Limpa modais ao fechar
+['modal-saida-insumo-agricola', 'modal-colheita'].forEach(id => {
+  document.getElementById(id)?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById(id)?.querySelector('form')?.reset();
+    document.getElementById('colheita-capacidade-wrap')?.style
+      .setProperty('display', 'none');
+    document.getElementById('saida-custo-base')
+      && (document.getElementById('saida-custo-base').textContent = 'R$ 0,00');
+    document.getElementById('saida-custo-total')
+      && (document.getElementById('saida-custo-total').textContent = 'R$ 0,00');
   });
 });
 

@@ -87,8 +87,12 @@ switch ($page) {
         }
 
         $operacoes    = (new OperacoesFinanceirasController())->getBySafra($id);
+
         $totalGastos  = array_sum(array_column(
-            array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'COMPRA DE INSUMOS'),
+            array_filter($operacoes, fn($o) =>
+                $o['tipo_operacao'] === 'COMPRA DE INSUMOS' ||
+                $o['operacao']      === 'Operação Agrícola'
+            ),
             'valor_operacao'
         ));
         $totalInsumos = array_sum(array_column(
@@ -105,6 +109,12 @@ switch ($page) {
         $propriedades = (new PropriedadeController())->getAll();          
 
         require '../app/views/safra_detalhe.php';
+        break;
+
+    case 'encerrar_safra':
+        requireAuth();
+        require_once '../app/controllers/SafraController.php';
+        (new SafraController())->encerrar();
         break;
 
     case 'store_op_agricola':
@@ -226,19 +236,30 @@ switch ($page) {
         require_once '../app/controllers/PropriedadeController.php';
         require_once '../app/controllers/InsumoController.php';
         require_once '../app/controllers/OperacoesFinanceirasController.php';
-    
-        $estoqueInsumos = (new EstoqueInsumosController())->getAll();
-        $estoquesSilos  = (new SiloController())->getAll();
-        $produtos       = (new ProdutoController())->getAllnotCereal();
-        $cereais = (new ProdutoController())->getAllByTipo('CEREAL');
-        $safras         = (new SafraController())->getAtivas(); 
-        $propriedades   = (new PropriedadeController())->getAll();
-        $insumos        = (new InsumoController())->getAllComProduto(); // ver abaixo
+        require_once '../app/controllers/PeaoController.php';
+
+        $estoqueInsumos       = (new EstoqueInsumosController())->getAll();
+        $estoquesSilos        = (new SiloController())->getAll();
+        $produtos             = (new ProdutoController())->getAllNotCereal();
+        $cereais              = (new ProdutoController())->getAllByTipo('CEREAL');
+        $safras               = (new SafraController())->getAtivas();
+        $propriedades         = (new PropriedadeController())->getAll();
+        $insumos              = (new InsumoController())->getAllComProduto();
+        $insumosAgricolas     = (new InsumoController())->getAllNotCereal(); // ← faltava
         $movimentacoesInsumos = (new OperacoesFinanceirasController())->getMovimentacoesEstoqueInsumos();
-        $movimentacoesSilos = (new OperacoesFinanceirasController())->getMovimentacoesSilos();
+        $movimentacoesSilos   = (new OperacoesFinanceirasController())->getMovimentacoesSilos();
+        $peoes                = (new PeaoController())->getAll();
+        $todosSilos           = (new SiloController())->getAllSilos();
+
         require '../app/views/estoques.php';
         break;
-    
+
+    case 'store_colheita':
+        requireAuth();
+        require_once '../app/controllers/OperacoesAgricolasController.php';
+        (new OperacoesAgricolasController())->storeColheita();
+        break;
+
     case 'store_compra_insumo':
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->storeCompraInsumo();

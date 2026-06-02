@@ -1,4 +1,7 @@
 <?php
+
+date_default_timezone_set('America/Sao_Paulo');
+
 function carregarEnv($arquivo) {
     $linhas = file($arquivo, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 

@@ -2,21 +2,6 @@
 $user  = $_SESSION['user'];
 $tipo  = $_SESSION['tipo'];
 
-$iniciais = strtoupper(substr($user['nome'], 0, 1));
-if (str_contains($user['nome'], ' ')) {
-    $partes   = explode(' ', $user['nome']);
-    $iniciais = strtoupper($partes[0][0] . end($partes)[0]);
-}
-
-$saudacao = (function () {
-    $h = (int) date('H');
-    return match (true) {
-        $h < 12 => 'Bom dia',
-        $h < 18 => 'Boa tarde',
-        default => 'Boa noite',
-    };
-})();
-
 $pagina_atual = 'insumos';
 
 $toast = null;

@@ -68,7 +68,6 @@ const ModalManager = (() => {
     el.addEventListener("hidden.bs.modal", () => {
       onClose?.(el);
 
-      // Reseta o(s) form(s) dentro do modal se o atributo estiver presente
       if (el.hasAttribute("data-sw-reset-on-close")) {
         el.querySelectorAll("form").forEach((f) => f.reset());
       }

@@ -1,7 +1,7 @@
 /* ─── SafraWise — Camada customizada sobre Bootstrap 5 ─── */
 /* Bootstrap cuida do reset, tipografia base, grid, form, table, btn, card.  */
 /* Este arquivo só define tokens de marca + componentes que o Bootstrap não cobre. */
-
+/*safrawise.css - Estilos globais e componentes customizados do SafraWise */
 @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap");
 
 /* ══════════════════════════════════════

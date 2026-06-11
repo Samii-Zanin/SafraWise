@@ -1,8 +1,8 @@
 <?php
+require_once '../app/helpers/ui.php';
 // (Mesma lógica de iniciais e saudação das outras páginas)
 $pagina_atual = 'talhoes';
-$toast = $_SESSION['toast'] ?? null;
-unset($_SESSION['toast']);
+$toast = flashToast();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -19,9 +19,7 @@ unset($_SESSION['toast']);
 </head>
 <body>
 
-<?php if ($toast): ?>
-    <!-- Reutilize o HTML do seu Toast aqui -->
-<?php endif; ?>
+<?php include 'layouts/toast.php'; ?>
 
 <div class="app-layout">
   <?php include 'layouts/sidebar.php'; ?>
@@ -121,16 +119,9 @@ unset($_SESSION['toast']);
 </div>
 
 <script src="../../public/js/modalManager.js"></script>
+<script src="../../public/js/toast.js"></script>
 <script>
-function closeToast(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add('hide');
-  setTimeout(() => el.remove(), 320);
-}
-
 function abrirEditarTalhao(id, nome, area, propId) {
-    // Preencha os campos edit-...
     ModalManager.open('modal-editar-talhao');
 }
 </script>

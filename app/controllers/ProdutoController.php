@@ -93,6 +93,7 @@ class ProdutoController extends BaseController
             $this->setToast('success', 'Produto Cadastrado!', "{$dados['nome']} foi adicionado ao catálogo.");
             $this->redirect('produtos_culturas');
 
+            
         } catch (\Exception $e) {
             error_log($e->getMessage());
             $this->setToast('error', 'Erro interno', 'Não foi possível salvar o produto. Tente novamente.'. $e->getMessage());

@@ -1,5 +1,9 @@
 <?php
 session_start();
+
+/* ============================================================
+ |  CONTROLLERS (carregados globalmente)
+ * ============================================================ */
 require_once "../app/controllers/AuthController.php";
 require_once "../app/controllers/ProprietarioController.php";
 require_once "../app/controllers/PeaoController.php";
@@ -16,6 +20,10 @@ require_once "../app/controllers/RelatoriosController.php";
 require_once "../app/controllers/ClimaController.php";
 
 $page = $_GET['page'] ?? 'login';
+
+/* ============================================================
+ |  HELPERS
+ * ============================================================ */
 
 // Carrega uma view com segurança — se o arquivo não existir, mostra 404
 function loadView(string $view): void {
@@ -36,7 +44,14 @@ function requireAuth(): void {
     }
 }
 
+/* ============================================================
+ |  ROTEADOR
+ * ============================================================ */
 switch ($page) {
+
+    /* ========================================================
+     |  AUTENTICAÇÃO & SESSÃO
+     * ======================================================== */
     case 'login':
         loadView('login');
         break;
@@ -46,11 +61,33 @@ switch ($page) {
         $auth->login();
         break;
 
+    case 'logout':
+        session_destroy();
+        header("Location: index.php?page=login");
+        exit;
+
+    case 'cadastro_proprietario':
+        loadView('create_prop');
+        break;
+
+    case 'store_proprietario':
+        $propController = new ProprietarioController();
+        $propController->save();
+        break;
+
+
+    /* ========================================================
+     |  DASHBOARD
+     * ======================================================== */
     case 'dashboard':
         requireAuth();
         (new DashboardController())->index();
         break;
 
+
+    /* ========================================================
+     |  SAFRAS & OPERAÇÕES AGRÍCOLAS
+     * ======================================================== */
     case 'safras':
         requireAuth();
         require_once '../app/controllers/SafraController.php';
@@ -63,7 +100,7 @@ switch ($page) {
 
         require '../app/views/safras.php';
         break;
-        
+
     case 'safra_detalhe':
         requireAuth();
         require_once '../app/controllers/SafraController.php';
@@ -111,6 +148,12 @@ switch ($page) {
         require '../app/views/safra_detalhe.php';
         break;
 
+    case 'store_safra':
+        requireAuth();
+        require_once '../app/controllers/SafraController.php';
+        (new SafraController())->store();
+        break;
+
     case 'encerrar_safra':
         requireAuth();
         require_once '../app/controllers/SafraController.php';
@@ -123,18 +166,55 @@ switch ($page) {
         (new OperacoesAgricolasController())->save();
         break;
 
-    case 'store_safra':
+    case 'store_colheita':
         requireAuth();
-        require_once '../app/controllers/SafraController.php';
-        (new SafraController())->store();
+        require_once '../app/controllers/OperacoesAgricolasController.php';
+        (new OperacoesAgricolasController())->storeColheita();
         break;
 
+    case 'entrada_silo_cereal':
+        require_once '../app/controllers/OperacoesAgricolasController.php';
+        (new OperacoesAgricolasController())->save();
+        break;
+
+
+    /* ========================================================
+     |  EQUIPE / PEÕES
+     * ======================================================== */
     case 'equipe':
         requireAuth(); 
         $peaoController = new PeaoController();
         $peaoController->index(); 
         break;
-    
+
+    case 'store_peao':
+        requireAuth(); 
+        $peaoController = new PeaoController();
+        $peaoController->save();
+        break;
+
+    case 'edit_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->edit();
+        break;
+
+    case 'update_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->update();
+        break;
+
+    case 'delete_peao':
+        requireAuth();
+        $controller = new PeaoController();
+        $controller->delete();
+        break;
+
+
+    /* ========================================================
+     |  TALHÕES
+     * ======================================================== */
     case 'talhoes':
         requireAuth();
         (new TalhaoController())->index();
@@ -155,11 +235,39 @@ switch ($page) {
         (new TalhaoController())->delete();
         break;
 
+
+    /* ========================================================
+     |  PROPRIEDADES
+     * ======================================================== */
+    case 'propriedades':
+        requireAuth();
+        (new PropriedadeController())->index();
+        break;
+
     case 'detalhes_propriedade': 
         requireAuth(); 
         (new PropriedadeController())->detalhes(); 
         break;
-        
+
+    case 'store_propriedade':
+        requireAuth();
+        (new PropriedadeController())->store();
+        break;
+
+    case 'update_propriedade':
+        requireAuth();
+        (new PropriedadeController())->update();
+        break;
+
+    case 'delete_propriedade':
+        requireAuth();
+        (new PropriedadeController())->delete();
+        break;
+
+
+    /* ========================================================
+     |  PRODUTOS & CULTURAS
+     * ======================================================== */
     case 'produtos_culturas':
         requireAuth();
         $culturas = (new CulturaController())->getAll();
@@ -167,6 +275,42 @@ switch ($page) {
         require_once "../app/views/produtos_culturas.php"; // ← no escopo global, vê as variáveis
         break;
 
+    case 'store_cultura':
+        requireAuth();
+        $culturaController = new CulturaController();
+        $culturaController->save();
+        break;
+
+    case 'update_cultura':
+        requireAuth();
+        (new CulturaController())->update();
+        break;
+
+    case 'delete_cultura':
+        requireAuth();
+        (new CulturaController())->delete();
+        break;
+
+    case 'store_produto':
+        requireAuth();
+        $produtoController = new ProdutoController();
+        $produtoController->save();
+        break;
+
+    case 'update_produto':
+        requireAuth();
+        (new ProdutoController())->update();
+        break;
+
+    case 'delete_produto':
+        requireAuth();
+        (new ProdutoController())->delete();
+        break;
+
+
+    /* ========================================================
+     |  INSUMOS
+     * ======================================================== */
     case 'insumos':
         requireAuth();
         $insumoController = new InsumoController();
@@ -177,32 +321,6 @@ switch ($page) {
         requireAuth();
         $insumoController = new InsumoController();
         $insumoController->save();
-        break;
-    case 'store_cultura':
-        requireAuth();
-        $culturaController = new CulturaController();
-        $culturaController->save();
-        break;
-    case 'update_cultura':
-        requireAuth();
-        (new CulturaController())->update();
-        break;
-    case 'delete_cultura':
-        requireAuth();
-        (new CulturaController())->delete();
-        break;
-    case 'store_produto':
-        requireAuth();
-        $produtoController = new ProdutoController();
-        $produtoController->save();
-        break;
-    case 'update_produto':
-        requireAuth();
-        (new ProdutoController())->update();
-        break;
-    case 'delete_produto':
-        requireAuth();
-        (new ProdutoController())->delete();
         break;
 
     case 'update_insumo':
@@ -217,16 +335,10 @@ switch ($page) {
         $insumoController->delete();
         break;
 
-    case 'logout':
-        session_destroy();
-        header("Location: index.php?page=login");
-        exit;
 
-    case 'cadastro_proprietario':
-        
-        loadView('create_prop');
-        break;
-
+    /* ========================================================
+     |  ESTOQUES & MOVIMENTAÇÕES FINANCEIRAS
+     * ======================================================== */
     case 'estoques':
         requireAuth();
         require_once '../app/controllers/EstoqueInsumosController.php';
@@ -254,17 +366,11 @@ switch ($page) {
         require '../app/views/estoques.php';
         break;
 
-    case 'store_colheita':
-        requireAuth();
-        require_once '../app/controllers/OperacoesAgricolasController.php';
-        (new OperacoesAgricolasController())->storeColheita();
-        break;
-
     case 'store_compra_insumo':
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->storeCompraInsumo();
         break;
-    
+
     case 'store_entrada_insumo':
         require_once '../app/controllers/EstoqueInsumosController.php';
         (new EstoqueInsumosController())->storeEntrada();
@@ -274,17 +380,16 @@ switch ($page) {
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->VendaCereal();
         break;
+
     case 'saida_simples_cereal':
         require_once '../app/controllers/OperacoesFinanceirasController.php';
         (new OperacoesFinanceirasController())->registrarSaidaSimplesCereal();
         break;
 
-    case 'entrada_silo_cereal':
-        require_once '../app/controllers/OperacoesAgricolasController.php';
-        (new OperacoesAgricolasController())->save();
-        break;
 
-
+    /* ========================================================
+     |  SILOS
+     * ======================================================== */
     case 'silos':
         require_once '../app/controllers/siloController.php';
         (new SiloController())->index();
@@ -305,11 +410,10 @@ switch ($page) {
         (new SiloController())->delete();
         break;
 
-    case 'store_proprietario':
-        $propController = new ProprietarioController();
-        $propController->save();
-        break;
 
+    /* ========================================================
+     |  RELATÓRIOS
+     * ======================================================== */
     case 'relatorios':
         requireAuth();
         (new RelatoriosController())->index();
@@ -320,6 +424,10 @@ switch ($page) {
         (new RelatoriosController())->export();
         break;
 
+
+    /* ========================================================
+     |  CLIMA
+     * ======================================================== */
     case 'clima':
         requireAuth();
         (new ClimaController())->index();
@@ -330,6 +438,10 @@ switch ($page) {
         (new ClimaController())->weather();
         break;
 
+
+    /* ========================================================
+     |  CONFIGURAÇÕES / PERFIL
+     * ======================================================== */
     case 'configuracoes':
         requireAuth();
         (new ProprietarioController())->configuracoes();
@@ -340,50 +452,10 @@ switch ($page) {
         (new ProprietarioController())->update();
         break;
 
-    case 'store_peao':
-        requireAuth(); 
-        $peaoController = new PeaoController();
-        $peaoController->save();
-        break;
-    
-    case 'edit_peao':
-    requireAuth();
-    $controller = new PeaoController();
-    $controller->edit();
-    break;
 
-    case 'update_peao':
-        requireAuth();
-        $controller = new PeaoController();
-        $controller->update();
-        break;
-
-    case 'delete_peao':
-        requireAuth();
-        $controller = new PeaoController();
-        $controller->delete();
-        break;
-    
-    case 'propriedades':
-        requireAuth();
-        (new PropriedadeController())->index();
-        break;
-
-    case 'store_propriedade':
-        requireAuth();
-        (new PropriedadeController())->store();
-        break;
-
-    case 'update_propriedade':
-        requireAuth();
-        (new PropriedadeController())->update();
-        break;
-
-    case 'delete_propriedade':
-        requireAuth();
-        (new PropriedadeController())->delete();
-        break;
-
+    /* ========================================================
+     |  FALLBACK (404)
+     * ======================================================== */
     default:
         http_response_code(404);
         require_once "../app/views/notfound.php";

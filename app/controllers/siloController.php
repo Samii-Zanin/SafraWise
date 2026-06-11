@@ -83,7 +83,7 @@ class SiloController extends BaseController
         require_once __DIR__ . '/PropriedadeController.php';
 
         $silos        = $this->getAllSilos();
-        $culturas     = (new CulturaController())->getDistintas();
+        $culturas     = (new CulturaController())->getNomeDistintas();
         $propriedades = (new PropriedadeController())->getAll();
 
         require_once __DIR__ . '/../views/silos.php';

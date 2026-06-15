@@ -110,10 +110,12 @@ switch ($page) {
         require_once '../app/controllers/InsumoController.php';
         require_once '../app/controllers/TalhaoController.php';
         require_once '../app/controllers/PeaoController.php'; 
+        require_once '../app/controllers/SiloController.php'; 
 
         $insumosAgricolas = (new InsumoController())->getAllNotCereal();
         $talhoes          = (new TalhaoController())->getAll();
         $peoes            = (new PeaoController())->getAll();
+        $todosSilos           = (new SiloController())->getAllSilos();
 
         $id    = (int) ($_GET['id'] ?? 0);
         $safra = (new SafraController())->getById($id);

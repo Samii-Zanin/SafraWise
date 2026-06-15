@@ -18,21 +18,6 @@
 $user  = $_SESSION['user'];
 $tipo  = $_SESSION['tipo'];
 
-$iniciais = strtoupper(substr($user['nome'], 0, 1));
-if (str_contains($user['nome'], ' ')) {
-    $partes   = explode(' ', $user['nome']);
-    $iniciais = strtoupper($partes[0][0] . end($partes)[0]);
-}
-
-$saudacao = (function () {
-    $h = (int) date('H');
-    return match (true) {
-        $h < 12 => 'Bom dia',
-        $h < 18 => 'Boa tarde',
-        default => 'Boa noite',
-    };
-})();
-
 $pagina_atual = 'safras';
 
 $toast = null;
@@ -513,7 +498,7 @@ function tipoOperacaoVisual(string $tipo): array {
             </button>
             <button type="button"
                     class="btn-acao outline bg-light"
-                    data-sw-open="modal-nova-op-agricola">
+                    data-sw-open="modal-decisao-op-agricola">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2.5"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -662,6 +647,12 @@ function tipoOperacaoVisual(string $tipo): array {
                   </div>
                 <?php endif; ?>
 
+                <?php if (!empty($op['nome_peao'])): ?>
+                  <div class="timeline-desc" style="font-size:13px;">
+                    Peão:  <?= htmlspecialchars($op['nome_peao']) ?>
+                  </div>
+                <?php endif; ?>
+
                 <!-- Descrição (se diferente do produto) -->
                 <?php if (!empty($op['descricao'])): ?>
                   <div class="small text-muted mb-2"
@@ -804,6 +795,249 @@ function tipoOperacaoVisual(string $tipo): array {
   </div>
 </div>
 
+<!-- ════════════════════════════════════
+     MODAL: Decisão Operação Agrícola
+════════════════════════════════════ -->
+<div class="modal fade sw-modal" id="modal-decisao-op-agricola"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Nova Operação Agrícola</h5>
+          <p class="modal-subtitle mb-0">Qual tipo de operação deseja registrar?</p>
+        </div>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-decisao-op-agricola"></button>
+      </div>
+      <div class="modal-body pb-4">
+        <div class="row g-3">
+          <div class="col-6">
+            <button class="decisao-card"
+                    onclick="abrirModalAndamentoSafra()">
+              <div class="decisao-icon verde">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+                  <path d="M12 8v4l3 3"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Andamento de Safra</div>
+              <div class="decisao-desc">
+                Plantio, Adubação,<br>Pulverização, Irrigação...
+              </div>
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="decisao-card azul"
+                    onclick="abrirModalColheitaSafra()">
+              <div class="decisao-icon azul">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 17l4-8 4 4 4-6 4 10"/>
+                  <path d="M3 21h18"/>
+                </svg>
+              </div>
+              <div class="decisao-titulo">Fim de Safra</div>
+              <div class="decisao-desc">
+                Colheita — registra e<br>atualiza o silo
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     MODAL: Colheita
+════════════════════════════════════ -->
+<div class="modal fade sw-modal" id="modal-colheita-detalhe"
+     tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Registrar Colheita</h5>
+          <p class="modal-subtitle mb-0">
+            Operação lançada como
+            <strong style="color:var(--verde-claro);">COLHEITA</strong>
+            — silo atualizado automaticamente.
+          </p>
+        </div>
+        <button type="button" class="btn-close"
+                data-sw-close="modal-colheita-detalhe"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-colheita-detalhe" method="POST"
+              action="index.php?page=store_colheita">
+
+          <input type="hidden" name="tipo_operacao" value="COLHEITA">
+          <input type="hidden" name="safra_id"
+                 value="<?= (int)($safra['id'] ?? 0) ?>">
+          <input type="hidden" name="talhao_id"
+                 value="<?= (int)($safra['talhao_id'] ?? 0) ?>">
+          <input type="hidden" name="insumo_id" value="">
+          <input type="hidden" name="quantidade_insumo" value="0">
+
+          <!-- Safra pré-preenchida (só leitura) -->
+          <div class="mb-3 d-flex align-items-center gap-2"
+               style="background:#f5f9f6;border:1px solid #c3e0cc;
+                      border-radius:10px;padding:10px 14px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="var(--verde-vivo)" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+              <path d="M12 8v4l3 3"/>
+            </svg>
+            <span class="small" style="color:var(--verde-accent);">
+              Safra: <strong><?= htmlspecialchars($cultura) ?></strong>
+              <?php if (!empty($safra['nome_talhao'])): ?>
+                — Talhão <strong><?= htmlspecialchars($safra['nome_talhao']) ?></strong>
+              <?php endif; ?>
+            </span>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Data da colheita</label>
+              <input type="date" class="form-control" name="data_operacao"
+                     value="<?= date('Y-m-d') ?>" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Quantidade colhida (kg)</label>
+              <input type="number" class="form-control"
+                     name="quantidade_colhida"
+                     id="cd-quantidade" placeholder="0"
+                     step="0.001" min="0.001" required
+                     oninput="validarCapacidadeSiloDetalhe()">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Silo de destino</label>
+            <select class="form-select" name="silo_id" id="cd-silo"
+                    required onchange="atualizarCapacidadeSiloDetalhe()">
+              <option value="">Selecione o silo...</option>
+              <?php foreach ($todosSilos ?? [] as $silo): ?>
+                <option value="<?= (int)$silo['id'] ?>"
+                        data-cultura="<?= htmlspecialchars(mb_strtolower($silo['cultura'] ?? '')) ?>"
+                        data-capacidade="<?= (float)($silo['capacidade_kg'] ?? 0) ?>"
+                        data-atual="<?= (float)($silo['quantidade_kg'] ?? 0) ?>">
+                  <?= htmlspecialchars($silo['nome'] ?: 'Silo ' . $silo['id']) ?>
+                  — <?= htmlspecialchars($silo['propriedade'] ?? '') ?>
+                  (<?= number_format((float)($silo['quantidade_kg'] ?? 0), 0, ',', '.') ?>
+                  / <?= number_format((float)($silo['capacidade_kg'] ?? 0), 0, ',', '.') ?> kg)
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Barra de capacidade do silo -->
+          <div class="mb-3" id="cd-capacidade-wrap" style="display:none;">
+            <div class="p-3"
+                 style="background:#f5f9f6;border:1px solid #c3e0cc;border-radius:12px;">
+              <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Capacidade total</span>
+                <span id="cd-cap-total" class="fw-semibold">— kg</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mb-2">
+                <span>Já armazenado</span>
+                <span id="cd-cap-atual" class="fw-semibold">— kg</span>
+              </div>
+              <div style="background:#e2ece5;border-radius:6px;height:8px;overflow:hidden;">
+                <div id="cd-cap-barra"
+                     style="height:100%;width:0%;background:var(--verde-vivo);
+                            border-radius:6px;transition:width .3s;"></div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="small fw-semibold" style="color:var(--verde-accent);">
+                  Disponível
+                </span>
+                <span id="cd-cap-disponivel"
+                      style="font-family:'DM Serif Display',Georgia,serif;
+                             font-size:18px;color:var(--verde-vivo);">— kg</span>
+              </div>
+              <div id="cd-cap-aviso" class="mt-2 small text-danger fw-semibold"
+                   style="display:none;">
+                ⚠ Quantidade excede a capacidade disponível do silo.
+              </div>
+            </div>
+          </div>
+
+          <!-- Peão -->
+          <div class="mb-3">
+            <label class="form-label">
+              Peão responsável
+              <span class="fw-normal text-muted ms-1"
+                    style="font-size:11px;">(opcional)</span>
+            </label>
+            <?php if ($tipo === 'peao'): ?>
+              <input type="hidden" name="peao_id" value="<?= (int)$user['id'] ?>">
+              <div class="d-flex align-items-center gap-2"
+                   style="background:#eff6ff;border:1px solid #bfdbfe;
+                          border-radius:10px;padding:10px 14px;">
+                <span class="small" style="color:#1d4ed8;">
+                  Atribuída a <strong><?= htmlspecialchars($user['nome']) ?></strong>
+                </span>
+              </div>
+            <?php else: ?>
+              <select class="form-select" name="peao_id">
+                <option value="">Sem responsável</option>
+                <?php foreach ($peoes ?? [] as $p): ?>
+                  <option value="<?= (int)$p['id'] ?>">
+                    <?= htmlspecialchars($p['nome']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            <?php endif; ?>
+          </div>
+
+          <!-- Custos -->
+          <div class="mb-3">
+            <label class="form-label">
+              Custos da operação (R$)
+              <span class="fw-normal text-muted ms-1"
+                    style="font-size:11px;">(opcional)</span>
+            </label>
+            <input type="number" class="form-control" name="custo_operacao"
+                   placeholder="0,00" step="0.01" min="0" value="0">
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label">
+              Descrição
+              <span class="fw-normal text-muted ms-1"
+                    style="font-size:11px;">(opcional)</span>
+            </label>
+            <textarea class="form-control" name="descricao" rows="2"
+                      placeholder="Detalhes da colheita..."></textarea>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel"
+                data-sw-close="modal-colheita-detalhe">Cancelar</button>
+        <button type="submit" form="form-colheita-detalhe"
+                id="btn-confirmar-colheita-detalhe"
+                class="btn btn-success d-flex align-items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Registrar colheita e atualizar silo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- ════════════════════════════════════
      MODAL: Nova Operação Agrícola
@@ -831,7 +1065,7 @@ function tipoOperacaoVisual(string $tipo): array {
 
           <input type="hidden" name="safra_id"
                  value="<?= (int)($safra['id'] ?? 0) ?>">
-          <input type="hidden" name="custos_operacao"
+          <input type="hidden" name="custo_operacao"
                  id="op-custo-operacao" value="0">
                     
           <input type="hidden" name="talhao_id"
@@ -846,7 +1080,6 @@ function tipoOperacaoVisual(string $tipo): array {
       <option value="PLANTIO">Plantio</option>
       <option value="PULVERIZAÇÃO">Pulverização</option>
       <option value="ADUBAÇÃO">Adubação</option>
-      <option value="COLHEITA">Colheita</option>
       <option value="IRRIGAÇÃO">Irrigação</option>
       <option value="CALAGEM">Calagem</option>
       <option value="OUTRO">Outro</option>
@@ -1345,7 +1578,34 @@ function closeToast(id) {
   setTimeout(() => el.remove(), 320);
 }
 
+// ── Decisão operação agrícola ─────────────────────────────────
+function abrirModalAndamentoSafra() {
+  ModalManager.close('modal-decisao-op-agricola');
+  setTimeout(() => ModalManager.open('modal-nova-op-agricola'), 300);
+}
 
+function abrirModalColheitaSafra() {
+  ModalManager.close('modal-decisao-op-agricola');
+  setTimeout(() => {
+    const culturaSafra = <?= json_encode(mb_strtolower($cultura)) ?>;
+    const sel = document.getElementById('cd-silo');
+    let visiveis = 0;
+
+    Array.from(sel.options).forEach(opt => {
+      if (!opt.value) return; 
+      const culturaSilo = opt.dataset.cultura || '';
+      const mostrar = culturaSilo === '' || culturaSilo === culturaSafra;
+      opt.style.display = mostrar ? '' : 'none';
+      if (mostrar) visiveis++;
+    });
+
+    sel.options[0].textContent = visiveis === 0
+      ? 'Nenhum silo compatível com ' + culturaSafra
+      : 'Selecione o silo...';
+
+    ModalManager.open('modal-colheita-detalhe');
+  }, 300);
+}
 
 document.querySelectorAll('.toast').forEach(t => {
   const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;

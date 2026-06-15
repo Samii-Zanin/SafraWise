@@ -603,8 +603,7 @@ ksort($propFiltro);
                 <option value="">Selecione a cultura...</option>
                 <?php foreach ($culturasModal ?? [] as $c): ?>
                   <option value="<?= (int)$c['id'] ?>">
-                    <?= htmlspecialchars($c['nome']) ?>
-                    <?= !empty($c['variedade']) ? '— ' . htmlspecialchars($c['variedade']) : '' ?>
+                    <?= htmlspecialchars($c['nome'] . ' - ' . $c['variedade']) ?>
                   </option>
                 <?php endforeach; ?>
               </select>

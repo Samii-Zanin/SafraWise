@@ -1,4 +1,6 @@
 <?php
+require_once '../app/helpers/ui.php';
+
 function owmIconeNome(int $id): string {
     if ($id >= 200 && $id < 300) return 'cloud-lightning';
     if ($id >= 300 && $id < 400) return 'cloud-drizzle';
@@ -78,7 +80,7 @@ function owmTema(int $id): array {
     ];
 }
 
-$toast = $toast ?? null;
+$toast = $toast ?? flashToast();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -136,22 +138,11 @@ $toast = $toast ?? null;
       color: var(--texto-suave, #6e8a71);
     }
     .empty-weather svg { opacity: .3; margin-bottom: 16px; }
-    .metric-icon svg { width: 20px !important; height: 20px !important; }
   </style>
 </head>
 <body>
 
-<?php if ($toast): ?>
-<div class="toast-container" id="toast-container">
-  <div class="toast <?= htmlspecialchars($toast['tipo']) ?>" id="toast-main" style="--toast-duration:5s">
-    <div class="toast-body">
-      <div class="toast-title"><?= htmlspecialchars($toast['titulo']) ?></div>
-      <div class="toast-msg"><?= htmlspecialchars($toast['mensagem']) ?></div>
-    </div>
-    <button class="toast-close" onclick="closeToast('toast-main')" type="button">&times;</button>
-  </div>
-</div>
-<?php endif; ?>
+<?php include 'layouts/toast.php'; ?>
 
 <div class="app-layout">
 
@@ -298,16 +289,9 @@ $toast = $toast ?? null;
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../public/js/toast.js"></script>
 <script>
 lucide.createIcons();
-function closeToast(id) {
-  const el = document.getElementById(id);
-  if (el) { el.classList.add('hide'); setTimeout(() => el.remove(), 320); }
-}
-document.querySelectorAll('.toast').forEach(t => {
-  const d = parseFloat(getComputedStyle(t).getPropertyValue('--toast-duration')) * 1000 || 5000;
-  setTimeout(() => closeToast(t.id), d);
-});
 </script>
 
 </body>

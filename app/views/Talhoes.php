@@ -15,8 +15,7 @@ $tipo = $_SESSION['tipo'];
 
 
 $pagina_atual = 'talhoes';
-$toast = $_SESSION['toast'] ?? null;
-unset($_SESSION['toast']);
+$toast = flashToast();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -243,6 +242,7 @@ unset($_SESSION['toast']);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
+<script src="../../public/js/toast.js"></script>
 <script>
 function toggleCusto(selectElement) {
     const form = selectElement.closest('form');

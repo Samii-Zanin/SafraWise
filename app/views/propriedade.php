@@ -1,14 +1,11 @@
 <?php
+require_once '../app/helpers/ui.php';
 $user = $_SESSION['user'];
 $tipo = $_SESSION['tipo'];
 
 $pagina_atual = 'propriedades';
 
-$toast = null;
-if (isset($_SESSION['toast'])) {
-    $toast = $_SESSION['toast'];
-    unset($_SESSION['toast']);
-}
+$toast = flashToast();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -23,7 +20,7 @@ if (isset($_SESSION['toast'])) {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../public/css/safrawise.css">
-  
+
   <style>
       /* Estilo da Tabela Bege Premium */
       .card-table-wrapper {
@@ -40,26 +37,7 @@ if (isset($_SESSION['toast'])) {
 </head>
 <body>
 
-<?php if ($toast): ?>
-<div class="toast-container" id="toast-container">
-  <div class="toast <?= htmlspecialchars($toast['tipo']) ?>" id="toast-main" style="--toast-duration: 5s">
-    <div class="toast-icon">
-      <?php if ($toast['tipo'] === 'success'): ?>
-        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-      <?php else: ?>
-        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-      <?php endif; ?>
-    </div>
-    <div class="toast-body">
-      <div class="toast-title"><?= htmlspecialchars($toast['titulo']) ?></div>
-      <div class="toast-msg"><?= htmlspecialchars($toast['mensagem']) ?></div>
-    </div>
-    <button class="toast-close" onclick="closeToast('toast-main')" type="button">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-    </button>
-  </div>
-</div>
-<?php endif; ?>
+<?php include 'layouts/toast.php'; ?>
 
 <div class="app-layout">
 
@@ -92,7 +70,7 @@ if (isset($_SESSION['toast'])) {
 
       <div class="card-table-wrapper">
           <div class="table-responsive">
-              <table class="table table-safrawise mb-0 table-clickable mb-0">
+              <table class="table table-safrawise mb-0 table-clickable">
                   <thead>
                       <tr>
                           <th class="border-0">Nome da Fazenda</th>
@@ -119,10 +97,10 @@ if (isset($_SESSION['toast'])) {
                                 <td class="text-muted"><?= htmlspecialchars($prop['municipio']) ?> - <?= htmlspecialchars($prop['estado']) ?></td>
                                 <td class="text-muted"><?= number_format($prop['area_total'], 2, ',', '.') ?> ha</td>
                                 <td class="text-muted"><?= number_format($prop['area_produtiva'], 2, ',', '.') ?> ha</td>
-                                
-                                <td class="text-end" onclick="event.stopPropagation();"> 
+
+                                <td class="text-end" onclick="event.stopPropagation();">
                                     <!-- O event.stopPropagation() acima impede que clicar nos botões abra os detalhes -->
-                                    
+
                                     <button type="button" class="btn-table-action" title="Editar"
                                             onclick="abrirModalEditarPropriedade(
                                                 '<?= $prop['id'] ?>',
@@ -224,7 +202,7 @@ if (isset($_SESSION['toast'])) {
       <div class="modal-body">
         <form id="form-editar-propriedade" method="POST" action="index.php?page=update_propriedade">
           <input type="hidden" name="id" id="edit-prop-id">
-          
+
           <div class="mb-3">
             <label class="form-label" for="edit-prop-nome">Nome da Fazenda</label>
             <input type="text" class="form-control" id="edit-prop-nome" name="nome" required>
@@ -300,29 +278,9 @@ if (isset($_SESSION['toast'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
+<script src="../../public/js/toast.js"></script>
 
 <script>
-function closeToast(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add('hide');
-  setTimeout(() => el.remove(), 320);
-}
-
-
-function closeToast(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add('hide');
-    setTimeout(() => el.remove(), 320);
-}
-
-document.querySelectorAll('.toast').forEach(toast => {
-    const duration = parseFloat(getComputedStyle(toast).getPropertyValue('--toast-duration')) * 1000 || 5000;
-    setTimeout(() => closeToast(toast.id), duration);
-});
-
-/* Função de Edição da Propriedade */
 function abrirModalEditarPropriedade(id, nome, localizacao, municipio, estado, areaTotal, areaProdutiva) {
     document.getElementById('edit-prop-id').value = id;
     document.getElementById('edit-prop-nome').value = nome;

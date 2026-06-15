@@ -9,7 +9,6 @@ class Paginator {
   }
 
   rows() {
-    // Considera apenas linhas não escondidas por filtro externo
     return Array.from(this.tbody.querySelectorAll("tr"));
   }
 

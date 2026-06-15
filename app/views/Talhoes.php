@@ -1,7 +1,19 @@
 
 <?php
-require_once '../app/helpers/ui.php';
-// (Mesma lógica de iniciais e saudação das outras páginas)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Garante o bloqueio se o usuário não estiver logado
+if (!isset($_SESSION['user'])) {
+    header("Location: index.php?page=login");
+    exit;
+}
+
+$user = $_SESSION['user'];
+$tipo = $_SESSION['tipo'];
+
+
 $pagina_atual = 'talhoes';
 $toast = flashToast();
 ?>
@@ -23,7 +35,19 @@ $toast = flashToast();
 </head>
 <body>
 
-<?php include 'layouts/toast.php'; ?>
+<?php if ($toast): ?>
+<div class="toast-container" id="toast-container">
+  <div class="toast <?= htmlspecialchars($toast['tipo']) ?>" id="toast-main" style="--toast-duration: 5s">
+    <div class="toast-body d-flex justify-content-between align-items-center">
+      <div>
+        <strong class="toast-title d-block"><?= htmlspecialchars($toast['titulo']) ?></strong>
+        <span class="toast-msg small"><?= htmlspecialchars($toast['mensagem']) ?></span>
+      </div>
+      <button class="btn-close" onclick="closeToast('toast-main')" type="button"></button>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="app-layout">
   <?php include 'layouts/sidebar.php'; ?>

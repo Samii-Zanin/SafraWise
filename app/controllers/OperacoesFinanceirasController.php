@@ -445,10 +445,12 @@ where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
                     oa.quantidade_insumo AS quantidade,
                     p.nome              AS produto_nome,
                     p.tipo              AS tipo_produto,
-                    'Operação Agrícola' AS operacao
+                    'Operação Agrícola' AS operacao,
+                    pe.nome as nome_peao                
                 FROM operacoes_agricolas oa
                 LEFT JOIN insumo  i ON i.id  = oa.insumo_id
                 LEFT JOIN produto p ON p.id  = i.produto_id
+                left join peao pe on pe.id = oa.peao_id
                 WHERE oa.safra_id = ?
             ),
             op_financeiras AS (
@@ -457,11 +459,12 @@ where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
                     opf.tipo_operacao,
                     opf.data_operacao,
                     opf.descricao,
-                    opf.valor_operacao,
+                    0 as valor_operacao,
                     opf.quantidade,
                     p.nome              AS produto_nome,
                     p.tipo              AS tipo_produto,
-                    'Operação Financeira' AS operacao
+                    'Operação Financeira' AS operacao,
+                    null as nome_peao 
                 FROM operacoes_financeiras opf
                 LEFT JOIN produto p ON p.id = opf.produto_id
                 WHERE opf.safra_id = ?

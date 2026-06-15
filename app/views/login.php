@@ -151,7 +151,6 @@ $toast = flashToast();
               </svg>
             </span>
             <input class="form-control form-control-lg text-black "
-
                    type="text"
                    id="cpf"
                    name="cpf"

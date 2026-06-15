@@ -77,6 +77,33 @@ class OperacoesAgricolasController extends BaseController
 
     }
     
+
+//     public function save(): void
+// {
+//     if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+//         $this->redirect('login');
+//     }  
+
+//     switch (strtoupper($_POST['tipo_operacao'] ?? '')) {
+//         case 'PLANTIO':
+//         case 'PULVERIZAÇÃO':
+//         case 'ADUBAÇÃO':
+//         case 'CALAGEM':
+//         case 'OUTRO':
+//             $this->save_op();
+//             break;
+//         case 'COLHEITA':
+//             $this->storeColheita();
+//             break;
+//         default:
+//             $this->setToast('error', 'Tipo de operação inválida',
+//                 'O tipo de operação selecionada é inválida.');
+//             $this->redirect('safra_detalhe&id=' . ($_POST['safra_id'] ?? 0));
+//     }
+
+// }
+
+
     public function save(): void
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -174,7 +201,6 @@ class OperacoesAgricolasController extends BaseController
         $this->redirect('safra_detalhe&id=' . $safra_id);
     }
 }
-
     public function storeColheita(): void
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -208,7 +234,6 @@ class OperacoesAgricolasController extends BaseController
     }
 
     try {
-        // ── Valida capacidade do silo ────────────────────────
         $stmtSilo = $this->db->prepare(
             "SELECT quantidade_kg, capacidade_kg FROM silo WHERE id = ? LIMIT 1"
         );

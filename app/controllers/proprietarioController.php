@@ -1,4 +1,5 @@
 <?php
+// app/controllers/ProprietarioController.php
 require_once "../app/controllers/BaseController.php";
 require_once "../config/conexao.php";
 
@@ -23,8 +24,17 @@ class ProprietarioController extends BaseController
         $email     = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
         $senha     = $_POST['senha'] ?? '';
 
+        // 🌟 HIGIENIZAÇÃO: Remove pontos e traços para salvar o padrão numérico limpo no banco
+        $cpf_cnpj  = preg_replace('/\D/', '', $cpf_cnpj); 
+
         if (empty($nome) || empty($cpf_cnpj) || empty($email) || empty($senha)) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Por favor, preencha todos os campos.');
+            $this->redirect('cadastro_proprietario');
+        }
+
+        // 🌟 VALIDAÇÃO MATEMÁTICA: Bloqueia o avanço se os dígitos verificadores do CPF falharem
+        if (!$this->validarCPF($cpf_cnpj)) {
+            $this->setToast('error', 'CPF Inválido', 'O número de CPF informado não é válido. Verifique os dígitos.');
             $this->redirect('cadastro_proprietario');
         }
 
@@ -58,7 +68,6 @@ class ProprietarioController extends BaseController
         }
     }
 
-    // ESSA FUNÇÃO VAI PARA O VALIDATOR
     private function proprietarioJaExiste(string $email, string $cpf_cnpj): bool
     {
         $stmt = $this->db->prepare(
@@ -94,25 +103,41 @@ class ProprietarioController extends BaseController
         $senha = $_POST['senha'] ?? '';
 
         if (!empty($senha)) {
-            // Atualiza com nova senha criptografada
             $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
             $sql = "UPDATE proprietario SET nome = ?, email = ?, senha = ? WHERE id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("sssi", $nome, $email, $senhaHash, $id);
         } else {
-            // Atualiza apenas nome e email
             $sql = "UPDATE proprietario SET nome = ?, email = ? WHERE id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("ssi", $nome, $email, $id);
         }
 
         if ($stmt->execute()) {
-            // Atualiza a sessão para o nome mudar na barra lateral imediatamente
             $_SESSION['user']['nome'] = $nome;
             $_SESSION['user']['email'] = $email;
             $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Perfil Atualizado', 'mensagem' => 'Suas alterações foram salvas.'];
         }
         
         header("Location: index.php?page=configuracoes");
+    }
+
+    /**
+     * Algoritmo de Validação Oficial de CPF (Módulo 11)
+     */
+    private function validarCPF(string $cpf): bool {
+        if (strlen($cpf) !== 11 || preg_match('/(\d)\1{10}/', $cpf)) {
+            return false;
+        }
+        for ($t = 9; $t < 11; $t++) {
+            for ($d = 0, $c = 0; $c < $t; $c++) {
+                $d += $cpf[$c] * (($t + 1) - $c);
+            }
+            $d = ((10 * $d) % 11) % 10;
+            if ($cpf[$c] != $d) {
+                return false;
+            }
+        }
+        return true;
     }
 }

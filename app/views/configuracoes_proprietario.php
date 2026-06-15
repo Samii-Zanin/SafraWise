@@ -3,18 +3,7 @@ require_once '../app/helpers/ui.php';
 // Lógica para as iniciais e saudação (mantendo o padrão das outras telas)
 $user = $_SESSION['user'];
 $tipo = $_SESSION['tipo'];
-$iniciais = strtoupper(substr($user['nome'], 0, 1));
-if (strpos($user['nome'], ' ') !== false) {
-    $partes = explode(' ', $user['nome']);
-    $iniciais = strtoupper($partes[0][0] . end($partes)[0]);
-}
 
-$saudacao = (function() {
-    $h = (int)date('H');
-    if ($h < 12) return 'Bom dia';
-    if ($h < 18) return 'Boa tarde';
-    return 'Boa noite';
-})();
 
 $pagina_atual = 'configuracoes';
 

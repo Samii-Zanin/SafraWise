@@ -3,21 +3,6 @@ require_once '../app/helpers/ui.php';
 $user = $_SESSION['user'];
 $tipo = $_SESSION['tipo'];
 
-$iniciais = strtoupper(substr($user['nome'], 0, 1));
-if (str_contains($user['nome'], ' ')) {
-    $partes   = explode(' ', $user['nome']);
-    $iniciais = strtoupper($partes[0][0] . end($partes)[0]);
-}
-
-$saudacao = (function () {
-    $h = (int) date('H');
-    return match (true) {
-        $h < 12 => 'Bom dia',
-        $h < 18 => 'Boa tarde',
-        default => 'Boa noite',
-    };
-})();
-
 $pagina_atual = 'propriedades';
 
 $toast = flashToast();
@@ -132,14 +117,15 @@ $toast = flashToast();
                                         </svg>
                                     </button>
 
-                                    <a href="index.php?page=delete_propriedade&id=<?= $prop['id'] ?>"
-                                      class="btn-table-action text-danger"
-                                      onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M3 6h18"></path>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        </svg>
-                                    </a>
+                                   <button type="button" 
+                                          class="btn-table-action text-danger" 
+                                          title="Excluir Propriedade" 
+                                          onclick="solicitarExclusaoPropriedade('<?= $prop['id'] ?>', '<?= htmlspecialchars($prop['nome'], ENT_QUOTES) ?>')">
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                          <path d="M3 6h18"></path>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                      </svg>
+                                  </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -255,6 +241,41 @@ $toast = flashToast();
   </div>
 </div>
 
+<div class="modal fade sw-modal" id="modal-confirmar-exclusao-propriedade" tabindex="-1" aria-hidden="true" data-sw-reset-on-close>
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger d-flex align-items-center gap-2 text-nowrap" style="font-family:'DM Sans',sans-serif; font-weight:450;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          Excluir Propriedade?
+        </h5>
+        <button type="button" class="btn-close" data-sw-close="modal-confirmar-exclusao-propriedade" aria-label="Fechar"></button>
+      </div>
+
+      <div class="modal-body py-3">
+        <p class="mb-0 text-black small">
+          Tem certeza que deseja excluir a propriedade <strong id="delete-prop-nome" class="text-dark"></strong>? Esta ação é irreversível e removerá todos os talhões e históricos vinculados a ela.
+        </p>
+      </div>
+
+      <div class="modal-footer border-0 pt-0 d-flex gap-2">
+        <button type="button" class="btn-modal-cancel flex-grow-1 py-2 text-center" data-sw-close="modal-confirmar-exclusao-propriedade">
+          Cancelar
+        </button>
+        <a id="btn-confirmar-deletar-prop" href="#" class="btn btn-danger flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-1 small" style="font-weight: 500;">
+          Sim, Excluir
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../public/js/modalManager.js"></script>
 <script src="../../public/js/toast.js"></script>
@@ -272,6 +293,17 @@ function abrirModalEditarPropriedade(id, nome, localizacao, municipio, estado, a
     if (typeof ModalManager !== 'undefined') {
         ModalManager.open('modal-editar-propriedade');
     }
+}
+
+function solicitarExclusaoPropriedade(id, nome) {
+    // 1. Atualiza o nome da fazenda no corpo do aviso
+    document.getElementById('delete-prop-nome').textContent = nome;
+    
+    // 2. Aponta o link do botão de confirmação para a rota de exclusão do proprietário controller
+    document.getElementById('btn-confirmar-deletar-prop').href = `index.php?page=delete_propriedade&id=${id}`;
+    
+    // 3. Abre o modal de forma imperativa
+    ModalManager.open('modal-confirmar-exclusao-propriedade');
 }
 </script>
 </body>

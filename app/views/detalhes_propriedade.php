@@ -5,21 +5,6 @@ $tipo = $_SESSION['tipo'];
 /** @var array $talhoes */
 /** @var float $area_ocupada */
 
-$iniciais = strtoupper(substr($user['nome'], 0, 1));
-if (str_contains($user['nome'], ' ')) {
-    $partes   = explode(' ', $user['nome']);
-    $iniciais = strtoupper($partes[0][0] . end($partes)[0]);
-}
-
-$saudacao = (function () {
-    $h = (int) date('H');
-    return match (true) {
-        $h < 12 => 'Bom dia',
-        $h < 18 => 'Boa tarde',
-        default => 'Boa noite',
-    };
-})();
-
 $toast = null;
 if (isset($_SESSION['toast'])) {
     $toast = $_SESSION['toast'];

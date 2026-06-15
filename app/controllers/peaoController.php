@@ -74,9 +74,18 @@ class PeaoController extends BaseController
             'senha'    => $_POST['senha']         ?? '',
         ];
 
+        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços vindo da máscara do formulário
+        $dados['cpf_cnpj'] = preg_replace('/\D/', '', $dados['cpf_cnpj']);
+
         $erros = $this->validator->validar($dados);
         if (!empty($erros)) {
             $this->setToast('warning', 'Campos Obrigatórios', implode(' ', $erros));
+            $this->redirect('equipe');
+        }
+
+        // 🌟 VALIDAÇÃO MATEMÁTICA: Barra se o CPF for inválido no algoritmo de Módulo 11
+        if (!$this->validarCPF($dados['cpf_cnpj'])) {
+            $this->setToast('error', 'CPF Inválido', 'O número de CPF informado não é válido. Verifique os dígitos.');
             $this->redirect('equipe');
         }
 
@@ -111,7 +120,7 @@ class PeaoController extends BaseController
 
             $stmt->close();
 
-            $this->setToast('success', 'Peão Cadastrado!', "{$dados['nome']} foi adicionado à sua equipe.");
+            $this->setToast('success', 'Colaborador Cadastrado!', "{$dados['nome']} foi adicionado à sua equipe.");
             $this->redirect('equipe');
 
         } catch (\Exception $e) {
@@ -148,6 +157,16 @@ class PeaoController extends BaseController
         $telefone = trim($_POST['telefone']);
         $email = trim($_POST['email']);
 
+        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços na atualização também
+        $cpf = preg_replace('/\D/', '', $cpf);
+
+        // 🌟 VALIDAÇÃO MATEMÁTICA: Valida o CPF na edição para evitar corrupção de dados antigos
+        if (!$this->validarCPF($cpf)) {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'CPF Inválido', 'mensagem' => 'O número de CPF informado não é válido.'];
+            header("Location: index.php?page=equipe");
+            exit;
+        }
+
         $sql = "UPDATE peao SET nome = ?, cpf_cnpj = ?, telefone = ?, email = ? WHERE id = ? AND proprietario_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("ssssii", $nome, $cpf, $telefone, $email, $id, $proprietario_id);
@@ -172,5 +191,24 @@ class PeaoController extends BaseController
             $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Removido', 'mensagem' => 'Colaborador excluído da equipe.'];
         }
         header("Location: index.php?page=equipe");
+    }
+
+    /**
+     * Algoritmo de Validação Oficial de CPF (Módulo 11)
+     */
+    private function validarCPF(string $cpf): bool {
+        if (strlen($cpf) !== 11 || preg_match('/(\d)\1{10}/', $cpf)) {
+            return false;
+        }
+        for ($t = 9; $t < 11; $t++) {
+            for ($d = 0, $c = 0; $c < $t; $c++) {
+                $d += $cpf[$c] * (($t + 1) - $c);
+            }
+            $d = ((10 * $d) % 11) % 10;
+            if ($cpf[$c] != $d) {
+                return false;
+            }
+        }
+        return true;
     }
 }

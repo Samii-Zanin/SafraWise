@@ -25,6 +25,33 @@ $toast = flashToast();
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../public/css/safrawise.css">
+  
+  <style>
+    .input-icon-wrap {
+      position: relative;
+    }
+    .pe-5-custom {
+      padding-right: 45px !important;
+    }
+    .toggle-password-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      cursor: pointer;
+    }
+    .toggle-password-btn:hover {
+      color: var(--verde-vivo, #40916c);
+    }
+  </style>
 </head>
 <body>
 
@@ -101,31 +128,35 @@ $toast = flashToast();
         <div class="mb-3">
           <label class="form-label" for="nome">Nome Completo</label>
           <input type="text"
-                 class="form-control form-control-lg text-light"
+                 class="form-control form-control-lg text-black"
                  id="nome"
                  name="nome"
                  placeholder="João da Silva"
                  required>
         </div>
+        
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label" for="cpf_cnpj">CPF / CNPJ</label>
+            <label class="form-label" for="cpf_cnpj">CPF</label>
             <input type="text"
-                   class="form-control form-control-lg text-light"
+                   class="form-control form-control-lg text-black"
                    id="cpf_cnpj"
                    name="cpf_cnpj"
                    placeholder="000.000.000-00"
+                   maxlength="14"
                    required>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="telefone">Telefone</label>
             <input type="text"
-                   class="form-control form-control-lg text-light"
+                   class="form-control form-control-lg text-black"
                    id="telefone"
                    name="telefone"
-                   placeholder="(00) 00000-0000">
+                   placeholder="(00) 00000-0000"
+                   maxlength="15">
           </div>
         </div>
+        
         <div class="mb-3">
           <label class="form-label" for="email">E-mail</label>
           <div class="input-icon-wrap">
@@ -135,7 +166,7 @@ $toast = flashToast();
               </svg>
             </span>
             <input type="email"
-                   class="form-control form-control-lg text-light"
+                   class="form-control form-control-lg text-black"
                    id="email"
                    name="email"
                    placeholder="seu@email.com.br"
@@ -153,12 +184,18 @@ $toast = flashToast();
               </svg>
             </span>
             <input type="password"
-                   class="form-control form-control-lg text-light"
+                   class="form-control form-control-lg text-black pe-5-custom"
                    id="senha"
                    name="senha"
                    placeholder="••••••••"
                    autocomplete="new-password"
                    required>
+            <button type="button" class="toggle-password-btn" id="btn-toggle-password" onclick="togglePasswordVisibility()" title="Mostrar senha">
+              <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
           </div>
         </div>
 

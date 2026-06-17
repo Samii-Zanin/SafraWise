@@ -9,21 +9,24 @@ class PropriedadeController {
     }
 
     public function getAll(): array
-{
-    $uid  = (int) $_SESSION['user']['id'];
-    $stmt = $this->db->prepare(
-        "SELECT id, nome, municipio, estado FROM propriedade WHERE proprietario_id = ? ORDER BY nome"
-    );
-    $stmt->bind_param("i", $uid);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $result;
-}
+    {
+        //  Usa o ID do dono da fazenda, independente de quem está logado
+        $uid  = (int) $_SESSION['proprietario_id']; 
+        
+        $stmt = $this->db->prepare(
+            "SELECT id, nome, municipio, estado FROM propriedade WHERE proprietario_id = ? ORDER BY nome"
+        );
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $result;
+    }
 
     // Listagem de propriedades
     public function index(): void {
-        $proprietario_id = $_SESSION['user']['id'];
+        // Usa o ID do dono da fazenda
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE proprietario_id = ?");
         $stmt->bind_param("i", $proprietario_id);
@@ -35,14 +38,20 @@ class PropriedadeController {
 
     // Salvar nova propriedade
     public function store(): void {
-        $proprietario_id = $_SESSION['user']['id'];
+        // Peão não pode criar propriedade
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode cadastrar novas fazendas.'];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        $proprietario_id = $_SESSION['proprietario_id'];
         $nome = trim($_POST['nome']);
         $localizacao = trim($_POST['localizacao']);
         $municipio = trim($_POST['municipio']);
         $estado = strtoupper(trim($_POST['estado']));
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
-
 
         if ($area_total <= 0) {
             $_SESSION['toast'] = [
@@ -89,7 +98,14 @@ class PropriedadeController {
 
     // Atualizar propriedade existente
     public function update(): void {
-        $proprietario_id = $_SESSION['user']['id'];
+        // Peão não pode editar propriedade
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode editar os dados da fazenda.'];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        $proprietario_id = $_SESSION['proprietario_id'];
         $id = intval($_POST['id']);
         $nome = trim($_POST['nome']);
         $localizacao = trim($_POST['localizacao']);
@@ -97,7 +113,6 @@ class PropriedadeController {
         $estado = strtoupper(trim($_POST['estado']));
         $area_total = floatval($_POST['area_total']);
         $area_produtiva = floatval($_POST['area_produtiva']);
-
 
         if ($area_total <= 0) {
             $_SESSION['toast'] = [
@@ -144,7 +159,14 @@ class PropriedadeController {
 
     // Excluir propriedade
     public function delete(): void {
-        $proprietario_id = $_SESSION['user']['id'];
+        //  Peão não pode excluir propriedade
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode excluir uma fazenda.'];
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        $proprietario_id = $_SESSION['proprietario_id'];
         $id = intval($_GET['id']);
 
         // IMPORTANTE: Antes de excluir, o MySQL vai checar se existem talhões ou insumos amarrados a ela por conta da FK.
@@ -163,31 +185,33 @@ class PropriedadeController {
         header("Location: index.php?page=propriedades");
         exit;
     }
+    
     public function detalhes(): void {
-    $proprietario_id = $_SESSION['user']['id'];
-    $id = intval($_GET['id']);
+        // Usa o ID do dono da fazenda
+        $proprietario_id = $_SESSION['proprietario_id'];
+        $id = intval($_GET['id']);
 
-    // 1. Busca os dados da propriedade
-    $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE id = ? AND proprietario_id = ?");
-    $stmt->bind_param("ii", $id, $proprietario_id);
-    $stmt->execute();
-    $propriedade = $stmt->get_result()->fetch_assoc();
+        // 1. Busca os dados da propriedade
+        $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE id = ? AND proprietario_id = ?");
+        $stmt->bind_param("ii", $id, $proprietario_id);
+        $stmt->execute();
+        $propriedade = $stmt->get_result()->fetch_assoc();
 
-    if (!$propriedade) {
-        header("Location: index.php?page=propriedades");
-        exit;
+        if (!$propriedade) {
+            header("Location: index.php?page=propriedades");
+            exit;
+        }
+
+        // 2. Busca os talhões desta propriedade específica
+        $stmtTal = $this->db->prepare("SELECT * FROM talhoes WHERE propriedade_id = ?");
+        $stmtTal->bind_param("i", $id);
+        $stmtTal->execute();
+        $talhoes = $stmtTal->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        // 3. Calcula área ocupada para a barra de progresso
+        $area_ocupada = 0;
+        foreach($talhoes as $t) $area_ocupada += $t['area_hectare'];
+
+        require_once "../app/views/detalhes_propriedade.php";
     }
-
-    // 2. Busca os talhões desta propriedade específica
-    $stmtTal = $this->db->prepare("SELECT * FROM talhoes WHERE propriedade_id = ?");
-    $stmtTal->bind_param("i", $id);
-    $stmtTal->execute();
-    $talhoes = $stmtTal->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    // 3. Calcula área ocupada para a barra de progresso
-    $area_ocupada = 0;
-    foreach($talhoes as $t) $area_ocupada += $t['area_hectare'];
-
-    require_once "../app/views/detalhes_propriedade.php";
-}
 }

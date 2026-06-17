@@ -12,10 +12,11 @@ class EstoqueInsumosValidator
         $this->db = Conexao::getConexao();
     }
 
-    public function EstoqueParaEsteInsumoJaExiste(int $insumo_id): bool
+    // Agora verifica se o insumo existe DENTRO daquela propriedade específica
+    public function EstoqueParaEsteInsumoJaExiste(int $insumo_id, int $propriedade_id): bool
     {
-        $stmt = $this->db->prepare("SELECT insumo_id FROM estoque_insumos WHERE insumo_id = ? LIMIT 1");
-        $stmt->bind_param("i", $insumo_id);
+        $stmt = $this->db->prepare("SELECT id FROM estoque_insumos WHERE insumo_id = ? AND propriedade_id = ? LIMIT 1");
+        $stmt->bind_param("ii", $insumo_id, $propriedade_id);
         $stmt->execute();
         $stmt->store_result();
 

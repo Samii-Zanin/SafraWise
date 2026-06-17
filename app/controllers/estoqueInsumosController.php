@@ -15,36 +15,42 @@ class EstoqueInsumosController extends BaseController
     }
 
     public function getAll(): array
-{
-    $stmt = $this->db->prepare("
-    with produto_insumo as (
-        select
-        p.nome,
-        p.marca,
-        p.unidade_medida,
-        p.tipo,
-        i.id as insumo_id,
-        i.data_referencia,
-        i.valor_por_dose 
-    from
-        insumo i
-    join produto p on
-        i.produto_id = p.id
-    )
-    select 
-        ei.*,
-        pi.*,
-        pr.nome as propriedade_nome,
-        quantidade * valor_por_dose as valor_total_em_produto
-    from estoque_insumos ei 
-    join produto_insumo pi on pi.insumo_id = ei.insumo_id 
-    join propriedade pr on pr.id = ei.propriedade_id
-    ");
-    $stmt->execute();
-    $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $estoques;
-}
+    {
+        // Aplica a trava do proprietário na consulta principal
+        $proprietarioId = $_SESSION['proprietario_id'];
+
+        $stmt = $this->db->prepare("
+        with produto_insumo as (
+            select
+            p.nome,
+            p.marca,
+            p.unidade_medida,
+            p.tipo,
+            i.id as insumo_id,
+            i.data_referencia,
+            i.valor_por_dose 
+        from
+            insumo i
+        join produto p on
+            i.produto_id = p.id
+        )
+        select 
+            ei.*,
+            pi.*,
+            pr.nome as propriedade_nome,
+            (quantidade * valor_por_dose) as valor_total_em_produto
+        from estoque_insumos ei 
+        join produto_insumo pi on pi.insumo_id = ei.insumo_id 
+        join propriedade pr on pr.id = ei.propriedade_id
+        WHERE pr.proprietario_id = ? 
+        ");
+        
+        $stmt->bind_param("i", $proprietarioId);
+        $stmt->execute();
+        $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $estoques;
+    }
 
     public function index(): void
     {
@@ -52,12 +58,8 @@ class EstoqueInsumosController extends BaseController
             $this->redirect('login');
         }
 
-        $stmt = $this->db->prepare(
-            "SELECT * FROM estoque_insumos"
-        );
-        $stmt->execute();
-        $estoques = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        //  Reaproveita a função getAll() que já está segura e completa
+        $estoques = $this->getAll();
 
         require_once __DIR__ . '/../views/estoques.php';
     }
@@ -68,20 +70,30 @@ class EstoqueInsumosController extends BaseController
             $this->redirect('login');
         }
 
-        if ($this->validator->EstoqueParaEsteInsumoJaExiste((int) $dados['insumo_id'])) {
-            $this->setToast('error', 'Erro', 'Já existe um estoque cadastrado para este insumo. Atualize o valor gerando uma entrada de insumo via operação financeira.');
-            $this->redirect('estoques');
+        //  Peão não pode inicializar/configurar novos estoques do zero
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode inicializar um novo controle de estoque.');
+            $this->redirect('produtos_culturas');
+            return;
         }
 
+        // A array $dados precisa ser declarada ANTES de ser usada no validador
         $dados = [
-            'propriedade_id'           => trim($_POST['propriedade_id']           ?? ''),
+            'propriedade_id' => trim($_POST['propriedade_id'] ?? ''),
             'insumo_id'      => trim($_POST['insumo_id']      ?? ''),
-            'quantidade'      => trim($_POST['quantidade']      ?? 0),
+            'quantidade'     => trim($_POST['quantidade']     ?? 0),
         ];
+
+        if ($this->validator->EstoqueParaEsteInsumoJaExiste((int) $dados['insumo_id'], (int) $dados['propriedade_id'])) {
+            $this->setToast('error', 'Erro', 'Já existe um estoque cadastrado para este insumo. Atualize o valor gerando uma entrada de insumo via operação financeira.');
+            $this->redirect('estoques');
+            return; // Adicionado return para interromper a execução
+        }
 
         if (empty($dados['insumo_id'])) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Insumo é obrigatório.');
             $this->redirect('estoque_insumos');
+            return;
         }
 
         try {
@@ -108,7 +120,6 @@ class EstoqueInsumosController extends BaseController
         }
     }
 
-
     public function storeEntrada(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
@@ -124,6 +135,18 @@ class EstoqueInsumosController extends BaseController
             $this->redirect('estoques');
             return;
         }
+
+        // Garante que a propriedade informada no form pertence de fato à fazenda logada
+        $proprietarioId = $_SESSION['proprietario_id'];
+        $stmtProp = $this->db->prepare("SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?");
+        $stmtProp->bind_param("ii", $propriedade_id, $proprietarioId);
+        $stmtProp->execute();
+        if ($stmtProp->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso Negado', 'Esta propriedade não pertence a você.');
+            $this->redirect('estoques');
+            return;
+        }
+        $stmtProp->close();
  
         try {
             $stmt = $this->db->prepare(

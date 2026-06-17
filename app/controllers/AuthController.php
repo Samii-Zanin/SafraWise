@@ -44,6 +44,13 @@ class AuthController
         $_SESSION['user'] = $user;
         $_SESSION['tipo'] = $tipo;
 
+        // Define quem é o dono da fazenda para o resto do sistema
+        if ($tipo === 'proprietario') {
+            $_SESSION['proprietario_id'] = $user['id']; // O dono é ele mesmo
+        } else {
+            $_SESSION['proprietario_id'] = $user['proprietario_id']; // O dono é o patrão dele
+        }
+
         $_SESSION['toast'] = [
             'tipo'     => 'success',
             'titulo'   => 'Bem-vindo(a), ' . explode(' ', $user['nome'])[0] . '!',
@@ -58,9 +65,13 @@ class AuthController
         require_once __DIR__ . '/../../config/Conexao.php';
 
         $conn = Conexao::getConexao();
-        $tabela = ($tipo === 'peao') ? 'peao' : 'proprietario';
-
-        $sql = "SELECT id, nome, email, cpf_cnpj, senha FROM $tabela WHERE cpf_cnpj = ? LIMIT 1";
+        
+        //  Se for peão, precisamos puxar a coluna proprietario_id do banco
+        if ($tipo === 'peao') {
+            $sql = "SELECT id, nome, email, cpf_cnpj, senha, proprietario_id FROM peao WHERE cpf_cnpj = ? LIMIT 1";
+        } else {
+            $sql = "SELECT id, nome, email, cpf_cnpj, senha FROM proprietario WHERE cpf_cnpj = ? LIMIT 1";
+        }
 
         $stmt = $conn->prepare($sql);
         if (!$stmt) {

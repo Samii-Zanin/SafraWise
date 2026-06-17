@@ -12,14 +12,13 @@ class CulturaController extends BaseController
     }
 
     public function getAll(): array
-{
-    $stmt = $this->db->prepare("SELECT * FROM cultura ORDER BY nome ASC");
-    $stmt->execute();
-    $culturas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $culturas;
-}
-
+    {
+        $stmt = $this->db->prepare("SELECT * FROM cultura ORDER BY nome ASC");
+        $stmt->execute();
+        $culturas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $culturas;
+    }
 
     public function index(): void
     {
@@ -27,12 +26,8 @@ class CulturaController extends BaseController
             $this->redirect('login');
         }
 
-        $stmt = $this->db->prepare(
-            "SELECT * FROM cultura"
-        );
-        $stmt->execute();
-        $culturas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        // 🌟 REAPROVEITAMENTO: Usa o getAll() para manter o código DRY (Don't Repeat Yourself)
+        $culturas = $this->getAll();
 
         require_once __DIR__ . '/../views/produtos_culturas.php';
     }
@@ -43,6 +38,13 @@ class CulturaController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão não pode cadastrar novas culturas no catálogo
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode cadastrar novas culturas no catálogo.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $dados = [
             'nome'      => trim($_POST['nome']      ?? ''),
             'variedade' => trim($_POST['variedade'] ?? ''),
@@ -51,6 +53,7 @@ class CulturaController extends BaseController
         if (empty($dados['nome'])) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Nome é obrigatório.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {
@@ -123,11 +126,19 @@ class CulturaController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão não pode editar culturas no catálogo
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode alterar os dados das culturas.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $culturaId = (int) ($_POST['cultura_id'] ?? 0);
 
         if (!$culturaId) {
             $this->setToast('error', 'Erro', 'Identificador inválido.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         $dados = [
@@ -138,6 +149,7 @@ class CulturaController extends BaseController
         if (empty($dados['nome']) || empty($dados['variedade'])) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Nome e variedade são obrigatórios.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {
@@ -169,11 +181,19 @@ class CulturaController extends BaseController
             $this->redirect('login');
         }
 
+        // Peão não pode excluir culturas
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode remover itens do catálogo.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $culturaId = (int) ($_POST['cultura_id'] ?? 0);
 
         if (!$culturaId) {
             $this->setToast('error', 'Erro', 'Identificador inválido.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {

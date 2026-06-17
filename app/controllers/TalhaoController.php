@@ -10,7 +10,8 @@ class TalhaoController {
     }
 
     public function index(): void {
-        $proprietario_id = $_SESSION['user']['id'];
+        //  Puxa o ID do dono da fazenda
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         // Busca propriedades para o Select do modal
         $stmtProp = $this->db->prepare("SELECT id, nome, area_produtiva FROM propriedade WHERE proprietario_id = ?");
@@ -32,11 +33,12 @@ class TalhaoController {
     }
     
     public function getVazios(): array {
-        $proprietario_id = $_SESSION['user']['id'];
+        // Puxa o ID do dono da fazenda
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         $stmtProp = $this->db->prepare("
         select
-	        t.id, t.nome, p.nome as propriedade_nome, t.area_hectare, t.status
+            t.id, t.nome, p.nome as propriedade_nome, t.area_hectare, t.status
         from
             talhoes t
         left join propriedade p on t.propriedade_id = p.id
@@ -68,11 +70,12 @@ class TalhaoController {
     }
 
     public function getAll(): array {
-        $proprietario_id = $_SESSION['user']['id'];
+        // Puxa o ID do dono da fazenda
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         $stmtProp = $this->db->prepare("
         select
-	        t.id, t.nome, p.nome as propriedade_nome, t.area_hectare, t.status
+            t.id, t.nome, p.nome as propriedade_nome, t.area_hectare, t.status
         from
             talhoes t
         left join propriedade p on t.propriedade_id = p.id
@@ -94,13 +97,15 @@ class TalhaoController {
     }
 
     public function store(): void {
+        //  Peão não pode criar talhão
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->redirectError("Apenas o proprietário pode criar novos talhões.");
+        }
+
         $nome = trim($_POST['nome']);
         $area = floatval($_POST['area_hectare']);
         $propriedade_id = intval($_POST['propriedade_id']);
         $tipo_posse = $_POST['tipo_posse']; // PROPRIO ou ARRENDADO
-        $custo = ($tipo_posse === 'ARRENDADO') ? floatval($_POST['custo_arrendamento_sacas']) : 0;
-
-       $area = floatval($_POST['area_hectare']);
         $custo = ($tipo_posse === 'ARRENDADO') ? floatval($_POST['custo_arrendamento_sacas']) : 0;
 
         // 🛑 TRAVA DE SEGURANÇA: Área
@@ -112,6 +117,7 @@ class TalhaoController {
         if ($tipo_posse === 'ARRENDADO' && $custo < 0) {
             $this->redirectError("O custo do arrendamento não pode ser um valor negativo.");
         }
+        
         if (!$this->validarAreaDisponivel($propriedade_id, $area)) {
             $this->redirectError("Área excede o limite produtivo da fazenda.");
         }
@@ -123,6 +129,11 @@ class TalhaoController {
     }
 
     public function update(): void {
+        //  Peão não pode editar talhão
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->redirectError("Apenas o proprietário pode editar os dados dos talhões.");
+        }
+
         $id = intval($_POST['id']);
         $nome = trim($_POST['nome']);
         $area = floatval($_POST['area_hectare']);
@@ -130,7 +141,7 @@ class TalhaoController {
         $tipo_posse = $_POST['tipo_posse'];
         $custo = ($tipo_posse === 'ARRENDADO') ? floatval($_POST['custo_arrendamento_sacas']) : 0;
 
-         // 🛑 TRAVA DE SEGURANÇA: Área
+        // 🛑 TRAVA DE SEGURANÇA: Área
         if ($area <= 0) {
             $this->redirectError("A área do talhão deve ser maior que zero.");
         }
@@ -139,9 +150,12 @@ class TalhaoController {
         if ($tipo_posse === 'ARRENDADO' && $custo < 0) {
             $this->redirectError("O custo do arrendamento não pode ser um valor negativo.");
         }
-        if (!$this->validarAreaDisponivel($propriedade_id, $area)) {
+        
+        //  Passa o $id para não somar a área antiga com a nova durante a edição
+        if (!$this->validarAreaDisponivel($propriedade_id, $area, $id)) {
             $this->redirectError("Área excede o limite produtivo da fazenda.");
         }
+        
         $stmt = $this->db->prepare("UPDATE talhoes SET nome = ?, area_hectare = ?, tipo_posse = ?, custo_arrendamento_sacas = ? WHERE id = ?");
         $stmt->bind_param("sdsdi", $nome, $area, $tipo_posse, $custo, $id);
         
@@ -159,6 +173,11 @@ class TalhaoController {
     }
 
     public function delete(): void {
+        // Peão não pode excluir talhão
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->redirectError("Apenas o proprietário pode excluir talhões da fazenda.");
+        }
+
         $id = intval($_GET['id']);
         
         try {
@@ -172,23 +191,23 @@ class TalhaoController {
 
     // Auxiliar: Verifica se a soma dos talhões não estoura a fazenda
     private function validarAreaDisponivel($propId, $novaArea, $talhaoIdExcluir = 0): bool {
-    // 1. Busca o limite da área produtiva da fazenda
-    $stmt = $this->db->prepare("SELECT area_produtiva FROM propriedade WHERE id = ?");
-    $stmt->bind_param("i", $propId);
-    $stmt->execute();
-    $res = $stmt->get_result()->fetch_assoc();
-    $limite = $res['area_produtiva'] ?? 0;
+        // 1. Busca o limite da área produtiva da fazenda
+        $stmt = $this->db->prepare("SELECT area_produtiva FROM propriedade WHERE id = ?");
+        $stmt->bind_param("i", $propId);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        $limite = $res['area_produtiva'] ?? 0;
 
-    // 2. Soma a área dos talhões já existentes (ignorando o atual em caso de edição)
-    $stmtSum = $this->db->prepare("SELECT SUM(area_hectare) as total FROM talhoes WHERE propriedade_id = ? AND id != ?");
-    $stmtSum->bind_param("ii", $propId, $talhaoIdExcluir);
-    $stmtSum->execute();
-    $resSum = $stmtSum->get_result()->fetch_assoc();
-    $atual = $resSum['total'] ?? 0;
+        // 2. Soma a área dos talhões já existentes (ignorando o atual em caso de edição)
+        $stmtSum = $this->db->prepare("SELECT SUM(area_hectare) as total FROM talhoes WHERE propriedade_id = ? AND id != ?");
+        $stmtSum->bind_param("ii", $propId, $talhaoIdExcluir);
+        $stmtSum->execute();
+        $resSum = $stmtSum->get_result()->fetch_assoc();
+        $atual = $resSum['total'] ?? 0;
 
-    // Retorna true se a nova soma couber no limite da fazenda
-    return ($atual + $novaArea) <= $limite;
-}
+        // Retorna true se a nova soma couber no limite da fazenda
+        return ($atual + $novaArea) <= $limite;
+    }
 
     private function redirectError($msg) {
         $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Ops!', 'mensagem' => $msg];

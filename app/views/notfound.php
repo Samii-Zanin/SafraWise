@@ -19,25 +19,15 @@
     <div class="nf-container">
 
         <!-- Logo -->
-        <a href="/public/" class="nf-logo">
-            <div class="nf-logo-icon">
-                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- monitor -->
-                    <rect x="4" y="14" width="40" height="26" rx="4" fill="#0f2318" stroke="#40916c" stroke-width="1.5" />
-                    <rect x="7" y="17" width="34" height="20" rx="2.5" fill="#0a1c10" />
-                    <!-- pé e base -->
-                    <rect x="21" y="40" width="6" height="4" rx="1.5" fill="#2d6a4f" />
-                    <rect x="15" y="44" width="18" height="2.5" rx="1.5" fill="#40916c" />
-                    <!-- caule -->
-                    <path d="M24 36 Q23 28 24 18 Q25 12 23 6" stroke="#40916c" stroke-width="2" stroke-linecap="round" />
-                    <!-- folha esquerda -->
-                    <path d="M24 26 Q16 22 13 14 Q20 12 24 26Z" fill="#2d6a4f" />
-                    <!-- folha direita -->
-                    <path d="M24 20 Q32 16 34 8 Q27 6 24 20Z" fill="#40916c" />
-                    <!-- broto topo -->
-                    <path d="M23 10 Q22 4 23 0 Q25 4 23 10Z" fill="#74c69d" />
-                </svg>
-            </div>
+        <div class="brand-top" style="position: relative; z-index: 2;">
+      <div class="brand-logo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 60px;">
+        <div class="brand-logo-icon" style="background-color: #ffffff; border-radius: 8px; padding: 6px; display: flex; align-items: center; justify-content: center;">
+          <img src="resources/images/SafrawiseRaw.png" alt="Logo SafraWise" style="width: 80px; height: auto;">
+        </div>
+        <span class="brand-logo-name" style="font-size: 1.6rem; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">
+          Safra<em style="font-style:italic; color:#74c69d">Wise</em>
+        </span>
+      </div>
             <span class="nf-logo-name">SafraWise</span>
         </a>
 

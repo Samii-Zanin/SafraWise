@@ -13,7 +13,8 @@ class SafraController extends BaseController
 
     public function getAll(): array
     {
-        $proprietarioId = $_SESSION['user']['id'];
+        // 🌟 CORREÇÃO: Puxa o ID do dono da fazenda
+        $proprietarioId = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare(
             "select
@@ -39,7 +40,7 @@ class SafraController extends BaseController
             left join cultura c on c.id = s.cultura_id
             left join talhoes t on t.id = s.talhao_id
             left join propriedade p on t.propriedade_id = p.id
-             WHERE proprietario_id = ?
+             WHERE p.proprietario_id = ?
              ORDER BY data_inicio DESC"
         );
         $stmt->bind_param("i", $proprietarioId);
@@ -53,8 +54,8 @@ class SafraController extends BaseController
 
     public function getAtivas(): array
     {
-
-        $proprietarioId = $_SESSION['user']['id'];
+        // 🌟 CORREÇÃO: Puxa o ID do dono da fazenda
+        $proprietarioId = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare(
             " 
@@ -91,7 +92,8 @@ class SafraController extends BaseController
 
     public function getById(int $id): ?array
     {
-        $proprietarioId = (int) $_SESSION['user']['id'];
+        // 🌟 CORREÇÃO: Puxa o ID do dono da fazenda
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("
             SELECT
@@ -120,12 +122,17 @@ class SafraController extends BaseController
         return $result ?: null;
     }
 
-
-
     public function store(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
+        }
+
+        // 🔒 SEGURANÇA: Peão não pode criar nova safra
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode iniciar um novo ciclo de safra.');
+            $this->redirect('safras');
+            return;
         }
 
         $cultura_id  = (int)   ($_POST['cultura_id']  ?? 0);
@@ -144,7 +151,10 @@ class SafraController extends BaseController
             $this->redirect('safras');
             return;
         }
-        $uid       = (int) $_SESSION['user']['id'];
+        
+        // 🌟 CORREÇÃO: Usa o ID do dono da fazenda
+        $uid       = (int) $_SESSION['proprietario_id'];
+        
         $stmtCheck = $this->db->prepare("
             SELECT t.id FROM talhoes t
             JOIN propriedade p ON p.id = t.propriedade_id
@@ -172,7 +182,6 @@ class SafraController extends BaseController
             }
             $stmt->close();
 
-
             $stmt = $this->db->prepare("
                 INSERT INTO safra (cultura_id, talhao_id, data_inicio, data_fim)
                 VALUES (?, ?, ?, ?)
@@ -187,21 +196,30 @@ class SafraController extends BaseController
             $this->setToast('success', 'Safra Cadastrada!', 'A safra foi registrada com sucesso.');
             $this->redirect('safras');
 
-
         } catch (\Exception $e) {
             error_log($e->getMessage());
             $this->setToast('error', 'Erro interno', 'Não foi possível cadastrar a safra.');
             $this->redirect('safras');
         }
     }
+    
     public function encerrar(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
         }
 
+        // 🔒 SEGURANÇA: Peão não pode encerrar safra
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode encerrar a safra e liberar o talhão.');
+            $this->redirect('safras');
+            return;
+        }
+
         $safra_id = (int) ($_POST['safra_id'] ?? 0);
-        $uid      = (int) $_SESSION['user']['id'];
+        
+        // 🌟 CORREÇÃO: Usa o ID do dono da fazenda
+        $uid      = (int) $_SESSION['proprietario_id'];
 
         if (!$safra_id) {
             $this->setToast('error', 'Erro', 'Safra não identificada.');

@@ -12,22 +12,22 @@ class ProdutoController extends BaseController
     }
 
     public function getAll(): array
-{
-    $stmt = $this->db->prepare("SELECT * FROM produto ORDER BY nome ASC");
-    $stmt->execute();
-    $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $produtos;
-}
+    {
+        $stmt = $this->db->prepare("SELECT * FROM produto ORDER BY nome ASC");
+        $stmt->execute();
+        $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $produtos;
+    }
 
     public function getAllnotCereal(): array
-{
-    $stmt = $this->db->prepare("SELECT * FROM produto WHERE tipo != 'CEREAL' ORDER BY nome ASC");
-    $stmt->execute();
-    $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $produtos;
-}
+    {
+        $stmt = $this->db->prepare("SELECT * FROM produto WHERE tipo != 'CEREAL' ORDER BY nome ASC");
+        $stmt->execute();
+        $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $produtos;
+    }
 
     public function index(): void
     {
@@ -35,12 +35,8 @@ class ProdutoController extends BaseController
             $this->redirect('login');
         }
 
-        $stmt = $this->db->prepare(
-            "SELECT * FROM produto"
-        );
-        $stmt->execute();
-        $produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        //  Usa o getAll() para manter o código DRY (Don't Repeat Yourself)
+        $produtos = $this->getAll();
 
         require_once __DIR__ . '/../views/produtos_culturas.php';
     }
@@ -63,17 +59,25 @@ class ProdutoController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão não pode cadastrar novos produtos no catálogo
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode cadastrar novos produtos no catálogo.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $dados = [
             'nome'           => trim($_POST['nome']           ?? ''),
-            'marca'      => trim($_POST['marca']      ?? ''),
+            'marca'          => trim($_POST['marca']          ?? ''),
             'un_medida'      => trim($_POST['un_medida']      ?? ''),
             'descricao'      => trim($_POST['descricao']      ?? ''),
-            'tipo'      => trim($_POST['tipo']      ?? ''),
+            'tipo'           => trim($_POST['tipo']           ?? ''),
         ];
 
         if (empty($dados['nome']) || empty($dados['tipo'])) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Nome e tipo são obrigatórios.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {
@@ -107,24 +111,33 @@ class ProdutoController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão não pode editar produtos do catálogo
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode alterar os dados dos produtos.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
 
         if (!$produtoId) {
             $this->setToast('error', 'Erro', 'Identificador inválido.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         $dados = [
             'nome'           => trim($_POST['nome']           ?? ''),
-            'marca'      => trim($_POST['marca']      ?? ''),
+            'marca'          => trim($_POST['marca']          ?? ''),
             'un_medida'      => trim($_POST['un_medida']      ?? ''),
             'descricao'      => trim($_POST['descricao']      ?? ''),
-            'tipo'      => trim($_POST['tipo']      ?? ''),
+            'tipo'           => trim($_POST['tipo']           ?? ''),
         ];
 
         if (empty($dados['nome']) || empty($dados['marca'])) {
             $this->setToast('warning', 'Campos Obrigatórios', 'Nome e marca são obrigatórios.');
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {
@@ -156,11 +169,19 @@ class ProdutoController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão não pode apagar produtos do catálogo
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode remover itens do catálogo.');
+            $this->redirect('produtos_culturas');
+            return;
+        }
+
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
 
         if (!$produtoId) {
             $this->setToast('error', 'Erro', 'Identificador inválido.' . $produtoId);
             $this->redirect('produtos_culturas');
+            return;
         }
 
         try {

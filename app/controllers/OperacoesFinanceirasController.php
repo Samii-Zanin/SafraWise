@@ -540,4 +540,23 @@ class OperacoesFinanceirasController extends BaseController
 
         return $result;
     }
+
+    public function getReceitaSafra(int $safra_id): float
+{
+    if (!isset($_SESSION['user'])) {
+        $this->redirect('login');
+    }
+
+        $stmt = $this->db->prepare("
+       select 
+   sum(valor_operacao)
+from operacoes_financeiras opf
+where safra_id = ? and tipo_operacao = 'VENDA DE CEREAIS'
+        ");
+        $stmt->bind_param("i", $safra_id);
+        $stmt->execute();
+        $vlr_operacao = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $vlr_operacao ? $vlr_operacao['sum(valor_operacao)'] : 0;
+    }
 }

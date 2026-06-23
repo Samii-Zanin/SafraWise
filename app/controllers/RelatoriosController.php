@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../../config/conexao.php';
 
@@ -14,6 +13,11 @@ class RelatoriosController extends BaseController
 
     public function index(): void
     {
+        // Bloqueia acesso sem login
+        if (!isset($_SESSION['user']) || !isset($_SESSION['proprietario_id'])) {
+            $this->redirect('login');
+        }
+
         $modulos       = $this->getModulos();
         $modulosParaJS = $this->modulosParaJS($modulos);
         require_once __DIR__ . '/../views/relatorios.php';
@@ -21,6 +25,11 @@ class RelatoriosController extends BaseController
 
     public function export(): void
     {
+        if (!isset($_SESSION['user']) || !isset($_SESSION['proprietario_id'])) {
+            $this->respondErro('json', 'Usuário não autenticado.');
+            return;
+        }
+
         $modulo  = $_POST['modulo']  ?? '';
         $colunas = $_POST['colunas'] ?? [];
         $formato = $_POST['formato'] ?? 'csv';
@@ -125,23 +134,10 @@ class RelatoriosController extends BaseController
         return $rows;
     }
 
-    private function getProprietarioId(): int
-    {
-        if (($_SESSION['tipo'] ?? '') === 'proprietario') {
-            return (int)$_SESSION['user']['id'];
-        }
-        $uid  = (int)$_SESSION['user']['id'];
-        $stmt = $this->db->prepare('SELECT proprietario_id FROM peao WHERE id = ?');
-        $stmt->bind_param('i', $uid);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return (int)($row['proprietario_id'] ?? 0);
-    }
-
     private function getModulos(): array
     {
-        $pid  = $this->getProprietarioId();
+        // Puxa direto da sessão, sem query extra
+        $pid  = (int) $_SESSION['proprietario_id'];
         $tipo = $_SESSION['tipo'] ?? 'peao';
 
         $modulos = [
@@ -342,7 +338,8 @@ class RelatoriosController extends BaseController
                     'valor_operacao' => 'Valor (R$)',
                     'descricao'      => 'Descrição',
                 ],
-                'query'  => 'SELECT opf.tipo_operacao, opf.data, p.nome AS produto,
+                // Ajustado de 'opf.data' para 'opf.data_operacao AS data'
+                'query'  => 'SELECT opf.tipo_operacao, opf.data_operacao AS data, p.nome AS produto,
                                     opf.quantidade, opf.valor_operacao, opf.descricao
                              FROM operacoes_financeiras opf
                              LEFT JOIN produto p  ON opf.produto_id = p.id

@@ -14,7 +14,13 @@ class DashboardController extends BaseController
 
     public function index(): void
     {
-        $pid = $this->getProprietarioId();
+        // Garante que o usuário está logado antes de carregar o painel
+        if (!isset($_SESSION['user']) || !isset($_SESSION['proprietario_id'])) {
+            $this->redirect('login');
+        }
+
+        // Puxa direto da variável de sessão, sem fazer queries extras
+        $pid = (int) $_SESSION['proprietario_id'];
 
         $metricas          = $this->getMetricas($pid);
         $talhoes           = $this->getTalhoes($pid);
@@ -150,20 +156,5 @@ class DashboardController extends BaseController
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
         return $rows;
-    }
-
-    private function getProprietarioId(): int
-    {
-        if (($_SESSION['tipo'] ?? '') === 'proprietario') {
-            return (int) $_SESSION['user']['id'];
-        }
-        // peão: busca o proprietário a quem pertence
-        $stmt = $this->db->prepare('SELECT proprietario_id FROM peao WHERE id = ?');
-        $uid  = (int) $_SESSION['user']['id'];
-        $stmt->bind_param('i', $uid);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return (int) ($row['proprietario_id'] ?? 0);
     }
 }

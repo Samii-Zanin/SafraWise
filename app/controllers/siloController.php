@@ -17,7 +17,8 @@ class SiloController extends BaseController
 
     public function getAll(): array
     {
-        $proprietarioId = (int) $_SESSION['user']['id'];
+        // Usa o ID do proprietário
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("
             SELECT
@@ -42,7 +43,8 @@ class SiloController extends BaseController
 
     public function getAllSilos(): array
     {
-        $proprietarioId = (int) $_SESSION['user']['id'];
+        // Usa o ID correto do dono da fazenda
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("
             SELECT
@@ -95,6 +97,13 @@ class SiloController extends BaseController
             $this->redirect('login');
         }
 
+        // Peão não pode cadastrar novos silos
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode cadastrar novos silos.');
+            $this->redirect('silos');
+            return;
+        }
+
         $dados = [
             'propriedade_id' => (int)   ($_POST['propriedade_id'] ?? 0),
             'nome'           => trim(    $_POST['nome']            ?? ''),
@@ -115,11 +124,13 @@ class SiloController extends BaseController
             return;
         }
 
+        // Usa a sessão do proprietário_id para checagem
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
         $stmtCheck = $this->db->prepare(
             "SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?"
         );
-        $uid = (int) $_SESSION['user']['id'];
-        $stmtCheck->bind_param("ii", $dados['propriedade_id'], $uid);
+        
+        $stmtCheck->bind_param("ii", $dados['propriedade_id'], $proprietarioId);
         $stmtCheck->execute();
         if ($stmtCheck->get_result()->num_rows === 0) {
             $this->setToast('error', 'Acesso negado', 'Propriedade não encontrada.');
@@ -163,6 +174,13 @@ class SiloController extends BaseController
             $this->redirect('login');
         }
 
+        // Peão não pode alterar silos
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode alterar a capacidade ou cultura de um silo.');
+            $this->redirect('silos');
+            return;
+        }
+
         $id            = (int)   ($_POST['id']            ?? 0);
         $cultura       = trim(    $_POST['cultura']        ?? '');
         $capacidade_kg = (float)  ($_POST['capacidade_kg'] ?? 0);
@@ -173,13 +191,14 @@ class SiloController extends BaseController
             return;
         }
 
-        $uid       = (int) $_SESSION['user']['id'];
+        // Usa a sessão do proprietário_id para checagem
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
         $stmtCheck = $this->db->prepare("
             SELECT s.id FROM silo s
             JOIN propriedade p ON s.propriedade_id = p.id
             WHERE s.id = ? AND p.proprietario_id = ?
         ");
-        $stmtCheck->bind_param("ii", $id, $uid);
+        $stmtCheck->bind_param("ii", $id, $proprietarioId);
         $stmtCheck->execute();
         if ($stmtCheck->get_result()->num_rows === 0) {
             $this->setToast('error', 'Acesso negado', 'Silo não encontrado.');
@@ -215,15 +234,24 @@ class SiloController extends BaseController
             $this->redirect('login');
         }
 
-        $id  = (int) ($_POST['id'] ?? 0);
-        $uid = (int) $_SESSION['user']['id'];
+        // Peão não pode demolir/apagar silos
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode remover silos do sistema.');
+            $this->redirect('silos');
+            return;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        
+        // Usa a sessão do proprietário_id para checagem
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmtCheck = $this->db->prepare("
             SELECT s.id FROM silo s
             JOIN propriedade p ON s.propriedade_id = p.id
             WHERE s.id = ? AND p.proprietario_id = ?
         ");
-        $stmtCheck->bind_param("ii", $id, $uid);
+        $stmtCheck->bind_param("ii", $id, $proprietarioId);
         $stmtCheck->execute();
         if ($stmtCheck->get_result()->num_rows === 0) {
             $this->setToast('error', 'Acesso negado', 'Silo não encontrado.');

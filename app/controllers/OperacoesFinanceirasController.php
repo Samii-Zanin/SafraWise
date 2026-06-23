@@ -1,6 +1,6 @@
 <?php
 /*
-  app/controllers/OperacoesFinanceirasController.php
+ * app/controllers/OperacoesFinanceirasController.php
  */
 
 require_once __DIR__ . '/BaseController.php';
@@ -20,6 +20,13 @@ class OperacoesFinanceirasController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
+        }
+
+        // Peão não pode registrar compras financeiras
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode registrar compras de insumos.');
+            $this->redirect('estoques');
+            return;
         }
 
         $produto_id     = (int)   ($_POST['produto_id']     ?? 0);
@@ -45,6 +52,18 @@ class OperacoesFinanceirasController extends BaseController
             return;
         }
 
+        // Verifica se a propriedade realmente pertence ao dono logado
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
+        $stmtProp = $this->db->prepare("SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?");
+        $stmtProp->bind_param("ii", $propriedade_id, $proprietarioId);
+        $stmtProp->execute();
+        if ($stmtProp->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Esta propriedade não pertence a você.');
+            $this->redirect('estoques');
+            return;
+        }
+        $stmtProp->close();
+
         $valor_por_dose = round($valor_total / $quantidade, 4);
 
         try {
@@ -66,43 +85,43 @@ class OperacoesFinanceirasController extends BaseController
             $stmt->close();
 
             if ($insumo) {
-            $insumo_id          = $insumo['id'];
-            $valor_dose_atual   = (float) $insumo['valor_por_dose'];
+                $insumo_id          = $insumo['id'];
+                $valor_dose_atual   = (float) $insumo['valor_por_dose'];
 
-            $stmtQtd = $this->db->prepare(
-                "SELECT quantidade FROM estoque_insumos
-                WHERE insumo_id = ? AND propriedade_id = ? LIMIT 1"
-            );
-            $stmtQtd->bind_param("ii", $insumo_id, $propriedade_id);
-            $stmtQtd->execute();
-            $estoqueAtual = $stmtQtd->get_result()->fetch_assoc();
-            $stmtQtd->close();
+                $stmtQtd = $this->db->prepare(
+                    "SELECT quantidade FROM estoque_insumos
+                    WHERE insumo_id = ? AND propriedade_id = ? LIMIT 1"
+                );
+                $stmtQtd->bind_param("ii", $insumo_id, $propriedade_id);
+                $stmtQtd->execute();
+                $estoqueAtual = $stmtQtd->get_result()->fetch_assoc();
+                $stmtQtd->close();
 
-            $qtd_atual = $estoqueAtual ? (float) $estoqueAtual['quantidade'] : 0;
+                $qtd_atual = $estoqueAtual ? (float) $estoqueAtual['quantidade'] : 0;
 
-            $total_qtd  = $qtd_atual + $quantidade;
-            $valor_por_dose_medio = $total_qtd > 0
-                ? ($qtd_atual * $valor_dose_atual + $quantidade * $valor_por_dose) / $total_qtd
-                : $valor_por_dose;
+                $total_qtd  = $qtd_atual + $quantidade;
+                $valor_por_dose_medio = $total_qtd > 0
+                    ? ($qtd_atual * $valor_dose_atual + $quantidade * $valor_por_dose) / $total_qtd
+                    : $valor_por_dose;
 
-            $stmt = $this->db->prepare("UPDATE insumo SET valor_por_dose = ? WHERE id = ?");
-            $stmt->bind_param("di", $valor_por_dose_medio, $insumo_id);
-            if (!$stmt->execute()) {
-                throw new \RuntimeException("Falha ao atualizar insumo: {$this->db->error}");
+                $stmt = $this->db->prepare("UPDATE insumo SET valor_por_dose = ? WHERE id = ?");
+                $stmt->bind_param("di", $valor_por_dose_medio, $insumo_id);
+                if (!$stmt->execute()) {
+                    throw new \RuntimeException("Falha ao atualizar insumo: {$this->db->error}");
+                }
+                $stmt->close();
+
+            } else {
+                $stmt = $this->db->prepare(
+                    "INSERT INTO insumo (produto_id, valor_por_dose) VALUES (?, ?)"
+                );
+                $stmt->bind_param("id", $produto_id, $valor_por_dose);
+                if (!$stmt->execute()) {
+                    throw new \RuntimeException("Falha ao criar insumo: {$this->db->error}");
+                }
+                $insumo_id = $this->db->insert_id;
+                $stmt->close();
             }
-            $stmt->close();
-
-        } else {
-            $stmt = $this->db->prepare(
-                "INSERT INTO insumo (produto_id, valor_por_dose) VALUES (?, ?)"
-            );
-            $stmt->bind_param("id", $produto_id, $valor_por_dose);
-            if (!$stmt->execute()) {
-                throw new \RuntimeException("Falha ao criar insumo: {$this->db->error}");
-            }
-            $insumo_id = $this->db->insert_id;
-            $stmt->close();
-        }
 
             $stmt = $this->db->prepare(
                 "SELECT id, quantidade FROM estoque_insumos
@@ -149,6 +168,13 @@ class OperacoesFinanceirasController extends BaseController
             $this->redirect('login');
         }
 
+        // Peão não pode registrar venda de cereais (dinheiro)
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas o proprietário pode registrar vendas de cereais.');
+            $this->redirect('estoques');
+            return;
+        }
+
         $tipo_operacao  = 'VENDA DE CEREAIS';
         $valor_total    = (float) str_replace(',', '.', $_POST['valor_operacao'] ?? 0);
         $descricao      = trim(   $_POST['descricao']       ?? '');
@@ -172,6 +198,18 @@ class OperacoesFinanceirasController extends BaseController
             $this->redirect('estoques');
             return;
         }
+
+        
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
+        $stmtProp = $this->db->prepare("SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?");
+        $stmtProp->bind_param("ii", $propriedade_id, $proprietarioId);
+        $stmtProp->execute();
+        if ($stmtProp->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Esta propriedade não pertence a você.');
+            $this->redirect('estoques');
+            return;
+        }
+        $stmtProp->close();
 
         try {
 
@@ -232,13 +270,13 @@ class OperacoesFinanceirasController extends BaseController
             }
             $stmt->close();
 
-            $this->setToast('success', 'Compra Registrada!',
+            $this->setToast('success', 'Venda Registrada!',
                 'A operação financeira foi salva e o estoque atualizado.');
             $this->redirect('estoques');
 
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            $this->setToast('error', 'Erro interno', 'Não foi possível registrar a compra. Tente novamente.'. $e->getMessage());
+            $this->setToast('error', 'Erro interno', 'Não foi possível registrar a venda. Tente novamente.'. $e->getMessage());
             $this->redirect('estoques');
         }
     }
@@ -250,6 +288,8 @@ class OperacoesFinanceirasController extends BaseController
             $this->redirect('login');
         }
 
+        //  Peão PODE registrar saída simples (sem valor financeiro)
+
         $produto_id     = (int)   ($_POST['produto_id']     ?? 0);
         $quantidade     = (float) str_replace(',', '.', $_POST['quantidade'] ?? 0);
         $propriedade_id = (int)   ($_POST['propriedade_id'] ?? 0);
@@ -260,6 +300,18 @@ class OperacoesFinanceirasController extends BaseController
             $this->redirect('estoques');
             return;
         }
+
+       
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
+        $stmtProp = $this->db->prepare("SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ?");
+        $stmtProp->bind_param("ii", $propriedade_id, $proprietarioId);
+        $stmtProp->execute();
+        if ($stmtProp->get_result()->num_rows === 0) {
+            $this->setToast('error', 'Acesso negado', 'Esta propriedade não pertence à fazenda.');
+            $this->redirect('estoques');
+            return;
+        }
+        $stmtProp->close();
 
         try {
             $stmt = $this->db->prepare(
@@ -332,48 +384,51 @@ class OperacoesFinanceirasController extends BaseController
 
 
     public function getMovimentacoesEstoqueInsumos(): array
-{
-    if (!isset($_SESSION['user'])) {
-        $this->redirect('login');
-    }
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('login');
+        }
+
+        // Aplica filtro para buscar apenas as movimentações da fazenda atual
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("
         with safras as (
-    select
-        s.id, 
-        s.data_inicio,
-        s.data_fim,
-        t.nome as talhao_nome,
-        c.nome as cultura_plantada,
-        p.nome as propriedade_nome
-    from
-        safra s
-    left join talhoes t on
-    s.talhao_id = t.id
-    left join cultura c on 
-    s.cultura_id= c.id
-    join propriedade p on p.id = t.propriedade_id
-    )
-    -- Adicione o join de produto
-select
-    opf.id as operacao_id,
-    opf.tipo_operacao,
-    opf.descricao,
-    opf.valor_operacao,
-    opf.quantidade,
-    ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) as valor_unitario,
-    opf.data_operacao,
-    UPPER(p.nome)      AS nome_produto,  
-    p.marca     AS marca_produto, 
-    p.tipo      AS tipo,
-    s.talhao_nome,
-    s.cultura_plantada,
-    s.propriedade_nome
-from operacoes_financeiras opf
-left join produto p  ON p.id  = opf.produto_id 
-left join safras s   ON s.id  = opf.safra_id
-where opf.tipo_operacao in ('COMPRA DE INSUMOS', 'VENDA DE INSUMOS')
+            select
+                s.id, 
+                s.data_inicio,
+                s.data_fim,
+                t.nome as talhao_nome,
+                c.nome as cultura_plantada,
+                p.nome as propriedade_nome,
+                p.proprietario_id
+            from
+                safra s
+            left join talhoes t on s.talhao_id = t.id
+            left join cultura c on s.cultura_id= c.id
+            join propriedade p on p.id = t.propriedade_id
+            where p.proprietario_id = ?
+        )
+        select
+            opf.id as operacao_id,
+            opf.tipo_operacao,
+            opf.descricao,
+            opf.valor_operacao,
+            opf.quantidade,
+            ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) as valor_unitario,
+            opf.data_operacao,
+            UPPER(p.nome)      AS nome_produto,  
+            p.marca     AS marca_produto, 
+            p.tipo      AS tipo,
+            s.talhao_nome,
+            s.cultura_plantada,
+            s.propriedade_nome
+        from operacoes_financeiras opf
+        left join produto p  ON p.id  = opf.produto_id 
+        join safras s   ON s.id  = opf.safra_id
+        where opf.tipo_operacao in ('COMPRA DE INSUMOS', 'VENDA DE INSUMOS')
         ");
+        $stmt->bind_param("i", $proprietarioId);
         $stmt->execute();
         $movimentacoes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
@@ -381,49 +436,53 @@ where opf.tipo_operacao in ('COMPRA DE INSUMOS', 'VENDA DE INSUMOS')
     }
 
     public function getMovimentacoesSilos(): array
-{
-    if (!isset($_SESSION['user'])) {
-        $this->redirect('login');
-    }
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('login');
+        }
+
+        // Aplica filtro para buscar apenas as movimentações da fazenda atual
+        $proprietarioId = (int) $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("
         with safras as (
-    select
-        s.id, 
-        s.data_inicio,
-        s.data_fim,
-        t.nome as talhao_nome,
-        c.nome as cultura_plantada,
-        p.nome as propriedade_nome,
-        p.id as propriedade_id
-    from
-        safra s
-    left join talhoes t on
-    s.talhao_id = t.id
-    left join cultura c on 
-    s.cultura_id= c.id
-    join propriedade p on p.id = t.propriedade_id
-    )
-select
-    opf.id as operacao_id,
-    opf.tipo_operacao,
-    opf.descricao,
-    opf.valor_operacao,
-    opf.quantidade,
-    ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) * 60 as valor_unitario,
-    opf.data_operacao,
-    UPPER(p.nome)      AS nome_produto,  
-    p.tipo      AS tipo,
-    s.talhao_nome,
-    s.cultura_plantada,
-    si.nome as nome_silo,
-    si.cultura as produto_armazenado
-from operacoes_financeiras opf
-left join produto p  ON p.id  = opf.produto_id 
-left join safras s   ON s.id  = opf.safra_id
-left join silo si on si.propriedade_id = s.propriedade_id
-where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
+            select
+                s.id, 
+                s.data_inicio,
+                s.data_fim,
+                t.nome as talhao_nome,
+                c.nome as cultura_plantada,
+                p.nome as propriedade_nome,
+                p.id as propriedade_id,
+                p.proprietario_id
+            from
+                safra s
+            left join talhoes t on s.talhao_id = t.id
+            left join cultura c on s.cultura_id= c.id
+            join propriedade p on p.id = t.propriedade_id
+            where p.proprietario_id = ?
+        )
+        select
+            opf.id as operacao_id,
+            opf.tipo_operacao,
+            opf.descricao,
+            opf.valor_operacao,
+            opf.quantidade,
+            ROUND(opf.valor_operacao / NULLIF(opf.quantidade, 0), 2) * 60 as valor_unitario,
+            opf.data_operacao,
+            UPPER(p.nome)      AS nome_produto,  
+            p.tipo      AS tipo,
+            s.talhao_nome,
+            s.cultura_plantada,
+            si.nome as nome_silo,
+            si.cultura as produto_armazenado
+        from operacoes_financeiras opf
+        left join produto p  ON p.id  = opf.produto_id 
+        join safras s   ON s.id  = opf.safra_id
+        left join silo si on si.propriedade_id = s.propriedade_id
+        where opf.tipo_operacao in ('SAÍDA DE CEREAIS', 'VENDA DE CEREAIS')
         ");
+        $stmt->bind_param("i", $proprietarioId);
         $stmt->execute();
         $movimentacoes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();

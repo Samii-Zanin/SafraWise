@@ -16,12 +16,15 @@ class PeaoController extends BaseController
 
     public function index(): void
     {
+        // Apenas o dono pode ver a lista da equipe
         if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
             $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem gerenciar a equipe.');
             $this->redirect('dashboard');
+            return;
         }
 
-        $proprietarioId = $_SESSION['user']['id'];
+        // Usa a variável padronizada
+        $proprietarioId = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare(
             "SELECT id, nome, cpf_cnpj, telefone, email
@@ -41,7 +44,8 @@ class PeaoController extends BaseController
 
     public function getAll(): array
     {
-        $proprietarioId = $_SESSION['user']['id'];
+        // Usa a variável padronizada
+        $proprietarioId = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare(
             "SELECT id, nome, cpf_cnpj, telefone, email
@@ -64,7 +68,14 @@ class PeaoController extends BaseController
             $this->redirect('login');
         }
 
-        $proprietarioId = $_SESSION['user']['id'];
+        
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem cadastrar funcionários.');
+            $this->redirect('dashboard');
+            return;
+        }
+
+        $proprietarioId = $_SESSION['proprietario_id'];
 
         $dados = [
             'nome'     => trim($_POST['nome']     ?? ''),
@@ -74,24 +85,27 @@ class PeaoController extends BaseController
             'senha'    => $_POST['senha']         ?? '',
         ];
 
-        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços vindo da máscara do formulário
+        // Remove pontos/traços vindo da máscara do formulário
         $dados['cpf_cnpj'] = preg_replace('/\D/', '', $dados['cpf_cnpj']);
 
         $erros = $this->validator->validar($dados);
         if (!empty($erros)) {
             $this->setToast('warning', 'Campos Obrigatórios', implode(' ', $erros));
             $this->redirect('equipe');
+            return;
         }
 
-        // 🌟 VALIDAÇÃO MATEMÁTICA: Barra se o CPF for inválido no algoritmo de Módulo 11
+        // Barra se o CPF for inválido no algoritmo de Módulo 11
         if (!$this->validarCPF($dados['cpf_cnpj'])) {
             $this->setToast('error', 'CPF Inválido', 'O número de CPF informado não é válido. Verifique os dígitos.');
             $this->redirect('equipe');
+            return;
         }
 
         if ($this->validator->cpfJaExiste($dados['cpf_cnpj'])) {
             $this->setToast('error', 'Erro', 'Já existe um peão cadastrado com este CPF.');
             $this->redirect('equipe');
+            return;
         }
 
         try {
@@ -131,8 +145,13 @@ class PeaoController extends BaseController
     }
 
     public function edit(): void {
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->redirect('dashboard');
+            return;
+        }
+
         $id = $_GET['id'] ?? null;
-        $proprietario_id = $_SESSION['user']['id'];
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("SELECT * FROM peao WHERE id = ? AND proprietario_id = ?");
         $stmt->bind_param("ii", $id, $proprietario_id);
@@ -150,17 +169,22 @@ class PeaoController extends BaseController
 
     // Processa a atualização dos dados
     public function update(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->redirect('dashboard');
+            return;
+        }
+
         $id = $_POST['id'];
-        $proprietario_id = $_SESSION['user']['id'];
+        $proprietario_id = $_SESSION['proprietario_id'];
         $nome = trim($_POST['nome']);
         $cpf = trim($_POST['cpf_cnpj']);
         $telefone = trim($_POST['telefone']);
         $email = trim($_POST['email']);
 
-        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços na atualização também
+        // Remove pontos/traços na atualização também
         $cpf = preg_replace('/\D/', '', $cpf);
 
-        // 🌟 VALIDAÇÃO MATEMÁTICA: Valida o CPF na edição para evitar corrupção de dados antigos
+        // Valida o CPF na edição para evitar corrupção de dados antigos
         if (!$this->validarCPF($cpf)) {
             $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'CPF Inválido', 'mensagem' => 'O número de CPF informado não é válido.'];
             header("Location: index.php?page=equipe");
@@ -177,12 +201,19 @@ class PeaoController extends BaseController
             $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Falha ao atualizar.'];
         }
         header("Location: index.php?page=equipe");
+        exit;
     }
 
     // Exclui o peão
     public function delete(): void {
+        
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->redirect('dashboard');
+            return;
+        }
+
         $id = $_GET['id'];
-        $proprietario_id = $_SESSION['user']['id'];
+        $proprietario_id = $_SESSION['proprietario_id'];
 
         $stmt = $this->db->prepare("DELETE FROM peao WHERE id = ? AND proprietario_id = ?");
         $stmt->bind_param("ii", $id, $proprietario_id);
@@ -191,6 +222,7 @@ class PeaoController extends BaseController
             $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Removido', 'mensagem' => 'Colaborador excluído da equipe.'];
         }
         header("Location: index.php?page=equipe");
+        exit;
     }
 
     /**

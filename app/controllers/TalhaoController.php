@@ -162,16 +162,6 @@ class TalhaoController {
         $this->finalizarAcao($stmt->execute(), "Talhão atualizado!", "Erro na atualização.");
     }
 
-    public function updateStatus(int $safra_id): void {
-
-        talhao_id = getBySafraId($safra_id)['talhao_id'];
-
-        $stmt = $this->db->prepare("UPDATE talhoes SET nome = ?, area_hectare = ?, tipo_posse = ?, custo_arrendamento_sacas = ? WHERE id = ?");
-        $stmt->bind_param("sdsdi", $nome, $area, $tipo_posse, $custo, $id);
-        
-        $this->finalizarAcao($stmt->execute(), "Talhão atualizado!", "Erro na atualização.");
-    }
-
     public function delete(): void {
         // Peão não pode excluir talhão
         if ($_SESSION['tipo'] !== 'proprietario') {

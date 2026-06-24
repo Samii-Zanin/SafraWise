@@ -14,14 +14,45 @@ class PeaoController extends BaseController
         $this->validator = new PeaoValidator();
     }
 
+    // ─── helpers privados ────────────────────────────────────────────────────
+
+    private function getProprietarioId(): int
+    {
+        return (int) ($_SESSION['proprietario_id'] ?? 0);
+    }
+
+    /**
+     * Garante que o peão informado pertence ao proprietário logado
+     * antes de qualquer leitura ou escrita sensível.
+     */
+    private function validarPeao(int $peao_id): bool
+    {
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare(
+            "SELECT id FROM peao WHERE id = ? AND proprietario_id = ? LIMIT 1"
+        );
+        $stmt->bind_param("ii", $peao_id, $proprietario_id);
+        $stmt->execute();
+        $ok = (bool) $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $ok;
+    }
+
+    // ─── ações ───────────────────────────────────────────────────────────────
+
     public function index(): void
     {
+        // Apenas proprietários gerenciam a equipe — peão não tem acesso
         if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
-            $this->setToast('error', 'Acesso Negado', 'Apenas proprietários podem gerenciar a equipe.');
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas proprietários podem gerenciar a equipe.');
             $this->redirect('dashboard');
+            return;
         }
 
-        $proprietarioId = $_SESSION['user']['id'];
+        $proprietario_id = $this->getProprietarioId();
 
         $stmt = $this->db->prepare(
             "SELECT id, nome, cpf_cnpj, telefone, email
@@ -29,19 +60,19 @@ class PeaoController extends BaseController
              WHERE proprietario_id = ?
              ORDER BY nome ASC"
         );
-        $stmt->bind_param("i", $proprietarioId);
+        $stmt->bind_param("i", $proprietario_id);
         $stmt->execute();
-
         $equipe = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
         require_once __DIR__ . '/../views/equipe.php';
     }
 
-
     public function getAll(): array
     {
-        $proprietarioId = $_SESSION['user']['id'];
+        if (!isset($_SESSION['user'])) return [];
+
+        $proprietario_id = $this->getProprietarioId();
 
         $stmt = $this->db->prepare(
             "SELECT id, nome, cpf_cnpj, telefone, email
@@ -49,9 +80,8 @@ class PeaoController extends BaseController
              WHERE proprietario_id = ?
              ORDER BY nome ASC"
         );
-        $stmt->bind_param("i", $proprietarioId);
+        $stmt->bind_param("i", $proprietario_id);
         $stmt->execute();
-
         $peoes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
@@ -62,36 +92,46 @@ class PeaoController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
+            return;
         }
 
-        $proprietarioId = $_SESSION['user']['id'];
+        // Apenas proprietários podem cadastrar peões
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas proprietários podem cadastrar colaboradores.');
+            $this->redirect('dashboard');
+            return;
+        }
+
+        $proprietario_id = $this->getProprietarioId();
 
         $dados = [
             'nome'     => trim($_POST['nome']     ?? ''),
-            'cpf_cnpj' => trim($_POST['cpf_cnpj'] ?? ''),
+            'cpf_cnpj' => preg_replace('/\D/', '', trim($_POST['cpf_cnpj'] ?? '')),
             'telefone' => trim($_POST['telefone'] ?? ''),
             'email'    => trim($_POST['email']    ?? ''),
             'senha'    => $_POST['senha']         ?? '',
         ];
 
-        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços vindo da máscara do formulário
-        $dados['cpf_cnpj'] = preg_replace('/\D/', '', $dados['cpf_cnpj']);
-
         $erros = $this->validator->validar($dados);
         if (!empty($erros)) {
             $this->setToast('warning', 'Campos Obrigatórios', implode(' ', $erros));
             $this->redirect('equipe');
+            return;
         }
 
-        // 🌟 VALIDAÇÃO MATEMÁTICA: Barra se o CPF for inválido no algoritmo de Módulo 11
         if (!$this->validarCPF($dados['cpf_cnpj'])) {
-            $this->setToast('error', 'CPF Inválido', 'O número de CPF informado não é válido. Verifique os dígitos.');
+            $this->setToast('error', 'CPF Inválido',
+                'O número de CPF informado não é válido. Verifique os dígitos.');
             $this->redirect('equipe');
+            return;
         }
 
         if ($this->validator->cpfJaExiste($dados['cpf_cnpj'])) {
-            $this->setToast('error', 'Erro', 'Já existe um peão cadastrado com este CPF.');
+            $this->setToast('error', 'CPF já cadastrado',
+                'Já existe um peão cadastrado com este CPF.');
             $this->redirect('equipe');
+            return;
         }
 
         try {
@@ -111,92 +151,163 @@ class PeaoController extends BaseController
                 $dados['telefone'],
                 $emailBanco,
                 $senhaHash,
-                $proprietarioId
+                $proprietario_id
             );
 
             if (!$stmt->execute()) {
                 throw new \RuntimeException("Falha ao inserir peão: {$this->db->error}");
             }
-
             $stmt->close();
 
-            $this->setToast('success', 'Colaborador Cadastrado!', "{$dados['nome']} foi adicionado à sua equipe.");
+            $this->setToast('success', 'Colaborador Cadastrado!',
+                "{$dados['nome']} foi adicionado à sua equipe.");
             $this->redirect('equipe');
 
         } catch (\Exception $e) {
             error_log($e->getMessage());
-            $this->setToast('error', 'Erro interno', 'Não foi possível salvar o peão. Tente novamente.');
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível salvar o colaborador. Tente novamente.');
             $this->redirect('equipe');
         }
     }
 
-    public function edit(): void {
-        $id = $_GET['id'] ?? null;
-        $proprietario_id = $_SESSION['user']['id'];
+    public function edit(): void
+    {
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas proprietários podem editar colaboradores.');
+            $this->redirect('dashboard');
+            return;
+        }
 
-        $stmt = $this->db->prepare("SELECT * FROM peao WHERE id = ? AND proprietario_id = ?");
-        $stmt->bind_param("ii", $id, $proprietario_id);
+        $peao_id = (int) ($_GET['id'] ?? 0);
+
+        if (!$peao_id || !$this->validarPeao($peao_id)) {
+            $this->setToast('error', 'Erro', 'Peão não encontrado.');
+            $this->redirect('equipe');
+            return;
+        }
+
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare(
+            "SELECT * FROM peao WHERE id = ? AND proprietario_id = ? LIMIT 1"
+        );
+        $stmt->bind_param("ii", $peao_id, $proprietario_id);
         $stmt->execute();
         $peao = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-        if (!$peao) {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Peão não encontrado.'];
-            header("Location: index.php?page=equipe");
-            exit;
-        }
-
-        require_once "../app/views/edit_peao.php";
+        require_once __DIR__ . '/../views/edit_peao.php';
     }
 
-    // Processa a atualização dos dados
-    public function update(): void {
-        $id = $_POST['id'];
-        $proprietario_id = $_SESSION['user']['id'];
-        $nome = trim($_POST['nome']);
-        $cpf = trim($_POST['cpf_cnpj']);
-        $telefone = trim($_POST['telefone']);
-        $email = trim($_POST['email']);
+    public function update(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
+        }
 
-        // 🌟 HIGIENIZAÇÃO: Remove pontos/traços na atualização também
-        $cpf = preg_replace('/\D/', '', $cpf);
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas proprietários podem editar colaboradores.');
+            $this->redirect('dashboard');
+            return;
+        }
 
-        // 🌟 VALIDAÇÃO MATEMÁTICA: Valida o CPF na edição para evitar corrupção de dados antigos
+        $peao_id         = (int) ($_POST['id'] ?? 0);
+        $proprietario_id = $this->getProprietarioId();
+
+        if (!$peao_id || !$this->validarPeao($peao_id)) {
+            $this->setToast('error', 'Erro', 'Peão não encontrado.');
+            $this->redirect('equipe');
+            return;
+        }
+
+        $nome     = trim($_POST['nome']     ?? '');
+        $cpf      = preg_replace('/\D/', '', trim($_POST['cpf_cnpj'] ?? ''));
+        $telefone = trim($_POST['telefone'] ?? '');
+        $email    = trim($_POST['email']    ?? '');
+
         if (!$this->validarCPF($cpf)) {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'CPF Inválido', 'mensagem' => 'O número de CPF informado não é válido.'];
-            header("Location: index.php?page=equipe");
-            exit;
+            $this->setToast('error', 'CPF Inválido',
+                'O número de CPF informado não é válido.');
+            $this->redirect('equipe');
+            return;
         }
 
-        $sql = "UPDATE peao SET nome = ?, cpf_cnpj = ?, telefone = ?, email = ? WHERE id = ? AND proprietario_id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("ssssii", $nome, $cpf, $telefone, $email, $id, $proprietario_id);
+        try {
+            $stmt = $this->db->prepare(
+                "UPDATE peao
+                 SET nome = ?, cpf_cnpj = ?, telefone = ?, email = ?
+                 WHERE id = ? AND proprietario_id = ?"
+            );
+            $stmt->bind_param("ssssii", $nome, $cpf, $telefone, $email,
+                              $peao_id, $proprietario_id);
 
-        if ($stmt->execute()) {
-            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Sucesso', 'mensagem' => 'Dados atualizados!'];
-        } else {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Falha ao atualizar.'];
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao atualizar peão: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Sucesso', 'Dados atualizados!');
+            $this->redirect('equipe');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível atualizar o colaborador. Tente novamente.');
+            $this->redirect('equipe');
         }
-        header("Location: index.php?page=equipe");
     }
 
-    // Exclui o peão
-    public function delete(): void {
-        $id = $_GET['id'];
-        $proprietario_id = $_SESSION['user']['id'];
-
-        $stmt = $this->db->prepare("DELETE FROM peao WHERE id = ? AND proprietario_id = ?");
-        $stmt->bind_param("ii", $id, $proprietario_id);
-
-        if ($stmt->execute()) {
-            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Removido', 'mensagem' => 'Colaborador excluído da equipe.'];
+    public function delete(): void
+    {
+        if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas proprietários podem remover colaboradores.');
+            $this->redirect('dashboard');
+            return;
         }
-        header("Location: index.php?page=equipe");
+
+        $peao_id         = (int) ($_GET['id'] ?? 0);
+        $proprietario_id = $this->getProprietarioId();
+
+        if (!$peao_id || !$this->validarPeao($peao_id)) {
+            $this->setToast('error', 'Erro', 'Peão não encontrado.');
+            $this->redirect('equipe');
+            return;
+        }
+
+        try {
+            $stmt = $this->db->prepare(
+                "DELETE FROM peao WHERE id = ? AND proprietario_id = ?"
+            );
+            $stmt->bind_param("ii", $peao_id, $proprietario_id);
+
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao excluir peão: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Removido', 'Colaborador excluído da equipe.');
+            $this->redirect('equipe');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível remover o colaborador. Tente novamente.');
+            $this->redirect('equipe');
+        }
     }
+
+    // ─── utilitários ─────────────────────────────────────────────────────────
 
     /**
      * Algoritmo de Validação Oficial de CPF (Módulo 11)
      */
-    private function validarCPF(string $cpf): bool {
+    private function validarCPF(string $cpf): bool
+    {
         if (strlen($cpf) !== 11 || preg_match('/(\d)\1{10}/', $cpf)) {
             return false;
         }

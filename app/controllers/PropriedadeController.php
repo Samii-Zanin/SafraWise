@@ -1,217 +1,316 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
+require_once __DIR__ . '/../../config/conexao.php';
 
-class PropriedadeController {
+class PropriedadeController extends BaseController
+{
     private mysqli $db;
 
     public function __construct()
     {
-        $this->db= Conexao::getConexao();
+        $this->db = Conexao::getConexao();
     }
+
+    // ─── helpers privados ────────────────────────────────────────────────────
+
+    private function getProprietarioId(): int
+    {
+        return (int) ($_SESSION['proprietario_id'] ?? 0);
+    }
+
+    /**
+     * Valida as regras de negócio das áreas.
+     * Retorna a mensagem de erro ou null se tudo estiver OK.
+     */
+    private function validarAreas(float $area_total, float $area_produtiva): ?string
+    {
+        if ($area_total <= 0) {
+            return 'A área total da propriedade deve ser maior que zero.';
+        }
+        if ($area_produtiva < 0) {
+            return 'A área produtiva não pode ser um valor negativo.';
+        }
+        if ($area_produtiva > $area_total) {
+            return 'A área produtiva não pode ser maior do que a área total da fazenda.';
+        }
+        return null;
+    }
+
+    /**
+     * Garante que a propriedade pertence ao proprietário logado.
+     */
+    private function validarPropriedade(int $propriedade_id): bool
+    {
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare(
+            "SELECT id FROM propriedade WHERE id = ? AND proprietario_id = ? LIMIT 1"
+        );
+        $stmt->bind_param("ii", $propriedade_id, $proprietario_id);
+        $stmt->execute();
+        $ok = (bool) $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $ok;
+    }
+
+    // ─── ações ───────────────────────────────────────────────────────────────
 
     public function getAll(): array
     {
-        //  Usa o ID do dono da fazenda, independente de quem está logado
-        $uid  = (int) $_SESSION['proprietario_id']; 
-        
+        $proprietario_id = $this->getProprietarioId();
+
         $stmt = $this->db->prepare(
-            "SELECT id, nome, municipio, estado FROM propriedade WHERE proprietario_id = ? ORDER BY nome"
+            "SELECT id, nome, localizacao, municipio, estado, area_total, area_produtiva
+         FROM propriedade
+         WHERE proprietario_id = ?
+         ORDER BY nome ASC"
         );
-        $stmt->bind_param("i", $uid);
+        $stmt->bind_param("i", $proprietario_id);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
+
         return $result;
     }
 
-    // Listagem de propriedades
-    public function index(): void {
-        // Usa o ID do dono da fazenda
-        $proprietario_id = $_SESSION['proprietario_id'];
+    public function index(): void
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
+        }
 
-        $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE proprietario_id = ?");
-        $stmt->bind_param("i", $proprietario_id);
-        $stmt->execute();
-        $propriedades = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $propriedades = $this->getAll();
 
-        require_once "../app/views/propriedade.php";
+        require_once __DIR__ . '/../views/propriedade.php';
     }
 
-    // Salvar nova propriedade
-    public function store(): void {
-        // Peão não pode criar propriedade
+    public function store(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
+        }
+
         if ($_SESSION['tipo'] !== 'proprietario') {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode cadastrar novas fazendas.'];
-            header("Location: index.php?page=propriedades");
-            exit;
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas o proprietário pode cadastrar novas fazendas.');
+            $this->redirect('propriedades');
+            return;
         }
 
-        $proprietario_id = $_SESSION['proprietario_id'];
-        $nome = trim($_POST['nome']);
-        $localizacao = trim($_POST['localizacao']);
-        $municipio = trim($_POST['municipio']);
-        $estado = strtoupper(trim($_POST['estado']));
-        $area_total = floatval($_POST['area_total']);
-        $area_produtiva = floatval($_POST['area_produtiva']);
+        $proprietario_id = $this->getProprietarioId();
+        $nome            = trim($_POST['nome']        ?? '');
+        $localizacao     = trim($_POST['localizacao'] ?? '');
+        $municipio       = trim($_POST['municipio']   ?? '');
+        $estado          = strtoupper(trim($_POST['estado'] ?? ''));
+        $area_total      = (float) ($_POST['area_total']      ?? 0);
+        $area_produtiva  = (float) ($_POST['area_produtiva']  ?? 0);
 
-        if ($area_total <= 0) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Área Inválida', 
-                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
+        if (empty($nome) || empty($municipio) || empty($estado)) {
+            $this->setToast('warning', 'Campos Obrigatórios',
+                'Nome, município e estado são obrigatórios.');
+            $this->redirect('propriedades');
+            return;
         }
 
-        if ($area_produtiva < 0) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Área Inválida', 
-                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
+        $erroArea = $this->validarAreas($area_total, $area_produtiva);
+        if ($erroArea) {
+            $this->setToast('error', 'Área Inválida', $erroArea);
+            $this->redirect('propriedades');
+            return;
         }
 
-        if ($area_produtiva > $area_total) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Conflito de Áreas', 
-                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        $stmt = $this->db->prepare("INSERT INTO propriedade (nome, localizacao, municipio, estado, area_total, area_produtiva, proprietario_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssddi", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $proprietario_id);
-
-        if ($stmt->execute()) {
-            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Sucesso', 'mensagem' => 'Propriedade cadastrada com sucesso!'];
-        } else {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Falha ao cadastrar propriedade.'];
-        }
-
-        header("Location: index.php?page=propriedades");
-        exit;
-    }
-
-    // Atualizar propriedade existente
-    public function update(): void {
-        // Peão não pode editar propriedade
-        if ($_SESSION['tipo'] !== 'proprietario') {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode editar os dados da fazenda.'];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        $proprietario_id = $_SESSION['proprietario_id'];
-        $id = intval($_POST['id']);
-        $nome = trim($_POST['nome']);
-        $localizacao = trim($_POST['localizacao']);
-        $municipio = trim($_POST['municipio']);
-        $estado = strtoupper(trim($_POST['estado']));
-        $area_total = floatval($_POST['area_total']);
-        $area_produtiva = floatval($_POST['area_produtiva']);
-
-        if ($area_total <= 0) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Área Inválida', 
-                'mensagem' => 'A área total da propriedade deve ser maior que zero.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        if ($area_produtiva < 0) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Área Inválida', 
-                'mensagem' => 'A área produtiva não pode ser um valor negativo.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        if ($area_produtiva > $area_total) {
-            $_SESSION['toast'] = [
-                'tipo' => 'error', 
-                'titulo' => 'Conflito de Áreas', 
-                'mensagem' => 'A área produtiva não pode ser maior do que a área total da fazenda.'
-            ];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-        
-        $stmt = $this->db->prepare("UPDATE propriedade SET nome = ?, localizacao = ?, municipio = ?, estado = ?, area_total = ?, area_produtiva = ? WHERE id = ? AND proprietario_id = ?");
-        $stmt->bind_param("ssssddii", $nome, $localizacao, $municipio, $estado, $area_total, $area_produtiva, $id, $proprietario_id);
-
-        if ($stmt->execute()) {
-            $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Atualizado', 'mensagem' => 'Dados da propriedade atualizados!'];
-        } else {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Erro', 'mensagem' => 'Falha ao atualizar propriedade.'];
-        }
-
-        header("Location: index.php?page=propriedades");
-        exit;
-    }
-
-    // Excluir propriedade
-    public function delete(): void {
-        //  Peão não pode excluir propriedade
-        if ($_SESSION['tipo'] !== 'proprietario') {
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Acesso Negado', 'mensagem' => 'Apenas o proprietário pode excluir uma fazenda.'];
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        $proprietario_id = $_SESSION['proprietario_id'];
-        $id = intval($_GET['id']);
-
-        // IMPORTANTE: Antes de excluir, o MySQL vai checar se existem talhões ou insumos amarrados a ela por conta da FK.
         try {
-            $stmt = $this->db->prepare("DELETE FROM propriedade WHERE id = ? AND proprietario_id = ?");
-            $stmt->bind_param("ii", $id, $proprietario_id);
-            
-            if ($stmt->execute()) {
-                $_SESSION['toast'] = ['tipo' => 'success', 'titulo' => 'Removida', 'mensagem' => 'Propriedade excluída com sucesso.'];
+            $stmt = $this->db->prepare(
+                "INSERT INTO propriedade
+                    (nome, localizacao, municipio, estado, area_total, area_produtiva, proprietario_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmt->bind_param(
+                "ssssddi",
+                $nome, $localizacao, $municipio, $estado,
+                $area_total, $area_produtiva, $proprietario_id
+            );
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao inserir propriedade: {$this->db->error}");
             }
-        } catch (mysqli_sql_exception $e) {
-            // Se houver talhões vinculados, o banco impede a exclusão física para não corromper os dados
-            $_SESSION['toast'] = ['tipo' => 'error', 'titulo' => 'Não permitido', 'mensagem' => 'Esta propriedade possui talhões ou insumos vinculados e não pode ser excluída.'];
+            $stmt->close();
+
+            $this->setToast('success', 'Sucesso', 'Propriedade cadastrada com sucesso!');
+            $this->redirect('propriedades');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível cadastrar a propriedade. Tente novamente.');
+            $this->redirect('propriedades');
+        }
+    }
+
+    public function update(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
         }
 
-        header("Location: index.php?page=propriedades");
-        exit;
-    }
-    
-    public function detalhes(): void {
-        // Usa o ID do dono da fazenda
-        $proprietario_id = $_SESSION['proprietario_id'];
-        $id = intval($_GET['id']);
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas o proprietário pode editar os dados da fazenda.');
+            $this->redirect('propriedades');
+            return;
+        }
 
-        // 1. Busca os dados da propriedade
-        $stmt = $this->db->prepare("SELECT * FROM propriedade WHERE id = ? AND proprietario_id = ?");
-        $stmt->bind_param("ii", $id, $proprietario_id);
+        $propriedade_id = (int) ($_POST['id'] ?? 0);
+
+        if (!$propriedade_id || !$this->validarPropriedade($propriedade_id)) {
+            $this->setToast('error', 'Acesso Negado',
+                'Esta propriedade não pertence à sua conta.');
+            $this->redirect('propriedades');
+            return;
+        }
+
+        $proprietario_id = $this->getProprietarioId();
+        $nome            = trim($_POST['nome']        ?? '');
+        $localizacao     = trim($_POST['localizacao'] ?? '');
+        $municipio       = trim($_POST['municipio']   ?? '');
+        $estado          = strtoupper(trim($_POST['estado'] ?? ''));
+        $area_total      = (float) ($_POST['area_total']     ?? 0);
+        $area_produtiva  = (float) ($_POST['area_produtiva'] ?? 0);
+
+        if (empty($nome) || empty($municipio) || empty($estado)) {
+            $this->setToast('warning', 'Campos Obrigatórios',
+                'Nome, município e estado são obrigatórios.');
+            $this->redirect('propriedades');
+            return;
+        }
+
+        $erroArea = $this->validarAreas($area_total, $area_produtiva);
+        if ($erroArea) {
+            $this->setToast('error', 'Área Inválida', $erroArea);
+            $this->redirect('propriedades');
+            return;
+        }
+
+        try {
+            $stmt = $this->db->prepare(
+                "UPDATE propriedade
+                 SET nome = ?, localizacao = ?, municipio = ?, estado = ?,
+                     area_total = ?, area_produtiva = ?
+                 WHERE id = ? AND proprietario_id = ?"
+            );
+            $stmt->bind_param(
+                "ssssddii",
+                $nome, $localizacao, $municipio, $estado,
+                $area_total, $area_produtiva, $propriedade_id, $proprietario_id
+            );
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao atualizar propriedade: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Atualizado', 'Dados da propriedade atualizados!');
+            $this->redirect('propriedades');
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível atualizar a propriedade. Tente novamente.');
+            $this->redirect('propriedades');
+        }
+    }
+
+    public function delete(): void
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
+        }
+
+        if ($_SESSION['tipo'] !== 'proprietario') {
+            $this->setToast('error', 'Acesso Negado',
+                'Apenas o proprietário pode excluir uma fazenda.');
+            $this->redirect('propriedades');
+            return;
+        }
+
+        $propriedade_id  = (int) ($_GET['id'] ?? 0);
+        $proprietario_id = $this->getProprietarioId();
+
+        if (!$propriedade_id || !$this->validarPropriedade($propriedade_id)) {
+            $this->setToast('error', 'Acesso Negado',
+                'Esta propriedade não pertence à sua conta.');
+            $this->redirect('propriedades');
+            return;
+        }
+
+        try {
+            $stmt = $this->db->prepare(
+                "DELETE FROM propriedade WHERE id = ? AND proprietario_id = ?"
+            );
+            $stmt->bind_param("ii", $propriedade_id, $proprietario_id);
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao excluir propriedade: {$this->db->error}");
+            }
+            $stmt->close();
+
+            $this->setToast('success', 'Removida', 'Propriedade excluída com sucesso.');
+            $this->redirect('propriedades');
+
+        } catch (\mysqli_sql_exception $e) {
+            // FK violation: existem talhões, silos ou estoques vinculados
+            $this->setToast('error', 'Não permitido',
+                'Esta propriedade possui talhões ou insumos vinculados e não pode ser excluída.');
+            $this->redirect('propriedades');
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            $this->setToast('error', 'Erro interno',
+                'Não foi possível excluir a propriedade. Tente novamente.');
+            $this->redirect('propriedades');
+        }
+    }
+
+    public function detalhes(): void
+    {
+        if (!isset($_SESSION['user'])) {
+            $this->redirect('login');
+            return;
+        }
+
+        $propriedade_id  = (int) ($_GET['id'] ?? 0);
+        $proprietario_id = $this->getProprietarioId();
+
+        if (!$propriedade_id || !$this->validarPropriedade($propriedade_id)) {
+            $this->redirect('propriedades');
+            return;
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT id, nome, localizacao, municipio, estado, area_total, area_produtiva
+             FROM propriedade
+             WHERE id = ? AND proprietario_id = ?
+             LIMIT 1"
+        );
+        $stmt->bind_param("ii", $propriedade_id, $proprietario_id);
         $stmt->execute();
         $propriedade = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-        if (!$propriedade) {
-            header("Location: index.php?page=propriedades");
-            exit;
-        }
-
-        // 2. Busca os talhões desta propriedade específica
-        $stmtTal = $this->db->prepare("SELECT * FROM talhoes WHERE propriedade_id = ?");
-        $stmtTal->bind_param("i", $id);
+        $stmtTal = $this->db->prepare(
+            "SELECT id, nome, area_hectare, status, tipo_posse, custo_arrendamento_sacas
+             FROM talhoes
+             WHERE propriedade_id = ?
+             ORDER BY nome ASC"
+        );
+        $stmtTal->bind_param("i", $propriedade_id);
         $stmtTal->execute();
         $talhoes = $stmtTal->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmtTal->close();
 
-        // 3. Calcula área ocupada para a barra de progresso
-        $area_ocupada = 0;
-        foreach($talhoes as $t) $area_ocupada += $t['area_hectare'];
+        $area_ocupada = array_sum(array_column($talhoes, 'area_hectare'));
 
-        require_once "../app/views/detalhes_propriedade.php";
+        require_once __DIR__ . '/../views/detalhes_propriedade.php';
     }
 }

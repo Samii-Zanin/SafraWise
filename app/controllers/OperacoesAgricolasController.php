@@ -1,7 +1,7 @@
 <?php
 /*
   app/controllers/OperacoesAgricolasController.php
- */
+*/
 
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../../config/conexao.php';
@@ -15,57 +15,121 @@ class OperacoesAgricolasController extends BaseController
 
     public function __construct()
     {
-        $this->db = Conexao::getConexao();
+        $this->db        = Conexao::getConexao();
         $this->validator = new OperacoesAgricolasValidator();
     }
 
+    // ─── helpers privados ────────────────────────────────────────────────────
+
+    private function getProprietarioId(): int
+    {
+        return (int) ($_SESSION['proprietario_id'] ?? 0);
+    }
+
+    /**
+     * Garante que o talhão pertence a uma propriedade do proprietário logado.
+     */
+    private function validarTalhao(int $talhao_id): bool
+    {
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare("
+            SELECT t.id FROM talhoes t
+            JOIN propriedade p ON p.id = t.propriedade_id
+            WHERE t.id = ? AND p.proprietario_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $talhao_id, $proprietario_id);
+        $stmt->execute();
+        $ok = (bool) $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $ok;
+    }
+
+    /**
+     * Garante que o silo pertence a uma propriedade do proprietário logado.
+     */
+    private function validarSilo(int $silo_id): bool
+    {
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare("
+            SELECT si.id FROM silo si
+            JOIN propriedade p ON p.id = si.propriedade_id
+            WHERE si.id = ? AND p.proprietario_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $silo_id, $proprietario_id);
+        $stmt->execute();
+        $ok = (bool) $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $ok;
+    }
+
+    /**
+     * Garante que o peão informado pertence ao proprietário logado.
+     * Retorna null silenciosamente se o peão não pertencer, evitando
+     * que um proprietário vincule operações a peões de outra fazenda.
+     */
+    private function validarPeaoId(int $peao_id): ?int
+    {
+        $proprietario_id = $this->getProprietarioId();
+
+        $stmt = $this->db->prepare("
+            SELECT id FROM peao
+            WHERE id = ? AND proprietario_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $peao_id, $proprietario_id);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $row ? (int) $row['id'] : null;
+    }
+
+    // ─── ações ───────────────────────────────────────────────────────────────
+
     public function getAll(): array
     {
+        $proprietario_id = $this->getProprietarioId();
+
         $stmt = $this->db->prepare("
-            select
+            SELECT
                 oa.id,
                 oa.tipo_operacao,
-                oa.data_operacao ,
+                oa.data_operacao,
                 oa.descricao,
-                i.valor_por_dose as valor_pago_por_un,
-                p.nome as nome_produto,
-                p.tipo as tipo_produto,
+                i.valor_por_dose    AS valor_pago_por_un,
+                p.nome              AS nome_produto,
+                p.tipo              AS tipo_produto,
                 p.unidade_medida,
-                oa.quantidade_insumo, 
-                s.data_inicio as data_inicio_safra,
-                s.data_fim as data_fim_safra,
-                c.nome as nome_cultura,
-                t.nome as nome_talhao,
-                prprdd.nome as nome_propriedade,
-                prprdd.estado as estado_propriedade,
-                pe.nome as nome_peao
-            from
-                operacoes_agricolas oa
-            left join insumo i on
-                i.id = insumo_id
-                left join produto p on
-                i.produto_id = p.id 
-            left join safra s on
-                s.id = safra_id
-                left join cultura c on
-                s.cultura_id = c.id
-            left join talhoes t on
-                t.id = oa.talhao_id
-                left join propriedade prprdd
-                on prprdd.id = t.propriedade_id 
-            left join peao pe on
-                pe.id = oa.peao_id
-            where
-                prprdd.proprietario_id = ?
+                oa.quantidade_insumo,
+                s.data_inicio       AS data_inicio_safra,
+                s.data_fim          AS data_fim_safra,
+                c.nome              AS nome_cultura,
+                t.nome              AS nome_talhao,
+                prprdd.nome         AS nome_propriedade,
+                prprdd.estado       AS estado_propriedade,
+                pe.nome             AS nome_peao
+            FROM operacoes_agricolas oa
+            LEFT JOIN insumo      i      ON i.id       = oa.insumo_id
+            LEFT JOIN produto     p      ON p.id       = i.produto_id
+            LEFT JOIN safra       s      ON s.id       = oa.safra_id
+            LEFT JOIN cultura     c      ON c.id       = s.cultura_id
+            LEFT JOIN talhoes     t      ON t.id       = oa.talhao_id
+            LEFT JOIN propriedade prprdd ON prprdd.id  = t.propriedade_id
+            LEFT JOIN peao        pe     ON pe.id      = oa.peao_id
+            WHERE prprdd.proprietario_id = ?
+            ORDER BY oa.data_operacao DESC
         ");
-        
-        // Usa o ID do dono da fazenda para listar todo o histórico
-        $proprietarioId = $_SESSION['proprietario_id'];
-        $stmt->bind_param("i", $proprietarioId);
-        
+        $stmt->bind_param("i", $proprietario_id);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
+
         return $result;
     }
 
@@ -79,34 +143,41 @@ class OperacoesAgricolasController extends BaseController
 
         require_once __DIR__ . '/../views/operacoes_agricolas.php';
     }
-    
+
     public function save(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
         }
 
-        $tipo_operacao = trim($_POST['tipo_operacao']    ?? '');
-        $data_operacao = trim($_POST['data_operacao']    ?? '');
-        $descricao     = trim($_POST['descricao']        ?? '');
+        $tipo_operacao = trim($_POST['tipo_operacao']     ?? '');
+        $data_operacao = trim($_POST['data_operacao']     ?? '');
+        $descricao     = trim($_POST['descricao']         ?? '');
         $quantidade    = (float) ($_POST['quantidade_insumo'] ?? 0);
         $custo         = (float) ($_POST['custo_operacao']    ?? 0);
-        $talhao_id     = (int)   ($_POST['talhao_id']    ?? 0);
-        $safra_id      = (int)   ($_POST['safra_id']     ?? 0);
+        $talhao_id     = (int)   ($_POST['talhao_id']     ?? 0);
+        $safra_id      = (int)   ($_POST['safra_id']      ?? 0);
 
-        $insumo_id = !empty($_POST['insumo_id']) && (int)$_POST['insumo_id'] > 0
+        $insumo_id = !empty($_POST['insumo_id']) && (int) $_POST['insumo_id'] > 0
             ? (int) $_POST['insumo_id'] : null;
 
-        //  Se for peão, amarra a operação no nome dele.
+        // Peão: a operação é vinculada ao próprio usuário logado
+        // Proprietário: pode escolher o peão no select, mas validamos o vínculo
         if ($_SESSION['tipo'] === 'peao') {
             $peao_id = $_SESSION['user']['id'];
         } else {
-            // Se for proprietário, ele pode escolher no select quem fez a operação
-            $peao_id = !empty($_POST['peao_id']) && (int)$_POST['peao_id'] > 0
-                ? (int) $_POST['peao_id'] : null;
+            $peao_id_post = !empty($_POST['peao_id']) ? (int) $_POST['peao_id'] : 0;
+            $peao_id      = $peao_id_post > 0 ? $this->validarPeaoId($peao_id_post) : null;
         }
 
-        // ── Validações ───────────────────────────────────────────
+        // Segurança: talhão deve pertencer ao proprietário logado
+        if (!$this->validarTalhao($talhao_id)) {
+            $this->setToast('error', 'Acesso negado',
+                'Este talhão não pertence à sua conta.');
+            $this->redirect('safra_detalhe&id=' . $safra_id);
+            return;
+        }
+
         if (!$this->validator->StatusSafraVinculada($safra_id)) {
             $this->setToast('error', 'Safra Inativa',
                 'A safra vinculada está inativa ou o talhão está vazio.');
@@ -126,53 +197,53 @@ class OperacoesAgricolasController extends BaseController
                 $propriedade_id = $this->validator->getPropriedadeIdByTalhao($talhao_id);
                 $estoque        = $this->validator->BuscaDadosdeEstoque($insumo_id, $propriedade_id);
 
-                if (!empty($estoque)) {
-                    $estoque_id   = (int)   $estoque['id'];
-                    $qtd_restante = (float) $estoque['quantidade'] - $quantidade;
-
-                    $stmt = $this->db->prepare(
-                        "UPDATE estoque_insumos SET quantidade = ? WHERE id = ?"
-                    );
-                    $stmt->bind_param("di", $qtd_restante, $estoque_id);
-                    if (!$stmt->execute()) {
-                        throw new \RuntimeException("Falha ao atualizar estoque: {$this->db->error}");
-                    }
-                    $stmt->close();
-
-                    if ($qtd_restante < ($quantidade * 0.1)) {
-                        $this->setToast('warning', 'Estoque Crítico',
-                            'O estoque do insumo está muito baixo. Considere reabastecer.');
-                    }
-                    $stmt = $this->db->prepare("
-                    INSERT INTO operacoes_agricolas
-                        (tipo_operacao, data_operacao, descricao, quantidade_insumo,
-                        insumo_id, talhao_id, peao_id, safra_id, custos_operacao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    $stmt->bind_param(
-                        "sssdiiiid",
-                        $tipo_operacao,
-                        $data_operacao,
-                        $descricao,
-                        $quantidade,
-                        $insumo_id,
-                        $talhao_id,
-                        $peao_id,
-                        $safra_id,
-                        $custo
-                    );
-                    if (!$stmt->execute()) {
-                        throw new \RuntimeException("Falha ao inserir operação: {$this->db->error}");
-                    }
-                    $stmt->close();
-
-                } else {
+                if (empty($estoque)) {
                     $this->setToast('warning', 'Sem Estoque',
                         'Não possui nenhum estoque nesta propriedade para este insumo.');
                     $this->redirect('safra_detalhe&id=' . $safra_id);
                     return;
                 }
+
+                $estoque_id   = (int)   $estoque['id'];
+                $qtd_restante = (float) $estoque['quantidade'] - $quantidade;
+
+                $stmt = $this->db->prepare(
+                    "UPDATE estoque_insumos SET quantidade = ? WHERE id = ?"
+                );
+                $stmt->bind_param("di", $qtd_restante, $estoque_id);
+                if (!$stmt->execute()) {
+                    throw new \RuntimeException("Falha ao atualizar estoque: {$this->db->error}");
+                }
+                $stmt->close();
+
+                if ($qtd_restante < ($quantidade * 0.1)) {
+                    $this->setToast('warning', 'Estoque Crítico',
+                        'O estoque do insumo está muito baixo. Considere reabastecer.');
+                }
             }
+
+            $stmt = $this->db->prepare("
+                INSERT INTO operacoes_agricolas
+                    (tipo_operacao, data_operacao, descricao, quantidade_insumo,
+                     insumo_id, talhao_id, peao_id, safra_id, custos_operacao)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->bind_param(
+                "sssdiiiid",
+                $tipo_operacao,
+                $data_operacao,
+                $descricao,
+                $quantidade,
+                $insumo_id,
+                $talhao_id,
+                $peao_id,
+                $safra_id,
+                $custo
+            );
+            if (!$stmt->execute()) {
+                throw new \RuntimeException("Falha ao inserir operação: {$this->db->error}");
+            }
+            $stmt->close();
 
             $this->setToast('success', 'Operação Registrada!',
                 'A operação agrícola foi salva e o estoque atualizado.');
@@ -184,26 +255,26 @@ class OperacoesAgricolasController extends BaseController
             $this->redirect('safra_detalhe&id=' . $safra_id);
         }
     }
-    
+
     public function storeColheita(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user'])) {
             $this->redirect('login');
         }
 
-        $safra_id         = (int)   ($_POST['safra_id']         ?? 0);
-        $silo_id          = (int)   ($_POST['silo_id']          ?? 0);
-        $quantidade       = (float) ($_POST['quantidade_colhida'] ?? 0);
-        $talhao_id        = (int)   ($_POST['talhao_id']        ?? 0);
-        $data_operacao    = trim(    $_POST['data_operacao']     ?? date('Y-m-d'));
-        $descricao        = trim(    $_POST['descricao']         ?? '');
-        $custo            = (float) ($_POST['custo_operacao']    ?? 0);
+        $safra_id      = (int)   ($_POST['safra_id']          ?? 0);
+        $silo_id       = (int)   ($_POST['silo_id']           ?? 0);
+        $quantidade    = (float) ($_POST['quantidade_colhida'] ?? 0);
+        $talhao_id     = (int)   ($_POST['talhao_id']         ?? 0);
+        $data_operacao = trim(    $_POST['data_operacao']      ?? date('Y-m-d'));
+        $descricao     = trim(    $_POST['descricao']          ?? '');
+        $custo         = (float) ($_POST['custo_operacao']     ?? 0);
 
-        //  Se for peão, amarra a operação no nome dele.
         if ($_SESSION['tipo'] === 'peao') {
             $peao_id = $_SESSION['user']['id'];
         } else {
-            $peao_id = !empty($_POST['peao_id']) ? (int)$_POST['peao_id'] : null;
+            $peao_id_post = !empty($_POST['peao_id']) ? (int) $_POST['peao_id'] : 0;
+            $peao_id      = $peao_id_post > 0 ? $this->validarPeaoId($peao_id_post) : null;
         }
 
         if (strlen($data_operacao) === 10) {
@@ -213,6 +284,21 @@ class OperacoesAgricolasController extends BaseController
         if (!$safra_id || !$silo_id || $quantidade <= 0) {
             $this->setToast('warning', 'Campos obrigatórios',
                 'Safra, silo e quantidade são obrigatórios.');
+            $this->redirect('estoques');
+            return;
+        }
+
+        // Segurança: talhão e silo devem pertencer ao proprietário logado
+        if ($talhao_id && !$this->validarTalhao($talhao_id)) {
+            $this->setToast('error', 'Acesso negado',
+                'Este talhão não pertence à sua conta.');
+            $this->redirect('estoques');
+            return;
+        }
+
+        if (!$this->validarSilo($silo_id)) {
+            $this->setToast('error', 'Acesso negado',
+                'Este silo não pertence à sua conta.');
             $this->redirect('estoques');
             return;
         }
@@ -232,13 +318,14 @@ class OperacoesAgricolasController extends BaseController
             $silo = $stmtSilo->get_result()->fetch_assoc();
             $stmtSilo->close();
 
+            // Nunca deve chegar aqui por causa do validarSilo(), mas por segurança:
             if (!$silo) {
                 $this->setToast('error', 'Silo não encontrado', 'O silo selecionado não existe.');
                 $this->redirect('estoques');
                 return;
             }
 
-            $disponivel = (float)$silo['capacidade_kg'] - (float)$silo['quantidade_kg'];
+            $disponivel = (float) $silo['capacidade_kg'] - (float) $silo['quantidade_kg'];
             if ($quantidade > $disponivel) {
                 $this->setToast('error', 'Capacidade excedida',
                     'A quantidade colhida excede a capacidade disponível do silo (' .
@@ -247,7 +334,7 @@ class OperacoesAgricolasController extends BaseController
                 return;
             }
 
-            // ── INSERT operação agrícola ─────────────────────────
+            // Registra a operação agrícola de colheita
             $tipo = 'COLHEITA';
             $stmt = $this->db->prepare("
                 INSERT INTO operacoes_agricolas
@@ -270,8 +357,8 @@ class OperacoesAgricolasController extends BaseController
             }
             $stmt->close();
 
-            // ── Atualiza silo ────────────────────────────────────
-            $nova_qtd = (float)$silo['quantidade_kg'] + $quantidade;
+            // Credita no silo
+            $nova_qtd = (float) $silo['quantidade_kg'] + $quantidade;
             $stmt = $this->db->prepare(
                 "UPDATE silo SET quantidade_kg = ? WHERE id = ?"
             );

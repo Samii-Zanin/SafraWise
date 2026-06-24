@@ -138,11 +138,8 @@ switch ($page) {
             array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'COMPRA DE INSUMOS'),
             'quantidade'
         ));
-        $totalReceita = array_sum(array_column(
-            array_filter($operacoes, fn($o) => $o['tipo_operacao'] === 'VENDA DE CEREAIS'),
-            'valor_operacao'
-        ));
 
+        $totalReceita = (new OperacoesFinanceirasController())->getReceitaSafra($id);
         $produtos     = (new ProdutoController())->getAllnotCereal();              
         $cereais      = (new ProdutoController())->getAllByTipo('CEREAL');
         $propriedades = (new PropriedadeController())->getAll();          

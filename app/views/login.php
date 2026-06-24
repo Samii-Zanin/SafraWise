@@ -59,39 +59,31 @@ $toast = flashToast();
 
 <div class="login-page">
 
-  <div class="login-brand">
-    <div class="brand-grid"></div>
-
-    <div class="brand-top">
-      <div class="brand-logo">
-        <div class="brand-logo-icon">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="16" width="40" height="24" rx="4" fill="#0f2318" stroke="#74c69d" stroke-width="1.5"/>
-            <rect x="7" y="19" width="34" height="18" rx="2.5" fill="#0a1c10"/>
-            <rect x="21" y="40" width="6" height="4" rx="1.5" fill="#2d6a4f"/>
-            <rect x="15" y="44" width="18" height="2.5" rx="1.5" fill="#52b788"/>
-            <path d="M24 38 Q23 30 24 20 Q25 13 23 6" stroke="#52b788" stroke-width="2" stroke-linecap="round" fill="none"/>
-            <path d="M24 28 Q16 24 13 15 Q20 13 24 28Z" fill="#2d6a4f"/>
-            <path d="M24 21 Q33 17 35 8 Q27 6 24 21Z" fill="#40916c"/>
-            <path d="M23 12 Q22 6 23 1 Q25 6 23 12Z" fill="#74c69d"/>
-          </svg>
+  <div class="login-brand" style="display: flex; flex-direction: column; padding: 48px; background: linear-gradient(135deg, #0f2318 0%, #1a3a28 100%); position: relative; overflow: hidden;">
+    
+    <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(116, 198, 157, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+    
+    <div class="brand-top" style="position: relative; z-index: 2;">
+      <div class="brand-logo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 60px;">
+        <div class="brand-logo-icon" style="background-color: #ffffff; border-radius: 8px; padding: 6px; display: flex; align-items: center; justify-content: center;">
+          <img src="resources/images/SafrawiseRaw.png" alt="Logo SafraWise" style="width: 80px; height: auto;">
         </div>
-        <span class="brand-logo-name">
-          Safra<em style="font-style:italic; color:var(--verde-claro)">Wise</em>
+        <span class="brand-logo-name" style="font-size: 1.6rem; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">
+          Safra<em style="font-style:italic; color:#74c69d">Wise</em>
         </span>
       </div>
 
-      <h2 class="brand-headline">
+      <h2 class="brand-headline" style="font-size: 3.2rem; font-family: 'DM Serif Display', serif; line-height: 1.1; margin-bottom: 24px; color: #ffffff;">
         Gestão<br>
-        <em>inteligente</em><br>
+        <em style="color: #74c69d;">inteligente</em><br>
         da sua safra.
       </h2>
-      <p class="brand-sub">
-        Acompanhe talhões, controle insumos e tome decisões com dados precisos direto do campo.
+      <p class="brand-sub" style="font-size: 1.1rem; color: #e2e8f0; max-width: 420px; line-height: 1.6; opacity: 0.9;">
+        Acompanhe talhões, controle insumos e tome decisões com dados precisos direto do campo. Tudo em um só lugar.
       </p>
     </div>
 
-    <svg class="brand-plant" width="320" height="380" viewBox="0 0 320 380" fill="none">
+    <svg class="brand-plant" width="320" height="380" viewBox="0 0 320 380" fill="none" style="align-self: center; margin-top: auto; z-index: 2; max-width: 100%; height: auto;">
       <path d="M160 370 Q158 300 162 220 Q164 160 155 80" stroke="#74c69d" stroke-width="3" stroke-linecap="round" fill="none"/>
       <path d="M158 200 Q110 180 88 130 Q120 118 158 200Z" fill="#40916c"/>
       <path d="M162 160 Q210 135 230 85 Q200 78 162 160Z" fill="#52b788"/>
@@ -101,20 +93,6 @@ $toast = flashToast();
       <ellipse cx="160" cy="372" rx="50" ry="8" fill="#1a3a28"/>
     </svg>
 
-    <div class="brand-stats">
-      <div class="stat-item">
-        <div class="stat-num">2.4k</div>
-        <div class="stat-label">Produtores</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">18M ha</div>
-        <div class="stat-label">Monitorados</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">99.8%</div>
-        <div class="stat-label">Uptime</div>
-      </div>
-    </div>
   </div>
 
   <div class="login-form-panel">

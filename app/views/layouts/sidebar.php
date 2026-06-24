@@ -1,33 +1,17 @@
 <?php
 // ════════ BLINDAGEM DE ESCOPO ════════
-// Se as variáveis não vieram da página pai, nós buscamos diretamente da sessão de forma segura.
-if (!isset($user) && isset($_SESSION['user'])) {
-    $user = $_SESSION['user'];
-}
-if (!isset($tipo) && isset($_SESSION['tipo'])) {
-    $tipo = $_SESSION['tipo'];
-}
-
-// Fallbacks de segurança (evita erros fatais caso algo muito inesperado ocorra)
-$user = $user ?? ['nome' => 'Usuário'];
-$tipo = $tipo ?? 'peao';
+// Busca SEMPRE a credencial real direto da sessão usando nomes de variáveis exclusivos.
+// Isso evita conflitos com a variável $tipo gerada pelos alertas (Toasts).
+$sessao_user  = $_SESSION['user'] ?? ['nome' => 'Usuário'];
+$sessao_tipo  = $_SESSION['tipo'] ?? 'peao';
 $pagina_atual = $pagina_atual ?? '';
 ?>
 
 <aside class="sidebar">
 
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="16" width="40" height="24" rx="4" fill="#0f2318" stroke="#74c69d" stroke-width="1.5"/>
-        <rect x="7" y="19" width="34" height="18" rx="2.5" fill="#0a1c10"/>
-        <rect x="21" y="40" width="6" height="4" rx="1.5" fill="#2d6a4f"/>
-        <rect x="15" y="44" width="18" height="2.5" rx="1.5" fill="#52b788"/>
-        <path d="M24 38 Q23 30 24 20 Q25 13 23 6" stroke="#52b788" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <path d="M24 28 Q16 24 13 15 Q20 13 24 28Z" fill="#2d6a4f"/>
-        <path d="M24 21 Q33 17 35 8 Q27 6 24 21Z" fill="#40916c"/>
-        <path d="M23 12 Q22 6 23 1 Q25 6 23 12Z" fill="#74c69d"/>
-      </svg>
+ <div class="sidebar-logo">
+    <div class="sidebar-logo-icon" style="background-color: #ffffff; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
+      <img src="resources/images/SafrawiseRaw.png" alt="Logo SafraWise" style="width: 70px; height: auto;">
     </div>
     <span class="sidebar-logo-name">
       Safra<em style="font-style:italic; color:#74c69d">Wise</em>
@@ -36,9 +20,9 @@ $pagina_atual = $pagina_atual ?? '';
 
   <div class="sidebar-user">
     <div class="sidebar-user-role">
-      <?= $tipo === 'proprietario' ? '🏡 Proprietário' : '👷 Peão de campo' ?>
+      <?= $sessao_tipo === 'proprietario' ? '🏡 Proprietário' : '👷 Peão de campo' ?>
     </div>
-    <div class="sidebar-user-name"><?= htmlspecialchars($user['nome']) ?></div>
+    <div class="sidebar-user-name"><?= htmlspecialchars($sessao_user['nome']) ?></div>
   </div>
 
   <nav class="sidebar-nav">
@@ -78,7 +62,7 @@ $pagina_atual = $pagina_atual ?? '';
       Clima
     </a>
 
-    <?php if ($tipo === 'proprietario'): ?>
+    <?php if ($sessao_tipo === 'proprietario'): ?>
       <div class="nav-section-label">Administração</div>
 
       <a href="?page=propriedades" class="sw-nav-link <?= $pagina_atual === 'propriedades' ? 'active' : '' ?>">

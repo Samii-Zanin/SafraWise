@@ -89,13 +89,14 @@ class DashboardController extends BaseController
 
         // Safra com data_fim mais próxima no futuro
         $stmt = $this->db->prepare("
-            SELECT s.data_fim, c.nome AS cultura, t.nome AS talhao
+            
+            SELECT DATE_ADD(s.data_inicio,interval 110 day) as data_fim, c.nome AS cultura, t.nome AS talhao
             FROM safra s
             JOIN talhoes     t  ON t.id  = s.talhao_id
             JOIN propriedade pr ON pr.id = t.propriedade_id
             JOIN cultura     c  ON c.id  = s.cultura_id
-            WHERE pr.proprietario_id = ? AND s.data_fim > CURDATE()
-            ORDER BY s.data_fim ASC
+            WHERE pr.proprietario_id = ? AND s.data_fim is null
+            ORDER BY s.data_inicio  ASC
             LIMIT 1
         ");
         $stmt->bind_param('i', $pid);
